@@ -1,0 +1,24 @@
+# dependencies
+node_modules/
+
+# env — JANGAN pernah commit nilai secret
+.env
+.env.*
+!.env.example
+
+# build output
+dist/
+.output/
+.vercel/
+.nitro/
+.tanstack/
+coverage/
+
+# agent/tool data (bukan bagian project)
+.kuma/
+
+# research papers (bukan bagian submission — hapus baris ini kalau mau diikutkan)
+*.pdf
+
+# os
+.DS_Store
