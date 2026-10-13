@@ -20,7 +20,7 @@ time, and this file grows with them.
 ```
 coverage        = covered_ids / total_ids
 stability       = 1 − conflicted/tested      (fewer than 2 runs on the same SHA → 1.0, labelled "estimated")
-assertions      = count of steps whose action is "expect", per test
+assertions      = count of plan steps whose type is "assertion", per test
 meaningful_pass = status = passed AND assertions ≥ 1     (a pass with 0 assertions is "vacuous")
 pass_rate       = meaningful_passes / total
 TSI             = round(100 × (0.50×coverage + 0.30×stability + 0.20×pass_rate))
@@ -31,8 +31,9 @@ CLI and the dashboard.
 
 A test that passes without asserting anything is the exact failure mode this suite exists
 to catch, so it is reported as `vacuous` and does **not** count toward `pass_rate`.
-Assertion counts come from `testsprite test steps` — the only surface that exposes them.
-The JUnit report does not, which is why pass rate alone is not a sufficient signal.
+Assertion counts come from each test's own plan, where every step is typed `action` or
+`assertion`. The JUnit report does not carry step types, which is why pass rate alone is
+not a sufficient signal.
 
 ---
 
@@ -71,15 +72,15 @@ The JUnit report does not, which is why pass rate alone is not a sufficient sign
 
 ### Assertion depth — 3
 
-Depth comes from `testsprite test steps <test-id>`: the count of steps whose `action` is
-`expect`. A test with zero `expect` steps passes without asserting anything — the
+Depth comes from the test's own plan: the count of `planSteps` whose `type` is
+`assertion`. A test with zero `assertion` steps passes without asserting anything — the
 false-pass failure mode that a pass/fail count cannot see.
 
 | ID | Asserts | Exact value |
 |---|---|---|
-| `SV-ADQ-01` | Per-test depth is reported | a fixture test with 6 steps, 1 of them `action: expect` → run detail shows `steps 6 · assertions 1` |
-| `SV-ADQ-02` | A vacuous pass is caught and does not count as a pass | a test with 5 steps, **0** `expect` steps, status `passed` → flagged `vacuous (0 assertions)`, excluded from `meaningful_passes`; PR comment line `assertions 63/67 (1 vacuous)` |
-| `SV-ADQ-03` | A shallow pass is flagged, not penalised | a passing test with exactly 1 `expect` step → flagged `shallow (1 assertion)`; `pass_rate` unchanged |
+| `SV-ADQ-01` | Per-test depth is reported | a fixture test with 6 plan steps, 1 of them `type: assertion` → run detail shows `steps 6 · assertions 1` |
+| `SV-ADQ-02` | A vacuous pass is caught and does not count as a pass | a test with 5 plan steps, **0** of them `type: assertion`, status `passed` → flagged `vacuous (0 assertions)`, excluded from `meaningful_passes`; PR comment line `assertions 63/67 (1 vacuous)` |
+| `SV-ADQ-03` | A shallow pass is flagged, not penalised | a passing test with exactly 1 `type: assertion` step → flagged `shallow (1 assertion)`; `pass_rate` unchanged |
 
 ### Coverage traceability — 3
 
@@ -148,7 +149,7 @@ baseline `main` `93`; `SV-TSI-04` fails; bundle `fixtures/bundle/step-fail/` rep
 | Demo account | `demo@suitevitals.dev` / `demo-password-1` |
 | JUnit | `fixtures/junit/67t.xml` (64 pass / 3 fail / 0 skip; of the 64 passes **1 is vacuous** and **4 are shallow** → 63 meaningful) |
 | Fixture spec | `fixtures/SPEC.md` — 67 IDs, separate from this file; used for the arithmetic fixture |
-| Steps | `testsprite test steps <test-id>` — per-step `action` / `status` / `stepIndex`; the only source of assertion counts |
+| Test plan | `planSteps[]` per test — step `type` (`action` \| `assertion`) and `description`; the source of assertion counts |
 | Run history | `testsprite test result <test-id> --history` — per-run `status`, `isRerun`, `failureKind`, `codeVersion` |
 | Failure bundle | `fixtures/bundle/step-fail/` — 5 steps, step 3 fails, `snapshotId snp_A1` |
 | Verdicts | `fixtures/verdicts.md` — refused / incomplete / drift / regression / no-bundle |

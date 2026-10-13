@@ -64,7 +64,7 @@ fix. The loop is recorded on the PR and on the dashboard's **Loop** page.
 | Signal | What you get |
 |---|---|
 | **TSI + delta** | Comment on your PR: index, coverage, stability, pass rate, and the change vs. the last run |
-| **Assertion depth** | Per-test `expect`-step counts. A pass with **zero** assertions is labelled `vacuous` and excluded from pass rate; a 1-assertion pass is labelled `shallow` |
+| **Assertion depth** | Per-test counts of plan steps of type `assertion`. A pass with **zero** assertions is labelled `vacuous` and excluded from pass rate; a 1-assertion pass is labelled `shallow` |
 | **Ratchet check** | A separate status check that **blocks merge when TSI drops below the `main` baseline** |
 | **Verdict audit** | Refused tests labelled `refused (not a failure)`; incomplete reruns hold the gate at `neutral`; diffs against verdict-less runs are refused |
 | **Drift classification** | Failures caused by a changed spec are labelled `spec-drift`, not `regression` |
@@ -80,7 +80,7 @@ fix. The loop is recorded on the PR and on the dashboard's **Loop** page.
 ```
 coverage        = covered_ids / total_ids          # SPEC.md scenario IDs ↔ test names in TestSprite
 stability       = 1 − conflicted/tested            # same-SHA reruns; <2 runs → 1.0 (labelled estimated)
-assertions      = steps with action "expect", per test   # from `testsprite test steps`
+assertions      = plan steps of type "assertion", per test   # from the test plan (planSteps[])
 meaningful_pass = passed AND assertions ≥ 1         # a 0-assertion pass is "vacuous" and excluded
 pass_rate       = meaningful_passes / total
 TSI             = round(100 × (0.50×coverage + 0.30×stability + 0.20×pass_rate))
@@ -94,7 +94,7 @@ randomness inside the score.
 TSI-01: coverage 60/67, stability 66/67, pass 63/67 (1 vacuous)
         → TSI = round(100×(0.50×0.895522 + 0.30×0.985075 + 0.20×0.940299)) = 93
 
-ADQ-02: 5 steps, 0 expect steps, status passed
+ADQ-02: 5 plan steps, 0 of type "assertion", status passed
         → labelled "vacuous (0 assertions)", excluded from pass rate
 
 FIX-01: regression + bundle → agent fix commit → rerun TSI 93 → green
@@ -103,20 +103,24 @@ FIX-01: regression + bundle → agent fix commit → rerun TSI 93 → green
 
 ## Built on TestSprite
 
-The **TestSprite GitHub App** is the primary path: drop it on your repo and every pull
-request gets tested against its own deployment — *"Nothing is added to your repository."*
-TestSprite's per-repo switches (**Base Branch**, **Environment**, **Include Draft PRs**,
-**Blocking PRs**, **Run affected tests on its pull requests**) decide what runs and
-whether it holds the merge. The App reports back as a `testsprite-dev` comment that
-updates in place.
+The **TestSprite GitHub App** is the primary path: connect it in the portal and every pull
+request gets tested against its own preview deployment — **no workflow files required,
+nothing added to your repository.** TestSprite resolves which URL to test per PR from the
+deployment event or from a target URL pattern (`{pr}`, `{branch-slug}`, `{sha}`, …), and
+per-repo toggles decide whether draft PRs are included and whether the result blocks the
+merge. The App reports back as a `testsprite-dev` comment that updates in place.
 
-Meerkat then reads TestSprite's own run data — `test list`, `test result --history`,
-`test steps` — and adds a **second, independent check**: `SuiteVitals Ratchet`, carrying
-the score, the delta, the gaps, the drift classification, and the loop decision.
+Meerkat then reads TestSprite's own surfaces — the run list, each test's run history, and
+the test plan behind it — and adds a **second, independent check**: `SuiteVitals Ratchet`,
+carrying the score, the delta, the gaps, the drift classification, and the loop decision.
 
 Two checks, two jobs: **TestSprite decides whether the app works. Meerkat decides whether
 that verdict is worth acting on.** Meerkat never interferes with TestSprite's own
 blocking behaviour. This repo's own pull requests are gated by both.
+
+<sub>Integration details verified against TestSprite's own documentation —
+[GitHub Integration](https://docs.testsprite.com/web-portal/integrations/github-integration) ·
+[Reading Results](https://docs.testsprite.com/cli/core/reading-results).</sub>
 
 ## What the suite covers
 
@@ -130,7 +134,7 @@ pull request within a free-tier credit budget, and grows one PR at a time.
 | **CFG** | 2 | Action defaults, draft PRs |
 | **ING** | 3 | JUnit parsing (counts, skips, malformed) |
 | **TSI** | 4 | Formula (exact fixture → **93**, rounding, determinism, delta) |
-| **ADQ** | 3 | Assertion depth (per-test `expect` count, vacuous pass caught, shallow pass flagged) |
+| **ADQ** | 3 | Assertion depth (per-test `assertion` step count, vacuous pass caught, shallow pass flagged) |
 | **COV** | 3 | Traceability (partial match, case-sensitivity, detail table) |
 | **RAT** | 3 | Ratchet (drop blocks, baseline update, two checks) |
 | **PRM** | 2 | PR comment (content, edit-in-place) |
@@ -146,12 +150,13 @@ audit trail — every score Meerkat reports traces back to a line in it.
 
 Meerkat does not invent data. Stability needs two runs of the same SHA; with one run it
 reports `1.0`, labelled *estimated*, rather than guessing at flakiness. Assertion depth
-comes from TestSprite's own step surface; when step data isn't available, pass rate falls
-back to plain `passed/total`, labelled *estimated*. Coverage is ID-based, because
-TestSprite-generated test files aren't readable from your repo — a testable contract
-instead of a guess. And we don't claim novelty for the commodity parts: mutation testing,
-flake detection, and test-impact analysis are established prior art. Meerkat's
-contribution is the **verdict-audited loop**.
+comes from each test's own plan, where a step's `type` is `action` or `assertion`; when a
+plan isn't available, pass rate falls back to plain `passed/total`, labelled *estimated*.
+Coverage is ID-based — it matches `SPEC.md` scenario IDs against test names, so it stays a
+testable contract instead of depending on how any generator happened to name its files.
+And we don't claim novelty for the commodity parts: mutation testing, flake detection, and
+test-impact analysis are established prior art. Meerkat's contribution is the
+**verdict-audited loop**.
 
 ## Built with
 
@@ -161,7 +166,7 @@ contribution is the **verdict-audited loop**.
 | Hosting | Vercel, with per-PR preview deployments |
 | Database | Postgres (Neon) + Drizzle ORM |
 | Styling | Tailwind CSS |
-| Test ingestion | TestSprite platform runs — `test list` · `test result --history` · `test steps`; the JUnit report for the offline path |
+| Test ingestion | TestSprite's own surfaces — run list, run history, test plans; the JUnit report for the offline path |
 | Engine tests | Vitest + fast-check (property-based) |
 | CLI | Node + TypeScript, zero-config defaults |
 
