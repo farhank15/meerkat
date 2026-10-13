@@ -1,0 +1,68 @@
+name: TestSprite
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Least privilege by default. The remediation job added later (F20) declares
+# `contents: write` + `pull-requests: write` on its own job, not here.
+permissions:
+  contents: read
+
+concurrency:
+  group: testsprite-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    # This is the check name referenced by branch protection and by the README.
+    name: testsprite-dev
+    runs-on: ubuntu-latest
+    # Runs once the TestSprite project is wired up (set the repository variable
+    # TESTSPRITE_PROJECT_ID). Fork PRs never receive secrets, so they are skipped
+    # rather than failed — this is the guard recommended by testsprite-action.
+    if: ${{ vars.TESTSPRITE_PROJECT_ID != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # The suite runs against the deployed app, not localhost. Per-PR runs are
+      # resolved by the TestSprite `preview` environment placeholder, not by
+      # `target-url` (which the CLI rejects on full-project runs).
+      - name: Run TestSprite suite
+        id: testsprite
+        uses: TestSprite/testsprite-action@v1
+        with:
+          api-key: ${{ secrets.TESTSPRITE_API_KEY }}
+          project: ${{ vars.TESTSPRITE_PROJECT_ID }}
+          report-file: testsprite-junit.xml
+          artifact-name: testsprite-junit
+          timeout: '900'
+          # Frontend tests on the V2 execution path may be reported as skipped;
+          # flip to 'true' only if we deliberately accept partial runs.
+          allow-partial: 'false'
+
+      - name: Run summary
+        if: always()
+        run: |
+          {
+            echo "### TestSprite verdict"
+            echo ""
+            echo "| metric | value |"
+            echo "|---|---|"
+            echo "| total | ${{ steps.testsprite.outputs.total }} |"
+            echo "| passed | ${{ steps.testsprite.outputs.passed }} |"
+            echo "| failed | ${{ steps.testsprite.outputs.failed }} |"
+            echo "| skipped | ${{ steps.testsprite.outputs.skipped }} |"
+            echo "| timed-out | ${{ steps.testsprite.outputs.timed-out }} |"
+            echo "| error-code | \`${{ steps.testsprite.outputs.error-code }}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # TODO (PR #3/#4): the `SuiteVitals Ratchet` job — reads the
+      # `testsprite-junit` artifact, scores it against SPEC.md, and fails the
+      # check when the score drops below the baseline on main.
+      #
+      # TODO (PR #6): the remediation job (F20) — gated on the verdict-trust
+      # signal above. `error-code` non-empty or `timed-out > 0` means the run
+      # never reached a trustworthy verdict, so the loop must stay silent
+      # instead of dispatching an agent.
