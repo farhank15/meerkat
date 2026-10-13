@@ -12,7 +12,7 @@ Meerkat builds on [TestSprite](https://www.testsprite.com)'s verdicts — it add
 
 [![TestSprite Hackathon S4](https://img.shields.io/badge/TestSprite-Hackathon_S4-blue)](https://www.testsprite.com/hackathon-s4)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Suite](https://img.shields.io/badge/suite-96_scenarios-brightgreen)](#-test-coverage)
+[![Suite](https://img.shields.io/badge/suite-30_core_scenarios-brightgreen)](SPEC.md)
 [![Loop](https://img.shields.io/badge/loop-auto--remediation-8A2BE2)](#-the-loop)
 [![Preview](https://img.shields.io/badge/preview-per--PR-blueviolet)](#-wired-for-real)
 [![PR checks: blocking](https://img.shields.io/badge/PR_checks-blocking-brightgreen)](#-proof-the-loop)
@@ -92,6 +92,7 @@ An agent only touches your code when the verdict is a genuine regression. A refu
 | **Per-PR preview** | Every PR is tested against its **own preview deployment**, across a context matrix — not prod |
 | **Step narrative** | Failures come back as *"failed at step 3/5: click 'Verify' — expected '95', received '96'"*, parsed from TestSprite's own failure bundle |
 | **Coverage gaps** | Run detail lists every `SPEC.md` scenario ID with `covered` / `gap` status |
+| **Audit trail** | Click any score to see the JUnit rows, the `SPEC.md` line, and the commit SHA behind it — the number is never unexplained |
 | **Flake table** | Tests that passed in one run and failed in another run of the *same SHA* |
 
 ## 🖥 CLI
@@ -116,26 +117,23 @@ Same fixture → same JSON, **byte-identical** to the dashboard's number for the
 
 ## 📊 Test coverage
 
-**96 scenarios across 16 families** (58 core + 38 extended), all with exact expected values in the suite specification — coverage breadth *and* assertion depth: every scenario asserts at least one exact number, label, or line, never just "renders correctly".
+**30 core scenarios across 11 families**, all with exact expected values — coverage breadth *and* assertion depth: every scenario asserts at least one exact number, label, or line, never just "renders correctly".
+
+The full contract lives in [`SPEC.md`](SPEC.md). That file is also the oracle for the audit trail — every score Meerkat reports traces back to a line in it. The suite is deliberately sized to run on **every** pull request within a free-tier credit budget, and grows one PR at a time.
 
 | Family | # | Focus |
 |---|:---:|---|
-| **SMK** | 4 | Landing, API health, CLI hello, share page |
-| **CFG** | 6 | Action config (defaults, missing key, bad paths) |
-| **ENV** | 4 | **Per-PR preview matrix (environment, context, aggregation)** |
-| **ING** | 6 | JUnit parsing (counts, skips, malformed, missing, multi-suite) |
-| **DSH** | 8 | Dashboard (tables, detail, history, empty, auth, **Loop page**) |
-| **COV** | 9 | Traceability (match, gaps, case, orphans, update, empty, table) |
-| **DRF** | 3 | Spec drift (drift-vs-bug, added/removed, spec-only neutral) |
-| **RAT** | 6 | Ratchet (drop blocks, equal passes, baseline update) |
-| **TSI** | 8 | Formula (exact fixture → **93**, rounding, determinism) |
-| **PRM** | 5 | PR comment (content, edit-in-place, permissions) |
-| **FLK** | 6 | Stability (conflicts, same SHA, renames) |
-| **VDT** | 3 | Verdict trust (refused≠failed, incomplete rerun, unverdictable diff) |
-| **NAR** | 10 | Step narrative (failing step, snapshot guard, fallback, cap) |
-| **FIX** | 8 | **Auto-remediation loop (gate per verdict, dispatch, non-gating, record)** |
-| **CLI** | 6 | `score` command (JSON, exit codes, defaults) |
-| **ERR** | 4 | Malformed input, network failure, auth, zero tests |
+| **SMK** | 2 | Landing scorecard, API health |
+| **CFG** | 2 | Action defaults, draft PRs |
+| **ING** | 3 | JUnit parsing (counts, skips, malformed) |
+| **TSI** | 4 | Formula (exact fixture → **93**, rounding, determinism, delta) |
+| **COV** | 3 | Traceability (partial match, case-sensitivity, detail table) |
+| **RAT** | 3 | Ratchet (drop blocks, baseline update, two checks) |
+| **PRM** | 2 | PR comment (content, edit-in-place) |
+| **VDT** | 2 | Verdict trust (refused ≠ failed, incomplete rerun) |
+| **DRF** | 2 | Spec drift (drift-vs-bug, spec-only neutral) |
+| **AUD** | 3 | **Audit trail (TSI → JUnit line, gap → SPEC line, SHA provenance)** |
+| **FIX** | 4 | **Auto-remediation loop (regression → green, refused gate, drift gate, escalation)** |
 
 Example of the exact-value assertions the suite runs:
 
@@ -157,7 +155,7 @@ Meerkat exists *inside* the Season 4 loop — every layer below is a real integr
 
 | S4 step | What runs here |
 |---|---|
-| **Suite (3.0 portal)** | Agents explore the live app and generate the 96-test suite with exact-value assertions (`SV-XXX-NN` naming contract) |
+| **Suite (3.0 portal)** | Agents explore the live app and generate the 30-test core suite from [`SPEC.md`](SPEC.md), with exact-value assertions (`SV-XXX-NN` naming contract) |
 | **Wire-up (Actions)** | `TestSprite/testsprite-action@v1` runs the full suite on every PR **against that PR's preview deployment** (Environments placeholder), writes the JUnit report |
 | **Check (PR)** | Two checks per push: TestSprite's verdict + Meerkat's ratchet (TSI vs `main` baseline) + PR comment with score, delta, gaps, drift, and the loop decision |
 | **Fix loop (F20)** | On a trustworthy regression, an agent reads TestSprite's own `failure bundle` off the PR (`failed at step 3/5`, exact assertion, snapshot) and pushes a fix — push reruns everything to green |
@@ -180,7 +178,7 @@ Without TestSprite there is no suite, no verdict, no bundle, no gate — Meerkat
 Meerkat scores **its own** suite. The dashboard you open in the demo is fed by the same Action that gates this repo's PRs — the tool eats its own cooking:
 
 - TSI history for this repo, visible on the share page
-- Coverage table for the 96 scenarios above
+- Coverage table for the 30 core scenarios in [`SPEC.md`](SPEC.md)
 - Ratchet active on this repo since the gate PR
 - Loop page: this repo's own red→green PRs
 
