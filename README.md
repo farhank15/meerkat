@@ -19,7 +19,7 @@ Meerkat builds on [TestSprite](https://www.testsprite.com)'s verdicts — it add
 
 <!-- Links marked TODO are filled with real URLs during the build window (Oct 16–22). -->
 
-[Live demo](https://meerkat.vercel.app) *(TODO: deploy)* · [Share page](https://meerkat.vercel.app/s/demo) *(TODO)* · [Demo video]() *(TODO)*
+[Live demo](https://meerkat-app.vercel.app) · [Share page](https://meerkat-app.vercel.app/s/demo) *(TODO)* · [Demo video]() *(TODO)*
 
 </div>
 

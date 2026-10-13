@@ -1,12 +1,12 @@
-# dependencies
+# Dependencies
 node_modules/
 
-# env — JANGAN pernah commit nilai secret
+# Environment — never commit secret values
 .env
 .env.*
 !.env.example
 
-# build output
+# Build output
 dist/
 dist-ssr/
 .output/
@@ -19,17 +19,17 @@ coverage/
 __unconfig*
 todos.json
 
-# agent/tool data (bukan bagian project)
+# Local tooling data
 .kuma/
 
-# internal planning docs (PRD/SPEC/RUNBOOK/etc.) — TIDAK untuk repo publik
+# Local planning notes
 docs/
 
-# research papers (bukan bagian submission — hapus baris ini kalau mau diikutkan)
+# Local reference papers
 *.pdf
 
-# editor / local
+# Editor / local overrides
 *.local
 
-# os
+# OS
 .DS_Store
