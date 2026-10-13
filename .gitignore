@@ -8,11 +8,16 @@ node_modules/
 
 # build output
 dist/
+dist-ssr/
 .output/
 .vercel/
 .nitro/
 .tanstack/
+.vinxi/
+.wrangler/
 coverage/
+__unconfig*
+todos.json
 
 # agent/tool data (bukan bagian project)
 .kuma/
@@ -22,6 +27,9 @@ docs/
 
 # research papers (bukan bagian submission — hapus baris ini kalau mau diikutkan)
 *.pdf
+
+# editor / local
+*.local
 
 # os
 .DS_Store
