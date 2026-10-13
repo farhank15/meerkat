@@ -146,7 +146,7 @@ baseline `main` `93`; `SV-TSI-04` fails; bundle `fixtures/bundle/step-fail/` rep
 | Item | Value |
 |---|---|
 | Demo account | `demo@suitevitals.dev` / `demo-password-1` |
-| JUnit | `fixtures/junit/67t.xml` (64 pass / 3 fail / 0 skip; 1 pass is **vacuous** → 63 meaningful) |
+| JUnit | `fixtures/junit/67t.xml` (64 pass / 3 fail / 0 skip; of the 64 passes **1 is vacuous** and **4 are shallow** → 63 meaningful) |
 | Fixture spec | `fixtures/SPEC.md` — 67 IDs, separate from this file; used for the arithmetic fixture |
 | Steps | `testsprite test steps <test-id>` — per-step `action` / `status` / `stepIndex`; the only source of assertion counts |
 | Run history | `testsprite test result <test-id> --history` — per-run `status`, `isRerun`, `failureKind`, `codeVersion` |

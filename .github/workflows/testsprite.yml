@@ -1,4 +1,20 @@
-name: TestSprite
+name: TestSprite (JUnit fallback)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STATUS: fallback path. Disabled until TESTSPRITE_PROJECT_ID is set.
+#
+# Season 4's primary path is the TestSprite **GitHub App** — it needs no repo
+# changes and posts its own `testsprite-dev` comment on every pull request. The
+# App does not document a JUnit report or any downloadable artifact, so
+# Meerkat's preferred ingest is the TestSprite CLI reading the App's runs
+# (`test list`, `test result --history --source github_action`, `test steps`),
+# which keeps the suite at one run per PR.
+#
+# This workflow is the fallback: it runs the suite a second time purely to
+# obtain `testsprite-junit.xml` for the offline/deterministic ingest path.
+# Running both paths doubles TestSprite credit spend per PR, so enable it only
+# if the CLI turns out not to see App-triggered runs for this project.
+# ─────────────────────────────────────────────────────────────────────────────
 
 on:
   pull_request:
@@ -16,8 +32,10 @@ concurrency:
 
 jobs:
   e2e:
-    # This is the check name referenced by branch protection and by the README.
-    name: testsprite-dev
+    # Named `testsprite-junit` so it is never confused with the GitHub App's own
+    # `testsprite-dev` PR comment. This check exists only to produce the JUnit
+    # artifact for Meerkat in the fallback path.
+    name: testsprite-junit
     runs-on: ubuntu-latest
     # Runs once the TestSprite project is wired up (set the repository variable
     # TESTSPRITE_PROJECT_ID). Fork PRs never receive secrets, so they are skipped
@@ -27,7 +45,7 @@ jobs:
       - uses: actions/checkout@v4
 
       # The suite runs against the deployed app, not localhost. Per-PR runs are
-      # resolved by the TestSprite `preview` environment placeholder, not by
+      # resolved by the App's PR-trigger URL pattern ({branch-slug} etc.), not by
       # `target-url` (which the CLI rejects on full-project runs).
       - name: Run TestSprite suite
         id: testsprite

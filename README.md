@@ -31,7 +31,7 @@ Meerkats stand tall and watch over their colony — one sentinel always on duty.
 
 Concretely, Meerkat **extends** your TestSprite setup:
 
-- It reads the JUnit report [`testsprite-action`](https://github.com/TestSprite/testsprite-action) already produces on every PR, parses your `SPEC.md`, and computes the **Test Strength Index (TSI)** — coverage, stability, pass rate.
+- It reads TestSprite's own run data (and the JUnit report, for the offline path), parses your `SPEC.md`, and computes the **Test Strength Index (TSI)** — coverage, stability, assertion depth, pass rate.
 - It measures **assertion depth**: a test that passes without asserting anything is a *vacuous pass* — counted, flagged, and excluded from the score, not silently trusted.
 - It adds a **trust layer** to the verdict: a refused run is not a failure, an incomplete rerun never passes the gate, a diff against a run with no verdict is refused.
 - It **tells spec-drift apart from bugs**: a failing test caused by a changed spec is classified `spec-drift`, not `regression`.
@@ -57,10 +57,10 @@ Meerkat answers all five — and acts on the fifth.
 
 ## How it works
 
-Drop one Action into your workflow. Meerkat reads the JUnit report [`testsprite-action`](https://github.com/TestSprite/testsprite-action) already produces, parses your `SPEC.md`, and computes the **Test Strength Index**:
+Drop the **GitHub App** on your repo — every pull request gets tested on its own, with nothing added to your repository. Then add Meerkat: it reads TestSprite's own run data, parses your `SPEC.md`, and computes the **Test Strength Index**:
 
 ```
-coverage        = covered_ids / total_ids          # SPEC.md scenario IDs ↔ test names in JUnit
+coverage        = covered_ids / total_ids          # SPEC.md scenario IDs ↔ test names in TestSprite
 stability       = 1 − conflicted/tested            # same-SHA reruns; <2 runs → 1.0 (labeled estimated)
 assertions      = steps with action "expect", per test   # from `testsprite test steps`
 meaningful_pass = passed AND assertions ≥ 1         # a 0-assertion pass is "vacuous" and excluded
@@ -68,7 +68,7 @@ pass_rate       = meaningful_passes / total
 TSI             = round(100 × (0.50×coverage + 0.30×stability + 0.20×pass_rate))
 ```
 
-Every input is on disk, every formula is deterministic — **the same files always produce the same TSI, byte for byte.** No timestamps, no randomness inside the score.
+Every input comes from TestSprite's own surfaces, every formula is deterministic — **the same run data always produces the same TSI, byte for byte.** No timestamps, no randomness inside the score.
 
 ## 🔁 The loop
 
@@ -94,10 +94,10 @@ An agent only touches your code when the verdict is a genuine regression. A refu
 | **Verdict audit** | Refused tests labeled `refused (not a failure)`; incomplete reruns hold the gate at `neutral`; diffs against verdict-less runs are refused |
 | **Drift classification** | Failures caused by a changed spec are labeled `spec-drift`, not `regression` |
 | **Auto-remediation loop** | A trustworthy regression gets a fix commit on the PR branch — visible, gated, reviewable |
-| **Per-PR preview** | Every PR is tested against its **own preview deployment**, across a context matrix — not prod |
+| **Per-PR preview** | TestSprite's App runs each PR against **that PR's own deployment** (not prod) — Meerkat adds an optional context matrix on top |
 | **Step narrative** | Failures come back as *"failed at step 3/5: click 'Verify' — expected '95', received '96'"*, parsed from TestSprite's own failure bundle |
 | **Coverage gaps** | Run detail lists every `SPEC.md` scenario ID with `covered` / `gap` status |
-| **Audit trail** | Click any score to see the JUnit rows, the `SPEC.md` line, and the commit SHA behind it — the number is never unexplained |
+| **Audit trail** | Click any score to see the test rows behind it, the `SPEC.md` line, and the commit SHA — the number is never unexplained |
 | **Flake table** | Tests that passed in one run and failed in another run of the *same SHA* |
 
 ## 🖥 CLI
@@ -139,7 +139,7 @@ The full contract lives in [`SPEC.md`](SPEC.md). That file is also the oracle fo
 | **PRM** | 2 | PR comment (content, edit-in-place) |
 | **VDT** | 2 | Verdict trust (refused ≠ failed, incomplete rerun) |
 | **DRF** | 2 | Spec drift (drift-vs-bug, spec-only neutral) |
-| **AUD** | 3 | **Audit trail (TSI → JUnit line, gap → SPEC line, SHA provenance)** |
+| **AUD** | 3 | **Audit trail (TSI → test rows, gap → SPEC line, SHA provenance)** |
 | **FIX** | 4 | **Auto-remediation loop (regression → green, refused gate, drift gate, escalation)** |
 
 Example of the exact-value assertions the suite runs:
@@ -166,31 +166,51 @@ Meerkat exists *inside* the Season 4 loop — every layer below is a real integr
 
 | S4 step | What runs here |
 |---|---|
-| **Suite (3.0 portal)** | Agents explore the live app and generate the 33-test core suite from [`SPEC.md`](SPEC.md), with exact-value assertions (`SV-XXX-NN` naming contract) |
-| **Wire-up (Actions)** | `TestSprite/testsprite-action@v1` runs the full suite on every PR **against that PR's preview deployment** (Environments placeholder), writes the JUnit report |
-| **Check (PR)** | Two checks per push: TestSprite's verdict + Meerkat's ratchet (TSI vs `main` baseline) + PR comment with score, delta, gaps, drift, and the loop decision |
-| **Fix loop (F20)** | On a trustworthy regression, an agent reads TestSprite's own `failure bundle` off the PR (`failed at step 3/5`, exact assertion, snapshot) and pushes a fix — push reruns everything to green |
-| **Beyond the loop** | Meerkat adds a trust layer to TestSprite's verdicts (refused≠failed), classifies drift-vs-bug, and only then decides whether to act |
+| **Suite (3.0 portal)** | Agents explore the live app and generate the 33-scenario core suite from [`SPEC.md`](SPEC.md), with exact-value assertions (`SV-XXX-NN` naming contract). The suite must exist before the check can run. |
+| **Wire-up (GitHub App)** | The **TestSprite GitHub App** is the primary path — *"Nothing is added to your repository."* Per-repo switches: **Base Branch**, **Environment**, **Include Draft PRs**, **Blocking PRs** (turns the result into a status check that holds the merge), and **Run affected tests on its pull requests**. PR runs execute against **that PR's own deployment**. |
+| **Check (PR)** | The App posts a `testsprite-dev` comment that updates in place — in-progress first, then the pass/fail report naming the failing test. Meerkat adds a **second, independent check**: `SuiteVitals Ratchet` (TSI vs the `main` baseline) plus a comment carrying score, delta, gaps, drift, and the loop decision. |
+| **Ingest** | Meerkat reads TestSprite's own run data — `test list`, `test result --history`, `test steps` — so assertion depth and per-run history come from the platform, not from guessing. |
+| **Fix loop (F20)** | On a trustworthy regression, an agent reads TestSprite's own `failure bundle` off the PR (`failed at step 3/5`, exact assertion, snapshot) and pushes a fix — the push reruns everything to green. |
+| **Beyond the loop** | Meerkat adds a trust layer to TestSprite's verdicts (refused ≠ failed), classifies drift-vs-bug, and only then decides whether to act. |
 
-Without TestSprite there is no suite, no verdict, no bundle, no gate — Meerkat is instrumentation *and a gated fix loop on top of* the TestSprite pipeline, and this repo's own PRs are gated by it (dogfooding).
+Two checks, two jobs: **TestSprite decides whether the app works. Meerkat decides whether that verdict is worth acting on.** Meerkat never interferes with TestSprite's own blocking behaviour — it is a separate check.
+
+## 🎯 The gaps TestSprite publishes — and which ones Meerkat closes
+
+TestSprite's Season 4 page lists, verbatim, the complaints its own users send in. We didn't have to guess what's broken — they published it. Here is the honest mapping:
+
+| What users report | Closed by |
+|---|---|
+| *"The verdict said failed, not which step failed."* | ✅ **Step narrative** — `failed at step 3/5: click "Verify" — expected "95", received "96"`, parsed from TestSprite's own failure bundle |
+| *"--wait returned before the run finished"* | ✅ **Verdict trust** — a non-terminal run is never scored; an incomplete rerun is labelled `incomplete rerun refused` and holds the gate at `neutral` |
+| *"It generated 40 tests. Three were the ones I needed."* | ✅ **Coverage traceability + assertion depth** — every `SPEC.md` ID is `covered` or `gap`, and a pass with zero `expect` steps is labelled `vacuous` and excluded |
+| *"Could not tell which PR the check belonged to."* | ✅ **Audit trail** — every score carries the commit `sha` and `run_id`, resolving to the public repo at that exact commit |
+| *"CI output is hard to skim when it fails."* | ✅ **PR comment** — one line of summary, three metric lines, and the loop decision, edited in place instead of appended |
+| *"I wanted to re-run one test, not the whole suite."* | ➖ Native — the App's **Run affected tests on its pull requests** switch already does this |
+| *"A tool description sent my agent to the wrong call."* | ➖ Out of scope — MCP server surface, not Meerkat's |
+| *"An MCP call failed silently."* | ➖ Out of scope — same |
+| *"Install docs skip the API key step."* | ➖ Out of scope — documentation, not Meerkat's |
+
+**Five of nine, honestly counted.** One more is already handled natively by the App, and the remaining three are MCP and install-docs surfaces — labelled out of scope rather than quietly omitted, because they are somebody else's fix.
+
 
 ## 🏅 Proof: the loop
 
 | Evidence | Where |
 |---|---|
-| Every PR automatically tested | Status checks + PR comment *(TODO: link)* |
+| Every PR automatically tested | TestSprite's own `testsprite-dev` comment, updated in place — in-progress first, then the pass/fail report naming the failing test |
 | Red → agent fix → green, caught by a real check | Example PR *(TODO: link)* |
-| Suite blocks a merge | Branch protection + required status checks *(TODO)* |
+| Suite blocks a merge | The App's **Blocking PRs** switch + Meerkat's `SuiteVitals Ratchet` as a required status check *(TODO)* |
 
 *Links filled with real PR references during the build window (Oct 16–22). This table is the submission story: judges read the whole loop off the PR — red, fix, green.*
 
 ## 🧮 Dogfooding (the point)
 
-Meerkat scores **its own** suite. The dashboard you open in the demo is fed by the same Action that gates this repo's PRs — the tool eats its own cooking:
+Meerkat scores **its own** suite. The dashboard you open in the demo is fed by the same GitHub App that tests this repo's PRs — the tool eats its own cooking:
 
 - TSI history for this repo, visible on the share page
 - Coverage table for the 33 core scenarios in [`SPEC.md`](SPEC.md)
-- Ratchet active on this repo since the gate PR
+- `SuiteVitals Ratchet` active on this repo since the gate PR
 - Loop page: this repo's own red→green PRs
 
 ## 🔬 Implementation notes (honest scope)
@@ -221,7 +241,7 @@ npm run typecheck
 | Hosting | Vercel with per-PR preview deployments |
 | DB | Postgres (Neon) + Drizzle ORM |
 | Styling | Tailwind CSS |
-| Test ingestion | [`testsprite-action@v1`](https://github.com/TestSprite/testsprite-action) (JUnit + outputs) |
+| Test ingestion | TestSprite platform runs — `test list` · `test result --history` · `test steps`; the JUnit report for the offline/deterministic path |
 | Engine tests | Vitest + fast-check (property-based) |
 | CLI | Node + TypeScript, zero-config defaults |
 
@@ -231,7 +251,7 @@ MIT — see [LICENSE](LICENSE).
 
 ## 🙏 Thanks
 
-- [TestSprite Hackathon S4](https://www.testsprite.com/hackathon-s4) and the [`testsprite-action`](https://github.com/TestSprite/testsprite-action) team for the JUnit + failure-bundle pipeline this tool stands on
+- [TestSprite Hackathon S4](https://www.testsprite.com/hackathon-s4), the TestSprite **GitHub App**, and the failure-bundle pipeline this tool stands on
 - Everyone in QA who keeps asking *"but does it actually catch anything — and who fixes it?"*
 
 ---
