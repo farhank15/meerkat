@@ -17,6 +17,9 @@ coverage/
 # agent/tool data (bukan bagian project)
 .kuma/
 
+# internal planning docs (PRD/SPEC/RUNBOOK/etc.) — TIDAK untuk repo publik
+docs/
+
 # research papers (bukan bagian submission — hapus baris ini kalau mau diikutkan)
 *.pdf
 

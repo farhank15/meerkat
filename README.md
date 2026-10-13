@@ -116,7 +116,7 @@ Same fixture → same JSON, **byte-identical** to the dashboard's number for the
 
 ## 📊 Test coverage
 
-**96 scenarios across 16 families** (58 core + 38 extended), all with exact expected values in [`docs/SPEC.md`](docs/SPEC.md) — coverage breadth *and* assertion depth: every scenario asserts at least one exact number, label, or line, never just "renders correctly".
+**96 scenarios across 16 families** (58 core + 38 extended), all with exact expected values in the suite specification — coverage breadth *and* assertion depth: every scenario asserts at least one exact number, label, or line, never just "renders correctly".
 
 | Family | # | Focus |
 |---|:---:|---|
@@ -190,7 +190,7 @@ Meerkat scores **its own** suite. The dashboard you open in the demo is fed by t
 - **Stability needs ≥2 runs of the same SHA**; with 1 run it reports `1.0` labeled *estimated* — we never invent flakiness data.
 - **The loop is gated, not autonomous.** The agent only acts on a `regression` verdict with a bundle; refused/incomplete/drift never touch code. A failed fix escalates to a human (max 1 attempt).
 - **Ratchet is a separate check from TestSprite's** — Meerkat never interferes with TestSprite's own blocking behavior.
-- **We don't claim novelty for the commodity parts.** Mutation testing, flaky detection, and test impact analysis are prior art — see [`docs/INTEGRATION.md`](docs/INTEGRATION.md) §3. Meerkat's contribution is the *verdict-audited loop*.
+- **We don't claim novelty for the commodity parts.** Mutation testing, flaky detection, and test impact analysis are established prior art — we don't present them as new. Meerkat's contribution is the *verdict-audited loop*.
 
 ## ⚙️ Running yourself
 

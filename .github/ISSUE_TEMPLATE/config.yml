@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: TestSprite Hackathon Season 4
+    url: https://www.testsprite.com/hackathon-s4
+    about: Learn about the hackathon this project is being built for.
+  - name: Report a security vulnerability
+    url: https://github.com/farhank15/meerkat/security/advisories/new
+    about: Please report security issues privately, not as a public issue.
