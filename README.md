@@ -12,7 +12,7 @@ Meerkat builds on [TestSprite](https://www.testsprite.com)'s verdicts — it add
 
 [![TestSprite Hackathon S4](https://img.shields.io/badge/TestSprite-Hackathon_S4-blue)](https://www.testsprite.com/hackathon-s4)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Suite](https://img.shields.io/badge/suite-30_core_scenarios-brightgreen)](SPEC.md)
+[![Suite](https://img.shields.io/badge/suite-33_core_scenarios-brightgreen)](SPEC.md)
 [![Loop](https://img.shields.io/badge/loop-auto--remediation-8A2BE2)](#-the-loop)
 [![Preview](https://img.shields.io/badge/preview-per--PR-blueviolet)](#-wired-for-real)
 [![PR checks: blocking](https://img.shields.io/badge/PR_checks-blocking-brightgreen)](#-proof-the-loop)
@@ -32,6 +32,7 @@ Meerkats stand tall and watch over their colony — one sentinel always on duty.
 Concretely, Meerkat **extends** your TestSprite setup:
 
 - It reads the JUnit report [`testsprite-action`](https://github.com/TestSprite/testsprite-action) already produces on every PR, parses your `SPEC.md`, and computes the **Test Strength Index (TSI)** — coverage, stability, pass rate.
+- It measures **assertion depth**: a test that passes without asserting anything is a *vacuous pass* — counted, flagged, and excluded from the score, not silently trusted.
 - It adds a **trust layer** to the verdict: a refused run is not a failure, an incomplete rerun never passes the gate, a diff against a run with no verdict is refused.
 - It **tells spec-drift apart from bugs**: a failing test caused by a changed spec is classified `spec-drift`, not `regression`.
 - And then it **closes the loop** — but only when the verdict is trustworthy: a real regression with a failure bundle gets an agent that reads the bundle, fixes the root cause, and pushes the fix to the PR. A refused, incomplete, or drifted verdict **never** triggers a code change.
@@ -42,26 +43,29 @@ Concretely, Meerkat **extends** your TestSprite setup:
 
 > *"AI-generated tests fail in a way that's worse than failing. They pass."*
 
-Green tests that catch nothing — and verdicts that can't be trusted — are the defining QA problems of the AI-coding era. Research backs it: of 1,000 ChatGPT-produced unit tests, only **24.8% executed cleanly** (Yuan et al., FSE 2024); coverage correlates only **weakly** with fault detection once suite size is controlled (Inozemtseva & Holmes, ICSE 2014); and on potentially-buggy code, coverage–detection correlations for LLM suites are **uniformly weak** (ISSTA 2026).
+Green tests that catch nothing — and verdicts that can't be trusted — are the defining QA problems of the AI-coding era. Research backs it: of 1,000 ChatGPT-produced unit tests, only **24.8% executed cleanly** (Yuan et al., FSE 2024); coverage correlates only **weakly** with fault detection once suite size is controlled (Inozemtseva & Holmes, ICSE 2014); on potentially-buggy code, coverage–detection correlations for LLM suites are **uniformly weak** (ISSTA 2026); and **82.9–99.4%** of AI-generated test files miss behavioral cases while **62.4–93.1%** carry weak or absent assertions. A test that asserts nothing passes forever and catches nothing — the false-pass failure mode that a pass/fail count cannot see.
 
-A verdict per PR answers *"did it pass?"* — but four questions still need an answer:
+A verdict per PR answers *"did it pass?"* — but five questions still need an answer:
 
 1. **Which of my requirements does this green suite actually cover?** (and which leak?)
 2. **Is the green stable, or lucky?** (flake rate)
-3. **Did test strength go up or down since the last PR?**
-4. **Can I trust this verdict at all** — and if so, **who fixes the failure?**
+3. **Does the green actually assert anything?** (assertion depth — vacuous passes)
+4. **Did test strength go up or down since the last PR?**
+5. **Can I trust this verdict at all** — and if so, **who fixes the failure?**
 
-Meerkat answers all four — and acts on the fourth.
+Meerkat answers all five — and acts on the fifth.
 
 ## How it works
 
 Drop one Action into your workflow. Meerkat reads the JUnit report [`testsprite-action`](https://github.com/TestSprite/testsprite-action) already produces, parses your `SPEC.md`, and computes the **Test Strength Index**:
 
 ```
-coverage   = covered_ids / total_ids          # SPEC.md scenario IDs ↔ test names in JUnit
-stability  = 1 − conflicted/tested            # same-SHA reruns; <2 runs → 1.0 (labeled estimated)
-pass_rate  = passed / total
-TSI        = round(100 × (0.50×coverage + 0.30×stability + 0.20×pass_rate))
+coverage        = covered_ids / total_ids          # SPEC.md scenario IDs ↔ test names in JUnit
+stability       = 1 − conflicted/tested            # same-SHA reruns; <2 runs → 1.0 (labeled estimated)
+assertions      = steps with action "expect", per test   # from `testsprite test steps`
+meaningful_pass = passed AND assertions ≥ 1         # a 0-assertion pass is "vacuous" and excluded
+pass_rate       = meaningful_passes / total
+TSI             = round(100 × (0.50×coverage + 0.30×stability + 0.20×pass_rate))
 ```
 
 Every input is on disk, every formula is deterministic — **the same files always produce the same TSI, byte for byte.** No timestamps, no randomness inside the score.
@@ -85,6 +89,7 @@ An agent only touches your code when the verdict is a genuine regression. A refu
 | Signal | What it does |
 |---|---|
 | **TSI + delta** | Comment on your PR: index, coverage, stability, pass rate, and change vs. last run |
+| **Assertion depth** | Per-test `expect`-step counts; a pass with **zero** assertions is labeled `vacuous` and excluded from pass rate (`assertions 63/67 (1 vacuous)`), a 1-assertion pass is labeled `shallow` |
 | **Ratchet check** | A separate status check that **blocks merge when TSI drops below the `main` baseline** |
 | **Verdict audit** | Refused tests labeled `refused (not a failure)`; incomplete reruns hold the gate at `neutral`; diffs against verdict-less runs are refused |
 | **Drift classification** | Failures caused by a changed spec are labeled `spec-drift`, not `regression` |
@@ -108,7 +113,8 @@ npx suitevitals score --junit testsprite-junit.xml --spec SPEC.md
   "tsi": 93,
   "coverage": 0.895522,
   "stability": 0.985075,
-  "pass_rate": 0.955224,
+  "pass_rate": 0.940299,
+  "assertions": { "meaningful": 63, "vacuous": 1, "shallow": 4 },
   "gaps": ["SV-COV-07", "SV-RAT-06"]
 }
 ```
@@ -117,7 +123,7 @@ Same fixture → same JSON, **byte-identical** to the dashboard's number for the
 
 ## 📊 Test coverage
 
-**30 core scenarios across 11 families**, all with exact expected values — coverage breadth *and* assertion depth: every scenario asserts at least one exact number, label, or line, never just "renders correctly".
+**33 core scenarios across 12 families**, all with exact expected values — coverage breadth *and* assertion depth: every scenario asserts at least one exact number, label, or line, never just "renders correctly".
 
 The full contract lives in [`SPEC.md`](SPEC.md). That file is also the oracle for the audit trail — every score Meerkat reports traces back to a line in it. The suite is deliberately sized to run on **every** pull request within a free-tier credit budget, and grows one PR at a time.
 
@@ -127,6 +133,7 @@ The full contract lives in [`SPEC.md`](SPEC.md). That file is also the oracle fo
 | **CFG** | 2 | Action defaults, draft PRs |
 | **ING** | 3 | JUnit parsing (counts, skips, malformed) |
 | **TSI** | 4 | Formula (exact fixture → **93**, rounding, determinism, delta) |
+| **ADQ** | 3 | **Assertion depth (per-test `expect` count, vacuous pass caught, shallow pass flagged)** |
 | **COV** | 3 | Traceability (partial match, case-sensitivity, detail table) |
 | **RAT** | 3 | Ratchet (drop blocks, baseline update, two checks) |
 | **PRM** | 2 | PR comment (content, edit-in-place) |
@@ -138,8 +145,12 @@ The full contract lives in [`SPEC.md`](SPEC.md). That file is also the oracle fo
 Example of the exact-value assertions the suite runs:
 
 ```text
-TSI-01: coverage 60/67, stability 66/67, pass 64/67
-        → TSI = round(100×(0.50×0.895522 + 0.30×0.985075 + 0.20×0.955224)) = 93
+TSI-01: coverage 60/67, stability 66/67, pass 63/67 (1 vacuous)
+        → TSI = round(100×(0.50×0.895522 + 0.30×0.985075 + 0.20×0.940299)) = 93
+
+ADQ-02: 5 steps, 0 expect steps, status passed
+        → labeled "vacuous (0 assertions)", excluded from pass rate
+        ("assertions 63/67 (1 vacuous)")
 
 VDT-01: test refused (not failed) → run status=incomplete, TSI n/a (never counted as failure)
 
@@ -155,7 +166,7 @@ Meerkat exists *inside* the Season 4 loop — every layer below is a real integr
 
 | S4 step | What runs here |
 |---|---|
-| **Suite (3.0 portal)** | Agents explore the live app and generate the 30-test core suite from [`SPEC.md`](SPEC.md), with exact-value assertions (`SV-XXX-NN` naming contract) |
+| **Suite (3.0 portal)** | Agents explore the live app and generate the 33-test core suite from [`SPEC.md`](SPEC.md), with exact-value assertions (`SV-XXX-NN` naming contract) |
 | **Wire-up (Actions)** | `TestSprite/testsprite-action@v1` runs the full suite on every PR **against that PR's preview deployment** (Environments placeholder), writes the JUnit report |
 | **Check (PR)** | Two checks per push: TestSprite's verdict + Meerkat's ratchet (TSI vs `main` baseline) + PR comment with score, delta, gaps, drift, and the loop decision |
 | **Fix loop (F20)** | On a trustworthy regression, an agent reads TestSprite's own `failure bundle` off the PR (`failed at step 3/5`, exact assertion, snapshot) and pushes a fix — push reruns everything to green |
@@ -178,13 +189,14 @@ Without TestSprite there is no suite, no verdict, no bundle, no gate — Meerkat
 Meerkat scores **its own** suite. The dashboard you open in the demo is fed by the same Action that gates this repo's PRs — the tool eats its own cooking:
 
 - TSI history for this repo, visible on the share page
-- Coverage table for the 30 core scenarios in [`SPEC.md`](SPEC.md)
+- Coverage table for the 33 core scenarios in [`SPEC.md`](SPEC.md)
 - Ratchet active on this repo since the gate PR
 - Loop page: this repo's own red→green PRs
 
 ## 🔬 Implementation notes (honest scope)
 
 - **Coverage is ID-based, not source-based.** Test files generated by TestSprite aren't readable from the repo, so coverage maps `SPEC.md` scenario IDs (matched *case-sensitively* in test names) — a testable contract instead of a guess.
+- **Assertion depth comes from TestSprite's own step surface, not from source.** `testsprite test steps <test-id>` is the only place per-step `action: expect` is exposed; JUnit does not carry it. When step data is unavailable, pass rate falls back to plain `passed/total` and is labeled `estimated` — we never invent depth.
 - **Stability needs ≥2 runs of the same SHA**; with 1 run it reports `1.0` labeled *estimated* — we never invent flakiness data.
 - **The loop is gated, not autonomous.** The agent only acts on a `regression` verdict with a bundle; refused/incomplete/drift never touch code. A failed fix escalates to a human (max 1 attempt).
 - **Ratchet is a separate check from TestSprite's** — Meerkat never interferes with TestSprite's own blocking behavior.

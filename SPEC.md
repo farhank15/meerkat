@@ -9,7 +9,7 @@ audit trail: every score Meerkat reports can be traced back to a line in this fi
 - The suite is generated from this file in the TestSprite 3.0 portal, then runs against
   the live deployment on every pull request.
 
-This file is the **core suite**: 30 scenarios. It is deliberately small enough to run on
+This file is the **core suite**: 33 scenarios. It is deliberately small enough to run on
 every PR within a free-tier credit budget. Scenarios are added incrementally, one PR at a
 time, and this file grows with them.
 
@@ -18,18 +18,25 @@ time, and this file grows with them.
 ## Scoring
 
 ```
-coverage   = covered_ids / total_ids
-stability  = 1 − conflicted/tested      (fewer than 2 runs on the same SHA → 1.0, labelled "estimated")
-pass_rate  = passed / total
-TSI        = round(100 × (0.50×coverage + 0.30×stability + 0.20×pass_rate))
+coverage        = covered_ids / total_ids
+stability       = 1 − conflicted/tested      (fewer than 2 runs on the same SHA → 1.0, labelled "estimated")
+assertions      = count of steps whose action is "expect", per test
+meaningful_pass = status = passed AND assertions ≥ 1     (a pass with 0 assertions is "vacuous")
+pass_rate       = meaningful_passes / total
+TSI             = round(100 × (0.50×coverage + 0.30×stability + 0.20×pass_rate))
 ```
 
 `TSI` is deterministic: the same inputs must produce byte-identical output from both the
 CLI and the dashboard.
 
+A test that passes without asserting anything is the exact failure mode this suite exists
+to catch, so it is reported as `vacuous` and does **not** count toward `pass_rate`.
+Assertion counts come from `testsprite test steps` — the only surface that exposes them.
+The JUnit report does not, which is why pass rate alone is not a sufficient signal.
+
 ---
 
-## Core suite (30)
+## Core suite (33)
 
 ### Smoke — 2
 
@@ -57,10 +64,22 @@ CLI and the dashboard.
 
 | ID | Asserts | Exact value |
 |---|---|---|
-| `SV-TSI-01` | Primary fixture | coverage `60/67`, stability `66/67`, pass `64/67` → `round(93.43) = 93` |
+| `SV-TSI-01` | Primary fixture | coverage `60/67`, stability `66/67`, pass `63/67` (64 passed, **1 vacuous**) → `round(93.13) = 93` |
 | `SV-TSI-04` | Rounding is half-up, not truncation | `95.4999 → 95`; `95.5 → 96` |
 | `SV-TSI-06` | Determinism | same input twice → byte-identical JSON (no timestamp inside the value) |
 | `SV-TSI-07` | Delta against the previous run | previous `96`, current `93` → `delta = -3` |
+
+### Assertion depth — 3
+
+Depth comes from `testsprite test steps <test-id>`: the count of steps whose `action` is
+`expect`. A test with zero `expect` steps passes without asserting anything — the
+false-pass failure mode that a pass/fail count cannot see.
+
+| ID | Asserts | Exact value |
+|---|---|---|
+| `SV-ADQ-01` | Per-test depth is reported | a fixture test with 6 steps, 1 of them `action: expect` → run detail shows `steps 6 · assertions 1` |
+| `SV-ADQ-02` | A vacuous pass is caught and does not count as a pass | a test with 5 steps, **0** `expect` steps, status `passed` → flagged `vacuous (0 assertions)`, excluded from `meaningful_passes`; PR comment line `assertions 63/67 (1 vacuous)` |
+| `SV-ADQ-03` | A shallow pass is flagged, not penalised | a passing test with exactly 1 `expect` step → flagged `shallow (1 assertion)`; `pass_rate` unchanged |
 
 ### Coverage traceability — 3
 
@@ -127,8 +146,10 @@ baseline `main` `93`; `SV-TSI-04` fails; bundle `fixtures/bundle/step-fail/` rep
 | Item | Value |
 |---|---|
 | Demo account | `demo@suitevitals.dev` / `demo-password-1` |
-| JUnit | `fixtures/junit/67t.xml` (64 pass / 3 fail / 0 skip) |
+| JUnit | `fixtures/junit/67t.xml` (64 pass / 3 fail / 0 skip; 1 pass is **vacuous** → 63 meaningful) |
 | Fixture spec | `fixtures/SPEC.md` — 67 IDs, separate from this file; used for the arithmetic fixture |
+| Steps | `testsprite test steps <test-id>` — per-step `action` / `status` / `stepIndex`; the only source of assertion counts |
+| Run history | `testsprite test result <test-id> --history` — per-run `status`, `isRerun`, `failureKind`, `codeVersion` |
 | Failure bundle | `fixtures/bundle/step-fail/` — 5 steps, step 3 fails, `snapshotId snp_A1` |
 | Verdicts | `fixtures/verdicts.md` — refused / incomplete / drift / regression / no-bundle |
 | Seeded demo data | 2 projects (10 + 3 runs; TSI 88 → 93, one flake, one gap, one regression→fix→green PR) |
@@ -142,6 +163,6 @@ baseline `main` `93`; `SV-TSI-04` fails; bundle `fixtures/bundle/step-fail/` rep
 2. Every scenario asserts at least one exact value.
 3. A real bug the suite catches gets a scenario that catches it again, recorded in the
    README proof-of-loop table.
-4. **No shallow assertions.** UI scenarios (`SMK`, `PRM`, `AUD`, `FIX`) must assert exact
+4. **No shallow assertions.** UI scenarios (`SMK`, `PRM`, `ADQ`, `AUD`, `FIX`) must assert exact
    fixture values — a number, an exact line, or a row count. Words like "renders", "is
    present", or "changes accordingly" without a value are not valid scenarios.
