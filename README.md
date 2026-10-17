@@ -61,8 +61,7 @@ Meerkat is wired into TestSprite two ways:
 
 1. **GitHub Action check on every PR.** The `TestSprite/testsprite-action` runs on
    each pull request and reports a `testsprite-junit` check — the Free-plan-friendly
-   path that needs no Starter upgrade. The action also runs Meerkat's own Vitest
-   engine suite so the score is independently verified in CI.
+   path that needs no Starter upgrade.
 2. **Portal exploratory run.** TestSprite's portal explores and exercises the live
    UI (sign-in, run detail, coverage traceability, public share) and reports what
    passes, fails, or is blocked.
@@ -99,6 +98,10 @@ on how any generator happened to name its files.
 The demo runs on a **seeded in-memory fixture** (no live database required to run or
 test the app). A Neon/Drizzle persistence layer is a planned follow-up; the scoring
 engine is already pure and database-independent.
+
+What is **proven** and what is still a **hypothesis** is tracked in
+[`VALIDATION.md`](VALIDATION.md) — including the experiment that could falsify the
+metric, and the maturity gates the project has not passed yet.
 
 ## Try it
 
