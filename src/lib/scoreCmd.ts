@@ -30,7 +30,7 @@ export interface ScoreResult {
 export function scoreFromArtifacts(junitXml: string, specText: string): ScoreResult {
   const junit = parseJUnit(junitXml)
   const specIds = extractSpecIds(specText)
-  const cov = mapCoverage(specIds, junit.names)
+  const cov = mapCoverage(specIds, junit.cases.map((c) => c.name))
 
   const counts: RunCounts = {
     coveredIds: cov.covered,

@@ -17,8 +17,22 @@ function buildJUnit(pass: number, fail: number, skip: number): string {
 describe('parseJUnit — exact SPEC fixtures', () => {
   it('SV-ING-01: 67 testcases (64 pass, 3 fail, 0 skip)', () => {
     const r = parseJUnit(buildJUnit(64, 3, 0))
-    expect(r).toEqual({ total: 67, passed: 64, failed: 3, skipped: 0, names: expect.any(Array) })
-    expect(r.names).toHaveLength(67)
+    expect(r).toMatchObject({ total: 67, passed: 64, failed: 3, skipped: 0 })
+    expect(r.cases).toHaveLength(67)
+  })
+
+  it('keeps a verdict per testcase, including failures', () => {
+    const r = parseJUnit(buildJUnit(2, 1, 1))
+    expect(r.cases.map((c) => c.status)).toEqual(['passed', 'passed', 'failed', 'skipped'])
+    expect(r.cases[2].message).toBe('x')
+    expect(r.cases[0].message).toBeUndefined()
+  })
+
+  it('keeps the message of an <error> testcase', () => {
+    const xml = `<testsuite><testcase name="SV-TSI-01"><error message="boom"/></testcase></testsuite>`
+    const r = parseJUnit(xml)
+    expect(r.failed).toBe(1)
+    expect(r.cases[0]).toEqual({ name: 'SV-TSI-01', status: 'failed', message: 'boom' })
   })
 
   it('SV-ING-02: 10 testcases, 2 skipped → pass rate 6/10 = 0.60 (not 6/8)', () => {

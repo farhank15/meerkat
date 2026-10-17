@@ -5,11 +5,20 @@
 
 import { tsiFromCounts } from '@/lib/tsi'
 import type { RunCounts } from '@/lib/types'
+import { parseJUnit, type JUnitStatus } from '@/lib/junit'
+import junitXml from './fixtures/testsprite-junit.xml?raw'
 
 export interface SpecEntry {
   id: string
   covered: boolean
-  testName: string
+  /** Testcase that asserts this ID, or null when the ID is a gap. */
+  testName: string | null
+  /** Verdict of the testcase that covers this ID (absent for gaps). */
+  status?: JUnitStatus
+  /** Why the testcase failed, straight from the JUnit artifact. */
+  failureMessage?: string
+  /** Passed without asserting anything — excluded from the pass rate. */
+  vacuous?: boolean
 }
 
 export interface RunMetric {
@@ -25,6 +34,16 @@ export interface LoopAction {
   action: string
   result: string
   fixCommit?: string
+}
+
+/** One row of the JUnit artifact, as the run detail renders it. */
+export interface TestCaseRow {
+  name: string
+  /** SPEC ID asserted by this testcase, or null when the test is an orphan. */
+  specId: string | null
+  status: JUnitStatus
+  message?: string
+  vacuous?: boolean
 }
 
 export interface Run {
@@ -50,6 +69,8 @@ export interface Run {
   status: string
   createdAt: string
   specEntries: SpecEntry[]
+  /** Every testcase in the artifact, including orphans. */
+  testCases: TestCaseRow[]
   loop?: LoopAction
 }
 
@@ -82,29 +103,57 @@ export const DEMO_PROJECT: Project = {
 export const DEMO_BASELINE = 93
 
 // SV-TSI-01 fixture: 60/67 coverage, 66/67 stability, 63/67 meaningful → TSI 93.
-function buildDemoRun(): Run {
-  const specEntries: SpecEntry[] = []
-  for (let i = 1; i <= 67; i++) {
-    const covered = i <= 60
-    if (i === 1) {
-      specEntries.push({ id: 'SV-SMK-01', covered, testName: 'SV-SMK-01 landing' })
-    } else {
-      const id = `SV-XX-${String(i).padStart(2, '0')}`
-      specEntries.push({
-        id,
-        covered,
-        testName: covered ? `${id} demo` : `untested-${id}`,
-      })
+// The run is built from the committed JUnit artifact, not from a hand-written
+// loop, so every status the dashboard shows can be traced to a <testcase>.
+
+/** The artifact every demo number comes from. */
+const DEMO_JUNIT = parseJUnit(junitXml)
+
+/** 67 SPEC IDs. IDs 61-67 have no testcase — they are the gaps. */
+const SPEC_IDS = [
+  'SV-SMK-01',
+  ...Array.from({ length: 66 }, (_, i) => `SV-XX-${String(i + 2).padStart(2, '0')}`),
+]
+
+/** One green test that asserted nothing — the vacuous pass the score excludes. */
+const VACUOUS_TEST = 'SV-XX-33 demo'
+
+function buildSpecEntries(): SpecEntry[] {
+  return SPEC_IDS.map((id) => {
+    const tc = DEMO_JUNIT.cases.find((c) => c.name.includes(id))
+    if (!tc) return { id, covered: false, testName: null }
+    return {
+      id,
+      covered: true,
+      testName: tc.name,
+      status: tc.status,
+      failureMessage: tc.message,
+      vacuous: tc.name === VACUOUS_TEST,
     }
-  }
+  })
+}
+
+function buildDemoRun(): Run {
+  const specEntries = buildSpecEntries()
+  const coveredIds = specEntries.filter((s) => s.covered).length
+  const vacuousCount = specEntries.filter((s) => s.vacuous).length
+  const meaningfulPasses = DEMO_JUNIT.passed - vacuousCount
+
+  const testCases: TestCaseRow[] = DEMO_JUNIT.cases.map((c) => ({
+    name: c.name,
+    specId: SPEC_IDS.find((id) => c.name.includes(id)) ?? null,
+    status: c.status,
+    message: c.message,
+    vacuous: c.name === VACUOUS_TEST,
+  }))
 
   const counts: RunCounts = {
-    coveredIds: 60,
-    totalIds: 67,
+    coveredIds,
+    totalIds: specEntries.length,
     conflicted: 1,
-    tested: 67,
-    meaningfulPasses: 63,
-    totalTests: 67,
+    tested: DEMO_JUNIT.total,
+    meaningfulPasses,
+    totalTests: DEMO_JUNIT.total,
   }
 
   const tsi = tsiFromCounts(counts)
@@ -118,25 +167,26 @@ function buildDemoRun(): Run {
     environment: 'preview',
     resolvedUrl: 'https://meerkat-git-pr-12-team.vercel.app',
     context: 'desktop-auth',
-    total: 67,
-    passed: 64,
-    failed: 3,
-    skipped: 0,
-    meaningfulPasses: 63,
-    vacuousCount: 1,
+    total: DEMO_JUNIT.total,
+    passed: DEMO_JUNIT.passed,
+    failed: DEMO_JUNIT.failed,
+    skipped: DEMO_JUNIT.skipped,
+    meaningfulPasses,
+    vacuousCount,
     conflicted: 1,
-    tested: 67,
-    coverageIdsTotal: 67,
-    coverageIdsCovered: 60,
+    tested: DEMO_JUNIT.total,
+    coverageIdsTotal: specEntries.length,
+    coverageIdsCovered: coveredIds,
     metric: {
       tsi,
-      coverage: 60 / 67,
-      stability: 66 / 67,
-      passRate: 63 / 67,
+      coverage: coveredIds / specEntries.length,
+      stability: 1 - 1 / DEMO_JUNIT.total,
+      passRate: meaningfulPasses / DEMO_JUNIT.total,
     },
     status: 'complete',
     createdAt: '2026-10-16T10:00:00Z',
     specEntries,
+    testCases,
     loop: {
       pr: '#12',
       classification: 'regression',

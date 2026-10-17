@@ -3,6 +3,7 @@
 
 import { Link } from '@tanstack/react-router'
 import type { Run } from '@/lib/store'
+import type { JUnitStatus } from '@/lib/junit'
 import { Container, ScoreCard } from '@/components/site'
 import { SpecTable, TraceabilitySummary } from '@/components/CoverageTrace'
 
@@ -85,11 +86,28 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
             </div>
           </div>
 
-          {/* Source rows — the testcases behind the score. */}
-          <h3 className="mb-2 mt-6 text-xs font-semibold uppercase tracking-wider text-neutral-500">
-            Source rows ({run.specEntries.length})
-          </h3>
-          <div className="max-h-64 overflow-auto rounded-xl border border-white/5">
+          {/* Source rows — every testcase in the JUnit artifact, with its verdict. */}
+          <div className="mb-2 mt-6 flex flex-wrap items-baseline justify-between gap-2">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+              Source rows ({run.testCases.length})
+            </h3>
+            <p className="text-xs text-neutral-500">
+              <span className="text-emerald-400">{run.passed} passed</span>
+              {run.failed > 0 && (
+                <>
+                  {' · '}
+                  <span className="text-rose-400">{run.failed} failed</span>
+                </>
+              )}
+              {run.skipped > 0 && (
+                <>
+                  {' · '}
+                  <span className="text-neutral-400">{run.skipped} skipped</span>
+                </>
+              )}
+            </p>
+          </div>
+          <div className="max-h-72 overflow-auto rounded-xl border border-white/5">
             <table className="w-full text-xs">
               <thead className="sticky top-0 bg-neutral-900">
                 <tr className="border-b border-white/5 text-left uppercase tracking-wider text-neutral-500">
@@ -99,16 +117,19 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
                 </tr>
               </thead>
               <tbody>
-                {run.specEntries.map((s) => (
-                  <tr key={s.id} className="border-b border-white/5 last:border-0">
-                    <td className="px-4 py-2 text-neutral-300">{s.testName}</td>
-                    <td className="px-4 py-2 font-mono text-neutral-400">{s.id}</td>
-                    <td className="px-4 py-2">
-                      {s.covered ? (
-                        <span className="text-emerald-400">passed</span>
-                      ) : (
-                        <span className="text-amber-400">not run</span>
+                {run.testCases.map((t) => (
+                  <tr key={t.name} className="border-b border-white/5 last:border-0">
+                    <td className="px-4 py-2 text-neutral-300">
+                      {t.name}
+                      {t.message && (
+                        <div className="mt-0.5 text-[11px] text-rose-400/80">{t.message}</div>
                       )}
+                    </td>
+                    <td className="px-4 py-2 font-mono text-neutral-400">
+                      {t.specId ?? <span className="text-neutral-600">orphan</span>}
+                    </td>
+                    <td className="px-4 py-2">
+                      <CaseStatus status={t.status} vacuous={t.vacuous} />
                     </td>
                   </tr>
                 ))}
@@ -151,6 +172,18 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
                 <div className="flex justify-between gap-3">
                   <dt className="text-neutral-500">Run ID</dt>
                   <dd className="font-mono text-xs text-neutral-200">{run.id}</dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-neutral-500">Testcases</dt>
+                  <dd className="text-right text-neutral-200">
+                    <span className="text-emerald-400">{run.passed} passed</span>
+                    {' · '}
+                    <span className={run.failed > 0 ? 'text-rose-400' : 'text-neutral-500'}>
+                      {run.failed} failed
+                    </span>
+                    {' · '}
+                    <span className="text-neutral-500">{run.skipped} skipped</span>
+                  </dd>
                 </div>
                 <div className="flex justify-between gap-3">
                   <dt className="text-neutral-500">Commit SHA</dt>
@@ -224,6 +257,13 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
       </div>
     </Container>
   )
+}
+
+function CaseStatus({ status, vacuous }: { status: JUnitStatus; vacuous?: boolean }) {
+  if (status === 'failed') return <span className="text-rose-400">failed</span>
+  if (status === 'skipped') return <span className="text-neutral-400">skipped</span>
+  if (vacuous) return <span className="text-amber-400">passed · vacuous</span>
+  return <span className="text-emerald-400">passed</span>
 }
 
 function Breakdown({ label, value, weight }: { label: string; value: number; weight: string }) {

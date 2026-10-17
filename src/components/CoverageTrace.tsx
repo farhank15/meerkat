@@ -63,7 +63,9 @@ export function SpecTable({ run }: { run: Run }) {
                   <span className="text-amber-400">gap</span>
                 )}
               </td>
-              <td className="px-5 py-2.5 text-neutral-500">{s.testName}</td>
+              <td className="px-5 py-2.5 text-neutral-500">
+                {s.testName ?? <span className="text-neutral-600">no test</span>}
+              </td>
             </tr>
           ))}
         </tbody>

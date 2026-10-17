@@ -1,12 +1,23 @@
 import { XMLParser } from 'fast-xml-parser'
 
+export type JUnitStatus = 'passed' | 'failed' | 'skipped'
+
+export interface JUnitCase {
+  name: string
+  status: JUnitStatus
+  /** Message reported by the runner for a failure or error, when present. */
+  message?: string
+  /** Duration in seconds, when the runner reported one. */
+  time?: number
+}
+
 export interface JUnitResult {
   total: number
   passed: number
   failed: number
   skipped: number
-  /** Testcase names in document order. */
-  names: string[]
+  /** Testcases in document order, with their individual verdict. */
+  cases: JUnitCase[]
 }
 
 const parser = new XMLParser({ ignoreAttributes: false })
@@ -23,11 +34,31 @@ function toArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [value as T]
 }
 
+/** fast-xml-parser represents `<failure message="x">text</failure>` either as a
+ * string or as an object with `@_message` / `#text`. Accept both. */
+function failureMessage(node: unknown): string | undefined {
+  if (typeof node === 'string') return node || undefined
+  if (node && typeof node === 'object') {
+    const rec = node as Record<string, unknown>
+    if (typeof rec['@_message'] === 'string') return rec['@_message']
+    if (typeof rec['#text'] === 'string') return rec['#text']
+  }
+  return undefined
+}
+
+function duration(node: Record<string, unknown>): number | undefined {
+  const raw = node['@_time']
+  if (typeof raw !== 'string' && typeof raw !== 'number') return undefined
+  const n = Number(raw)
+  return Number.isFinite(n) ? n : undefined
+}
+
 /**
- * Parse a JUnit XML report into aggregate counts.
+ * Parse a JUnit XML report into aggregate counts plus per-testcase verdicts.
  *
  * - Multiple <testsuite> elements are accumulated, never double-counted.
  * - A <skipped/> testcase counts toward `total` (it is not a pass).
+ * - A <failure> or <error> keeps its message so the UI can show why it failed.
  * - Malformed input throws an Error with message 'parse-error'.
  */
 export function parseJUnit(xml: string): JUnitResult {
@@ -50,23 +81,35 @@ export function parseJUnit(xml: string): JUnitResult {
   let passed = 0
   let failed = 0
   let skipped = 0
-  const names: string[] = []
+  const cases: JUnitCase[] = []
 
   for (const suite of suites) {
-    const cases = toArray<Record<string, unknown>>(suite.testcase)
-    for (const c of cases) {
+    for (const c of toArray<Record<string, unknown>>(suite.testcase)) {
       total++
       const name = typeof c['@_name'] === 'string' ? c['@_name'] : ''
-      names.push(name)
+      const time = duration(c)
+
       if (c.skipped !== undefined) {
         skipped++
-      } else if (c.failure !== undefined || c.error !== undefined) {
-        failed++
-      } else {
-        passed++
+        cases.push({ name, status: 'skipped', time })
+        continue
       }
+
+      if (c.failure !== undefined || c.error !== undefined) {
+        failed++
+        cases.push({
+          name,
+          status: 'failed',
+          message: failureMessage(c.failure ?? c.error),
+          time,
+        })
+        continue
+      }
+
+      passed++
+      cases.push({ name, status: 'passed', time })
     }
   }
 
-  return { total, passed, failed, skipped, names }
+  return { total, passed, failed, skipped, cases }
 }

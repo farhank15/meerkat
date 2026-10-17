@@ -4,7 +4,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { DEMO_RUN, getProjectBySlug } from '@/lib/store'
 import { Container, ScoreCard } from '@/components/site'
-import { ShareNotFound } from '@/routes/share/$slug'
+import { ShareNotFound } from '@/components/ShareNotFound'
 
 export const Route = createFileRoute('/share/$slug/')({
   component: SharePage,
@@ -87,7 +87,9 @@ function SharePage() {
                         <span className="text-amber-400">gap</span>
                       )}
                     </td>
-                    <td className="px-5 py-2.5 text-neutral-500">{s.testName}</td>
+                    <td className="px-5 py-2.5 text-neutral-500">
+                      {s.testName ?? <span className="text-neutral-600">no test</span>}
+                    </td>
                   </tr>
                 ))}
               </tbody>
