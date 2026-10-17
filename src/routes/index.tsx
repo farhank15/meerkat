@@ -72,6 +72,7 @@ function Home() {
               coverage={coverage}
               stability={stability}
               passRate={passRate}
+              runId="run-demo-1"
               className="lg:scale-[1.03]"
             />
             <p className="mt-4 text-center text-xs text-neutral-600">

@@ -150,6 +150,7 @@ export function Footer() {
             { label: 'How it works', href: '/#how' },
             { label: 'The Loop', href: '/#loop' },
             { label: 'Demo scorecard', href: '/runs' },
+            { label: 'Public scorecard', href: '/share/meerkat-demo' },
           ]}
         />
         <FooterCol

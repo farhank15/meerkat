@@ -41,11 +41,18 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
           <h1 className="text-2xl font-bold tracking-tight text-neutral-50">
             Run {run.id}
           </h1>
-          <div className="mt-1 flex flex-wrap gap-x-6 gap-y-1 text-sm text-neutral-500">
+          <div className="mt-1 flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-neutral-500">
             <span>PR {run.pr}</span>
             <span>branch {run.branch}</span>
             <span>{run.environment}</span>
-            <span className="font-mono text-xs text-neutral-600">{run.sha}</span>
+            <a
+              href={`https://github.com/farhank15/meerkat/commit/${run.sha}`}
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono text-xs text-emerald-400 underline-offset-2 hover:text-emerald-300 hover:underline"
+            >
+              Commit {run.sha} ↗
+            </a>
           </div>
 
           {/* TSI source breakdown — how the score is computed. */}
@@ -69,6 +76,37 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
               <span className="text-neutral-500">Result · </span>
               <span className="font-semibold tabular-nums text-neutral-100">{tsi}</span>
             </div>
+          </div>
+
+          {/* Source rows — the testcases behind the score. */}
+          <h3 className="mb-2 mt-6 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+            Source rows ({run.specEntries.length})
+          </h3>
+          <div className="max-h-64 overflow-auto rounded-xl border border-white/5">
+            <table className="w-full text-xs">
+              <thead className="sticky top-0 bg-neutral-900">
+                <tr className="border-b border-white/5 text-left uppercase tracking-wider text-neutral-500">
+                  <th className="px-4 py-2 font-medium">Testcase</th>
+                  <th className="px-4 py-2 font-medium">Spec ID</th>
+                  <th className="px-4 py-2 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {run.specEntries.map((s) => (
+                  <tr key={s.id} className="border-b border-white/5 last:border-0">
+                    <td className="px-4 py-2 text-neutral-300">{s.testName}</td>
+                    <td className="px-4 py-2 font-mono text-neutral-400">{s.id}</td>
+                    <td className="px-4 py-2">
+                      {s.covered ? (
+                        <span className="text-emerald-400">passed</span>
+                      ) : (
+                        <span className="text-amber-400">not run</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
           {/* Coverage traceability — every SPEC.md scenario ID. */}
@@ -121,6 +159,23 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
                 Audit trail
               </h2>
               <dl className="mt-3 space-y-2.5 text-sm">
+                <div className="flex justify-between gap-3">
+                  <dt className="text-neutral-500">Run ID</dt>
+                  <dd className="font-mono text-xs text-neutral-200">{run.id}</dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-neutral-500">Commit SHA</dt>
+                  <dd>
+                    <a
+                      href={`https://github.com/farhank15/meerkat/commit/${run.sha}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-mono text-xs text-emerald-400 underline-offset-2 hover:text-emerald-300 hover:underline"
+                    >
+                      {run.sha}
+                    </a>
+                  </dd>
+                </div>
                 <div className="flex justify-between">
                   <dt className="text-neutral-500">PR</dt>
                   <dd className="text-neutral-200">{run.loop.pr}</dd>

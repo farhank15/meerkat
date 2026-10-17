@@ -15,6 +15,7 @@ import { Route as RunsRouteImport } from './routes/runs'
 import { Route as ScoreRouteImport } from './routes/score'
 import { Route as AuthSigninRouteImport } from './routes/auth.signin'
 import { Route as RunsIdRouteImport } from './routes/runs/$id'
+import { Route as ShareIndexRouteImport } from './routes/share/index'
 import { Route as ShareSlugRouteImport } from './routes/share/$slug'
 import { Route as ShareSlugRunIdRouteImport } from './routes/share/$slug/run/$id'
 
@@ -48,6 +49,11 @@ const RunsIdRoute = RunsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => RunsRoute,
 } as any)
+const ShareIndexRoute = ShareIndexRouteImport.update({
+  id: '/share/',
+  path: '/share/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShareSlugRoute = ShareSlugRouteImport.update({
   id: '/share/$slug',
   path: '/share/$slug',
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/auth/signin': typeof AuthSigninRoute
   '/runs/$id': typeof RunsIdRoute
   '/share/$slug': typeof ShareSlugRouteWithChildren
+  '/share/': typeof ShareIndexRoute
   '/share/$slug/run/$id': typeof ShareSlugRunIdRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/auth/signin': typeof AuthSigninRoute
   '/runs/$id': typeof RunsIdRoute
   '/share/$slug': typeof ShareSlugRouteWithChildren
+  '/share': typeof ShareIndexRoute
   '/share/$slug/run/$id': typeof ShareSlugRunIdRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/auth/signin': typeof AuthSigninRoute
   '/runs/$id': typeof RunsIdRoute
   '/share/$slug': typeof ShareSlugRouteWithChildren
+  '/share/': typeof ShareIndexRoute
   '/share/$slug/run/$id': typeof ShareSlugRunIdRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/auth/signin'
     | '/runs/$id'
     | '/share/$slug'
+    | '/share/'
     | '/share/$slug/run/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/auth/signin'
     | '/runs/$id'
     | '/share/$slug'
+    | '/share'
     | '/share/$slug/run/$id'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/auth/signin'
     | '/runs/$id'
     | '/share/$slug'
+    | '/share/'
     | '/share/$slug/run/$id'
   fileRoutesById: FileRoutesById
 }
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   ScoreRoute: typeof ScoreRoute
   AuthSigninRoute: typeof AuthSigninRoute
   ShareSlugRoute: typeof ShareSlugRouteWithChildren
+  ShareIndexRoute: typeof ShareIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -175,6 +188,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/runs/$id'
       preLoaderRoute: typeof RunsIdRouteImport
       parentRoute: typeof RunsRoute
+    }
+    '/share/': {
+      id: '/share/'
+      path: '/share'
+      fullPath: '/share/'
+      preLoaderRoute: typeof ShareIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/share/$slug': {
       id: '/share/$slug'
@@ -222,6 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   ScoreRoute: ScoreRoute,
   AuthSigninRoute: AuthSigninRoute,
   ShareSlugRoute: ShareSlugRouteWithChildren,
+  ShareIndexRoute: ShareIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
