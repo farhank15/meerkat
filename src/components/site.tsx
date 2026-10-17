@@ -3,7 +3,7 @@
 // so it renders identically on the server and the client.
 
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { isAuthed, clearSession } from '@/lib/session'
 
 export function Container({
@@ -56,15 +56,19 @@ function Wordmark() {
   )
 }
 
-/** Reads client auth state after mount. SSR and first client render stay on the
- * default (signed-out) UI so there is no hydration mismatch. */
+/** Reads client auth state after mount and re-checks on every navigation. SSR and
+ * the first client render stay on the default (signed-out) UI so there is no
+ * hydration mismatch; the effect then reflects the cookie. Re-running on pathname
+ * change is what makes the header update right after login (SPA nav does not
+ * remount the Nav). */
 function useAuth() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
   const [mounted, setMounted] = useState(false)
   const [authed, setAuthed] = useState(false)
   useEffect(() => {
     setAuthed(isAuthed())
     setMounted(true)
-  }, [])
+  }, [pathname])
   return { mounted, authed }
 }
 
@@ -206,12 +210,15 @@ export function ScoreCard({
   coverage,
   stability,
   passRate,
+  runId,
   className = '',
 }: {
   tsi: number
   coverage: number
   stability: number
   passRate: number
+  /** When set, the score links to that run's TSI source breakdown. */
+  runId?: string
   className?: string
 }) {
   return (
@@ -226,14 +233,36 @@ export function ScoreCard({
           Live
         </span>
       </div>
-      <div className="mt-3 text-6xl font-bold tabular-nums tracking-tight text-neutral-50">
-        {tsi}
-      </div>
+      {runId ? (
+        <Link
+          to="/runs/$id"
+          params={{ id: runId }}
+          hash="tsi-breakdown"
+          className="mt-3 block text-6xl font-bold tabular-nums tracking-tight text-neutral-50 transition-colors hover:text-emerald-300"
+          aria-label="Inspect TSI source breakdown"
+        >
+          {tsi}
+        </Link>
+      ) : (
+        <div className="mt-3 text-6xl font-bold tabular-nums tracking-tight text-neutral-50">
+          {tsi}
+        </div>
+      )}
       <div className="mt-7 grid grid-cols-3 gap-3">
         <Metric label="Coverage" value={coverage} hint="50%" />
         <Metric label="Stability" value={stability} hint="30%" />
         <Metric label="Pass rate" value={passRate} hint="20%" />
       </div>
+      {runId && (
+        <Link
+          to="/runs/$id"
+          params={{ id: runId }}
+          hash="tsi-breakdown"
+          className="mt-4 inline-block text-xs font-medium text-emerald-400 transition-colors hover:text-emerald-300"
+        >
+          View source breakdown →
+        </Link>
+      )}
     </div>
   )
 }

@@ -16,6 +16,7 @@ import { Route as ScoreRouteImport } from './routes/score'
 import { Route as AuthSigninRouteImport } from './routes/auth.signin'
 import { Route as RunsIdRouteImport } from './routes/runs/$id'
 import { Route as ShareSlugRouteImport } from './routes/share/$slug'
+import { Route as ShareSlugRunIdRouteImport } from './routes/share/$slug/run/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,6 +53,11 @@ const ShareSlugRoute = ShareSlugRouteImport.update({
   path: '/share/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ShareSlugRunIdRoute = ShareSlugRunIdRouteImport.update({
+  id: '/run/$id',
+  path: '/run/$id',
+  getParentRoute: () => ShareSlugRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -60,7 +66,8 @@ export interface FileRoutesByFullPath {
   '/score': typeof ScoreRoute
   '/auth/signin': typeof AuthSigninRoute
   '/runs/$id': typeof RunsIdRoute
-  '/share/$slug': typeof ShareSlugRoute
+  '/share/$slug': typeof ShareSlugRouteWithChildren
+  '/share/$slug/run/$id': typeof ShareSlugRunIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -69,7 +76,8 @@ export interface FileRoutesByTo {
   '/score': typeof ScoreRoute
   '/auth/signin': typeof AuthSigninRoute
   '/runs/$id': typeof RunsIdRoute
-  '/share/$slug': typeof ShareSlugRoute
+  '/share/$slug': typeof ShareSlugRouteWithChildren
+  '/share/$slug/run/$id': typeof ShareSlugRunIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -79,7 +87,8 @@ export interface FileRoutesById {
   '/score': typeof ScoreRoute
   '/auth/signin': typeof AuthSigninRoute
   '/runs/$id': typeof RunsIdRoute
-  '/share/$slug': typeof ShareSlugRoute
+  '/share/$slug': typeof ShareSlugRouteWithChildren
+  '/share/$slug/run/$id': typeof ShareSlugRunIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/auth/signin'
     | '/runs/$id'
     | '/share/$slug'
+    | '/share/$slug/run/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/auth/signin'
     | '/runs/$id'
     | '/share/$slug'
+    | '/share/$slug/run/$id'
   id:
     | '__root__'
     | '/'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/auth/signin'
     | '/runs/$id'
     | '/share/$slug'
+    | '/share/$slug/run/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -117,7 +129,7 @@ export interface RootRouteChildren {
   RunsRoute: typeof RunsRouteWithChildren
   ScoreRoute: typeof ScoreRoute
   AuthSigninRoute: typeof AuthSigninRoute
-  ShareSlugRoute: typeof ShareSlugRoute
+  ShareSlugRoute: typeof ShareSlugRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -171,6 +183,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShareSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/share/$slug/run/$id': {
+      id: '/share/$slug/run/$id'
+      path: '/run/$id'
+      fullPath: '/share/$slug/run/$id'
+      preLoaderRoute: typeof ShareSlugRunIdRouteImport
+      parentRoute: typeof ShareSlugRoute
+    }
   }
 }
 
@@ -184,13 +203,25 @@ const RunsRouteChildren: RunsRouteChildren = {
 
 const RunsRouteWithChildren = RunsRoute._addFileChildren(RunsRouteChildren)
 
+interface ShareSlugRouteChildren {
+  ShareSlugRunIdRoute: typeof ShareSlugRunIdRoute
+}
+
+const ShareSlugRouteChildren: ShareSlugRouteChildren = {
+  ShareSlugRunIdRoute: ShareSlugRunIdRoute,
+}
+
+const ShareSlugRouteWithChildren = ShareSlugRoute._addFileChildren(
+  ShareSlugRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   RunsRoute: RunsRouteWithChildren,
   ScoreRoute: ScoreRoute,
   AuthSigninRoute: AuthSigninRoute,
-  ShareSlugRoute: ShareSlugRoute,
+  ShareSlugRoute: ShareSlugRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
