@@ -68,36 +68,44 @@ function Score() {
       <Section className="border-t border-white/5 pt-16">
         <div className="max-w-2xl">
           <h2 className="text-2xl font-bold tracking-tight text-neutral-50">
-            Score from your own artifacts
+            Every number traces back to the run
           </h2>
           <p className="mt-3 text-neutral-400">
-            The companion CLI scores any TestSprite JUnit result against your{' '}
-            <code className="text-neutral-300">SPEC.md</code> scenario contract. Same
-            input → byte-identical output.
+            The same deterministic engine computes this score from the run’s coverage,
+            stability, and pass-rate. Open a scored run to inspect the source
+            breakdown, the coverage table, the audit trail, and the commit behind it.
           </p>
         </div>
 
-        <pre className="mt-6 overflow-x-auto rounded-2xl border border-white/10 bg-neutral-950 p-5 text-sm text-neutral-300">
-          <code>{`# npx suitevitals score --junit testsprite-junit.xml --spec SPEC.md
-{
-  "tsi": ${tsi},
-  "coverage": ${(coverage * 100).toFixed(1)},
-  "stability": ${(stability * 100).toFixed(1)},
-  "pass_rate": ${(passRate * 100).toFixed(1)},
-  "gaps": [${DEMO_RUN.specEntries
-    .filter((s) => !s.covered)
-    .map((s) => `"${s.id}"`)
-    .join(', ')}]
-}`}</code>
-        </pre>
+        <div className="mt-6 rounded-2xl border border-white/10 bg-neutral-900/50 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="text-sm text-neutral-400">
+              <span className="text-neutral-500">Coverage</span> {(coverage * 100).toFixed(1)}%
+              <span className="mx-3 text-neutral-700">·</span>
+              <span className="text-neutral-500">Stability</span> {(stability * 100).toFixed(1)}%
+              <span className="mx-3 text-neutral-700">·</span>
+              <span className="text-neutral-500">Pass rate</span> {(passRate * 100).toFixed(1)}%
+            </div>
+            <div className="text-2xl font-bold tabular-nums text-neutral-50">
+              TSI {tsi}
+            </div>
+          </div>
+        </div>
 
-        <div className="mt-6">
+        <div className="mt-6 flex flex-wrap gap-3">
           <Link
             to="/share/$slug"
             params={{ slug: 'meerkat-demo' }}
             className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-neutral-950 transition-colors hover:bg-emerald-500"
           >
             See a scored run
+          </Link>
+          <Link
+            to="/share/$slug/run/$id"
+            params={{ slug: 'meerkat-demo', id: DEMO_RUN.id }}
+            className="rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-neutral-200 transition-colors hover:bg-white/10"
+          >
+            Inspect the source breakdown
           </Link>
         </div>
       </Section>
