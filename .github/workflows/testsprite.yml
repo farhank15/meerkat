@@ -17,9 +17,14 @@ name: TestSprite (JUnit fallback)
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
+  # Do NOT run on every `synchronize` (push) — each full suite run spends
+  # TestSprite credits. Fire when a PR first becomes reviewable, and allow a
+  # deliberate manual re-run after fixes. A push to main still re-validates.
   pull_request:
+    types: [opened, reopened, ready_for_review]
   push:
     branches: [main]
+  workflow_dispatch:
 
 # Least privilege by default. The remediation job added later (F20) declares
 # `contents: write` + `pull-requests: write` on its own job, not here.
