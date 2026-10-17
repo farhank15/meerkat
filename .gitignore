@@ -22,6 +22,9 @@ todos.json
 # Local tooling data
 .kuma/
 
+# TestSprite run artifacts (failure bundles, videos) — local triage only
+.testsprite/runs/
+
 # Local planning notes
 docs/
 

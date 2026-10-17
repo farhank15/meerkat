@@ -58,6 +58,7 @@ export interface Project {
   name: string
   slug: string
   shared: boolean
+  repoUrl: string
 }
 
 export interface User {
@@ -75,6 +76,7 @@ export const DEMO_PROJECT: Project = {
   name: 'Meerkat (demo)',
   slug: 'meerkat-demo',
   shared: true,
+  repoUrl: 'https://github.com/farhank15/meerkat',
 }
 
 export const DEMO_BASELINE = 93

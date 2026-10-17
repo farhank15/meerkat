@@ -1,26 +1,18 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { getRun } from '@/lib/store'
-import { Container } from '@/components/site'
+// Layout route for /runs/$id — every child (detail, coverage) sits behind the
+// same auth gate. The Outlet is required: without it child routes match but
+// never render.
+
+import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { AuthGate } from '@/components/AuthGate'
-import { RunDetailView } from '@/components/RunDetailView'
 
 export const Route = createFileRoute('/runs/$id')({
-  component: RunDetail,
+  component: RunDetailLayout,
 })
 
-function RunDetail() {
-  const { id } = Route.useParams()
-  const run = getRun(id)
-
-  if (!run) {
-    return (
-      <Container className="py-16 text-center text-neutral-400">Run not found.</Container>
-    )
-  }
-
+function RunDetailLayout() {
   return (
     <AuthGate>
-      <RunDetailView run={run} />
+      <Outlet />
     </AuthGate>
   )
 }

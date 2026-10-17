@@ -14,9 +14,13 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as RunsRouteImport } from './routes/runs'
 import { Route as ScoreRouteImport } from './routes/score'
 import { Route as AuthSigninRouteImport } from './routes/auth.signin'
+import { Route as RunsIndexRouteImport } from './routes/runs/index'
 import { Route as RunsIdRouteImport } from './routes/runs/$id'
 import { Route as ShareIndexRouteImport } from './routes/share/index'
 import { Route as ShareSlugRouteImport } from './routes/share/$slug'
+import { Route as RunsIdIndexRouteImport } from './routes/runs/$id/index'
+import { Route as RunsIdCoverageRouteImport } from './routes/runs/$id/coverage'
+import { Route as ShareSlugIndexRouteImport } from './routes/share/$slug/index'
 import { Route as ShareSlugRunIdRouteImport } from './routes/share/$slug/run/$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -44,6 +48,11 @@ const AuthSigninRoute = AuthSigninRouteImport.update({
   path: '/auth/signin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RunsIndexRoute = RunsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RunsRoute,
+} as any)
 const RunsIdRoute = RunsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -59,6 +68,21 @@ const ShareSlugRoute = ShareSlugRouteImport.update({
   path: '/share/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RunsIdIndexRoute = RunsIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RunsIdRoute,
+} as any)
+const RunsIdCoverageRoute = RunsIdCoverageRouteImport.update({
+  id: '/coverage',
+  path: '/coverage',
+  getParentRoute: () => RunsIdRoute,
+} as any)
+const ShareSlugIndexRoute = ShareSlugIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ShareSlugRoute,
+} as any)
 const ShareSlugRunIdRoute = ShareSlugRunIdRouteImport.update({
   id: '/run/$id',
   path: '/run/$id',
@@ -71,20 +95,25 @@ export interface FileRoutesByFullPath {
   '/runs': typeof RunsRouteWithChildren
   '/score': typeof ScoreRoute
   '/auth/signin': typeof AuthSigninRoute
-  '/runs/$id': typeof RunsIdRoute
+  '/runs/$id': typeof RunsIdRouteWithChildren
   '/share/$slug': typeof ShareSlugRouteWithChildren
+  '/runs/': typeof RunsIndexRoute
   '/share/': typeof ShareIndexRoute
+  '/runs/$id/coverage': typeof RunsIdCoverageRoute
+  '/runs/$id/': typeof RunsIdIndexRoute
+  '/share/$slug/': typeof ShareSlugIndexRoute
   '/share/$slug/run/$id': typeof ShareSlugRunIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/runs': typeof RunsRouteWithChildren
   '/score': typeof ScoreRoute
   '/auth/signin': typeof AuthSigninRoute
-  '/runs/$id': typeof RunsIdRoute
-  '/share/$slug': typeof ShareSlugRouteWithChildren
+  '/runs': typeof RunsIndexRoute
   '/share': typeof ShareIndexRoute
+  '/runs/$id/coverage': typeof RunsIdCoverageRoute
+  '/runs/$id': typeof RunsIdIndexRoute
+  '/share/$slug': typeof ShareSlugIndexRoute
   '/share/$slug/run/$id': typeof ShareSlugRunIdRoute
 }
 export interface FileRoutesById {
@@ -94,9 +123,13 @@ export interface FileRoutesById {
   '/runs': typeof RunsRouteWithChildren
   '/score': typeof ScoreRoute
   '/auth/signin': typeof AuthSigninRoute
-  '/runs/$id': typeof RunsIdRoute
+  '/runs/$id': typeof RunsIdRouteWithChildren
   '/share/$slug': typeof ShareSlugRouteWithChildren
+  '/runs/': typeof RunsIndexRoute
   '/share/': typeof ShareIndexRoute
+  '/runs/$id/coverage': typeof RunsIdCoverageRoute
+  '/runs/$id/': typeof RunsIdIndexRoute
+  '/share/$slug/': typeof ShareSlugIndexRoute
   '/share/$slug/run/$id': typeof ShareSlugRunIdRoute
 }
 export interface FileRouteTypes {
@@ -109,18 +142,23 @@ export interface FileRouteTypes {
     | '/auth/signin'
     | '/runs/$id'
     | '/share/$slug'
+    | '/runs/'
     | '/share/'
+    | '/runs/$id/coverage'
+    | '/runs/$id/'
+    | '/share/$slug/'
     | '/share/$slug/run/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
-    | '/runs'
     | '/score'
     | '/auth/signin'
+    | '/runs'
+    | '/share'
+    | '/runs/$id/coverage'
     | '/runs/$id'
     | '/share/$slug'
-    | '/share'
     | '/share/$slug/run/$id'
   id:
     | '__root__'
@@ -131,7 +169,11 @@ export interface FileRouteTypes {
     | '/auth/signin'
     | '/runs/$id'
     | '/share/$slug'
+    | '/runs/'
     | '/share/'
+    | '/runs/$id/coverage'
+    | '/runs/$id/'
+    | '/share/$slug/'
     | '/share/$slug/run/$id'
   fileRoutesById: FileRoutesById
 }
@@ -182,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSigninRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/runs/': {
+      id: '/runs/'
+      path: '/'
+      fullPath: '/runs/'
+      preLoaderRoute: typeof RunsIndexRouteImport
+      parentRoute: typeof RunsRoute
+    }
     '/runs/$id': {
       id: '/runs/$id'
       path: '/$id'
@@ -203,6 +252,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShareSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/runs/$id/': {
+      id: '/runs/$id/'
+      path: '/'
+      fullPath: '/runs/$id/'
+      preLoaderRoute: typeof RunsIdIndexRouteImport
+      parentRoute: typeof RunsIdRoute
+    }
+    '/runs/$id/coverage': {
+      id: '/runs/$id/coverage'
+      path: '/coverage'
+      fullPath: '/runs/$id/coverage'
+      preLoaderRoute: typeof RunsIdCoverageRouteImport
+      parentRoute: typeof RunsIdRoute
+    }
+    '/share/$slug/': {
+      id: '/share/$slug/'
+      path: '/'
+      fullPath: '/share/$slug/'
+      preLoaderRoute: typeof ShareSlugIndexRouteImport
+      parentRoute: typeof ShareSlugRoute
+    }
     '/share/$slug/run/$id': {
       id: '/share/$slug/run/$id'
       path: '/run/$id'
@@ -213,21 +283,38 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface RunsIdRouteChildren {
+  RunsIdCoverageRoute: typeof RunsIdCoverageRoute
+  RunsIdIndexRoute: typeof RunsIdIndexRoute
+}
+
+const RunsIdRouteChildren: RunsIdRouteChildren = {
+  RunsIdCoverageRoute: RunsIdCoverageRoute,
+  RunsIdIndexRoute: RunsIdIndexRoute,
+}
+
+const RunsIdRouteWithChildren =
+  RunsIdRoute._addFileChildren(RunsIdRouteChildren)
+
 interface RunsRouteChildren {
-  RunsIdRoute: typeof RunsIdRoute
+  RunsIdRoute: typeof RunsIdRouteWithChildren
+  RunsIndexRoute: typeof RunsIndexRoute
 }
 
 const RunsRouteChildren: RunsRouteChildren = {
-  RunsIdRoute: RunsIdRoute,
+  RunsIdRoute: RunsIdRouteWithChildren,
+  RunsIndexRoute: RunsIndexRoute,
 }
 
 const RunsRouteWithChildren = RunsRoute._addFileChildren(RunsRouteChildren)
 
 interface ShareSlugRouteChildren {
+  ShareSlugIndexRoute: typeof ShareSlugIndexRoute
   ShareSlugRunIdRoute: typeof ShareSlugRunIdRoute
 }
 
 const ShareSlugRouteChildren: ShareSlugRouteChildren = {
+  ShareSlugIndexRoute: ShareSlugIndexRoute,
   ShareSlugRunIdRoute: ShareSlugRunIdRoute,
 }
 

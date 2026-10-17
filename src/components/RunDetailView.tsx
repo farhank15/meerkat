@@ -4,6 +4,7 @@
 import { Link } from '@tanstack/react-router'
 import type { Run } from '@/lib/store'
 import { Container, ScoreCard } from '@/components/site'
+import { SpecTable, TraceabilitySummary } from '@/components/CoverageTrace'
 
 export function RunDetailView({ run, publicView = false }: { run: Run; publicView?: boolean }) {
   const { tsi, coverage, stability, passRate } = run.metric
@@ -54,6 +55,12 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
               Commit {run.sha} ↗
             </a>
           </div>
+
+          {/* Provenance strip — the artifacts behind every number below. */}
+          <h2 className="mb-2 mt-6 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+            Traceability
+          </h2>
+          <TraceabilitySummary run={run} />
 
           {/* TSI source breakdown — how the score is computed. */}
           <h2
@@ -110,37 +117,19 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
           </div>
 
           {/* Coverage traceability — every SPEC.md scenario ID. */}
-          <h2 className="mb-3 mt-10 text-sm font-semibold uppercase tracking-wider text-neutral-500">
-            Coverage traceability ({run.coverageIdsCovered}/{run.coverageIdsTotal})
-          </h2>
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/50">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-neutral-500">
-                  <th className="px-5 py-3 font-medium">ID</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-5 py-3 font-medium">Test</th>
-                </tr>
-              </thead>
-              <tbody>
-                {run.specEntries.map((s) => (
-                  <tr key={s.id} className="border-b border-white/5 last:border-0">
-                    <td className="px-5 py-2.5 font-mono text-xs text-neutral-300">
-                      {s.id}
-                    </td>
-                    <td className="px-5 py-2.5">
-                      {s.covered ? (
-                        <span className="text-emerald-400">covered</span>
-                      ) : (
-                        <span className="text-amber-400">gap</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-2.5 text-neutral-500">{s.testName}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mb-3 mt-10 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-500">
+              Coverage traceability ({run.coverageIdsCovered}/{run.coverageIdsTotal})
+            </h2>
+            <Link
+              to="/runs/$id/coverage"
+              params={{ id: run.id }}
+              className="text-sm font-medium text-emerald-400 transition-colors hover:text-emerald-300"
+            >
+              Open coverage page →
+            </Link>
           </div>
+          <SpecTable run={run} />
         </div>
 
         <aside className="space-y-6">
