@@ -161,7 +161,8 @@ function buildDemoRun(): Run {
   return {
     id: 'run-demo-1',
     projectId: DEMO_PROJECT.id,
-    sha: 'a1b2c3d4e5f6',
+    // Real commit on the public repo — the traceability link must resolve.
+    sha: 'c70caa4b2bc872fe1e9d2c9ec2f7d66b9b980c01',
     pr: '#12',
     branch: 'main',
     environment: 'preview',
@@ -192,7 +193,7 @@ function buildDemoRun(): Run {
       classification: 'regression',
       action: 'fix proposed',
       result: 'green',
-      fixCommit: 'fix(meerkat): correct rounding rule',
+      fixCommit: '1a84fd8410a6ed0fca3592c0fe948ced0b631c94',
     },
   }
 }

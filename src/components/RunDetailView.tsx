@@ -53,7 +53,7 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
               rel="noreferrer"
               className="font-mono text-xs text-emerald-400 underline-offset-2 hover:text-emerald-300 hover:underline"
             >
-              Commit {run.sha} ↗
+              Commit {run.sha.slice(0, 7)} ↗
             </a>
           </div>
 
@@ -194,7 +194,7 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
                       rel="noreferrer"
                       className="font-mono text-xs text-emerald-400 underline-offset-2 hover:text-emerald-300 hover:underline"
                     >
-                      {run.sha}
+                      {run.sha.slice(0, 7)}
                     </a>
                   </dd>
                 </div>
@@ -219,12 +219,12 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
                     <dt className="text-neutral-500">Commit traceability</dt>
                     <dd className="text-right">
                       <a
-                        href={`https://github.com/farhank15/meerkat/commit/${run.sha}`}
+                        href={`https://github.com/farhank15/meerkat/commit/${run.loop.fixCommit}`}
                         target="_blank"
                         rel="noreferrer"
                         className="font-mono text-xs text-emerald-400 underline-offset-2 hover:text-emerald-300 hover:underline"
                       >
-                        {run.loop.fixCommit}
+                        {run.loop.fixCommit.slice(0, 7)}
                       </a>
                     </dd>
                   </div>

@@ -58,4 +58,10 @@ describe('run built from the artifact', () => {
     expect(gaps).toHaveLength(7)
     for (const g of gaps) expect(g.testName).toBeNull()
   })
+
+  it('links to real commits: full SHAs, and the fix is a different commit', () => {
+    expect(DEMO_RUN.sha).toMatch(/^[0-9a-f]{40}$/)
+    expect(DEMO_RUN.loop?.fixCommit).toMatch(/^[0-9a-f]{40}$/)
+    expect(DEMO_RUN.loop?.fixCommit).not.toBe(DEMO_RUN.sha)
+  })
 })
