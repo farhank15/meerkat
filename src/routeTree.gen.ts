@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as RunsRouteImport } from './routes/runs'
+import { Route as AuthSigninRouteImport } from './routes/auth.signin'
 import { Route as RunsIdRouteImport } from './routes/runs/$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const RunsRoute = RunsRouteImport.update({
   path: '/runs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthSigninRoute = AuthSigninRouteImport.update({
+  id: '/auth/signin',
+  path: '/auth/signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RunsIdRoute = RunsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/runs': typeof RunsRouteWithChildren
+  '/auth/signin': typeof AuthSigninRoute
   '/runs/$id': typeof RunsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/runs': typeof RunsRouteWithChildren
+  '/auth/signin': typeof AuthSigninRoute
   '/runs/$id': typeof RunsIdRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/runs': typeof RunsRouteWithChildren
+  '/auth/signin': typeof AuthSigninRoute
   '/runs/$id': typeof RunsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/runs' | '/runs/$id'
+  fullPaths: '/' | '/login' | '/runs' | '/auth/signin' | '/runs/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/runs' | '/runs/$id'
-  id: '__root__' | '/' | '/login' | '/runs' | '/runs/$id'
+  to: '/' | '/login' | '/runs' | '/auth/signin' | '/runs/$id'
+  id: '__root__' | '/' | '/login' | '/runs' | '/auth/signin' | '/runs/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   RunsRoute: typeof RunsRouteWithChildren
+  AuthSigninRoute: typeof AuthSigninRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -89,6 +99,13 @@ declare module '@tanstack/react-router' {
       path: '/runs'
       fullPath: '/runs'
       preLoaderRoute: typeof RunsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/signin': {
+      id: '/auth/signin'
+      path: '/auth/signin'
+      fullPath: '/auth/signin'
+      preLoaderRoute: typeof AuthSigninRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/runs/$id': {
@@ -115,16 +132,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   RunsRoute: RunsRouteWithChildren,
+  AuthSigninRoute: AuthSigninRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
