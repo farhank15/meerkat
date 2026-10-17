@@ -26,7 +26,7 @@ function Home() {
               Your suite is green.
               <br />
               But is it{' '}
-              <span className="bg-gradient-to-r from-emerald-400 to-emerald-300 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-emerald-400 to-emerald-300 bg-clip-text text-transparent">
                 meaningful?
               </span>
             </h1>
@@ -203,12 +203,19 @@ function Home() {
               <Row k="Result" v="green" accent />
               <Row k="Fix commit" v="fix(meerkat): rounding rule" />
             </div>
+            <Link
+              to="/runs/$id"
+              params={{ id: 'run-demo-1' }}
+              className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-emerald-400 transition-colors hover:text-emerald-300"
+            >
+              Open the demo run →
+            </Link>
           </div>
         </div>
       </Section>
 
       {/* CTA */}
-      <section className="border-t border-white/5 bg-gradient-to-b from-neutral-900/40 to-neutral-950">
+      <section className="border-t border-white/5 bg-linear-to-b from-neutral-900/40 to-neutral-950">
         <Container className="flex flex-col items-center gap-6 py-20 text-center">
           <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl">
             Ship tests you can actually defend.
@@ -223,6 +230,12 @@ function Home() {
               className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-medium text-neutral-950 transition-colors hover:bg-emerald-500"
             >
               View the demo scorecard
+            </Link>
+            <Link
+              to="/score"
+              className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-neutral-200 transition-colors hover:bg-white/10"
+            >
+              How scoring works
             </Link>
             <Link
               to="/login"

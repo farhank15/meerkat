@@ -1,16 +1,16 @@
-import { createFileRoute, Link, Navigate } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { DEMO_PROJECT, listRuns } from '@/lib/store'
-import { isAuthed } from '@/lib/session'
 import { Container } from '@/components/site'
+import { AuthGate } from '@/components/AuthGate'
 
 export const Route = createFileRoute('/runs')({
   component: Runs,
 })
 
 function Runs() {
-  if (!isAuthed()) return <Navigate to="/login" />
   const runs = listRuns(DEMO_PROJECT.id)
   return (
+    <AuthGate>
     <Container className="py-12">
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight text-neutral-50">
@@ -51,5 +51,6 @@ function Runs() {
         </table>
       </div>
     </Container>
+    </AuthGate>
   )
 }

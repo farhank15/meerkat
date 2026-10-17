@@ -2,7 +2,9 @@
 // card used across the marketing surface. Kept dependency-free (inline SVG only)
 // so it renders identically on the server and the client.
 
-import { Link } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from '@tanstack/react-router'
+import { isAuthed, clearSession } from '@/lib/session'
 
 export function Container({
   children,
@@ -54,7 +56,22 @@ function Wordmark() {
   )
 }
 
+/** Reads client auth state after mount. SSR and first client render stay on the
+ * default (signed-out) UI so there is no hydration mismatch. */
+function useAuth() {
+  const [mounted, setMounted] = useState(false)
+  const [authed, setAuthed] = useState(false)
+  useEffect(() => {
+    setAuthed(isAuthed())
+    setMounted(true)
+  }, [])
+  return { mounted, authed }
+}
+
 export function Nav() {
+  const { mounted, authed } = useAuth()
+  const navigate = useNavigate()
+
   return (
     <header className="sticky top-0 z-50 border-b border-white/5 bg-neutral-950/70 backdrop-blur-xl">
       <Container className="flex h-16 items-center justify-between">
@@ -71,18 +88,40 @@ export function Nav() {
           </a>
         </nav>
         <div className="flex items-center gap-2 sm:gap-3">
-          <Link
-            to="/login"
-            className="text-sm text-neutral-400 transition-colors hover:text-neutral-100"
-          >
-            Sign in
-          </Link>
-          <Link
-            to="/runs"
-            className="rounded-lg bg-emerald-600 px-3.5 py-2 text-sm font-medium text-neutral-950 transition-colors hover:bg-emerald-500"
-          >
-            View demo
-          </Link>
+          {/* Default (SSR + pre-mount) renders the signed-out affordance so the
+              server and client markup always match. */}
+          {mounted && authed ? (
+            <>
+              <span className="hidden text-sm text-neutral-400 sm:inline">
+                demo@suitevitals.dev
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  clearSession()
+                  navigate({ to: '/' })
+                }}
+                className="rounded-lg border border-white/10 px-3.5 py-2 text-sm font-medium text-neutral-300 transition-colors hover:border-white/20 hover:text-neutral-100"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="text-sm text-neutral-400 transition-colors hover:text-neutral-100"
+              >
+                Sign in
+              </Link>
+              <Link
+                to="/runs"
+                className="rounded-lg bg-emerald-600 px-3.5 py-2 text-sm font-medium text-neutral-950 transition-colors hover:bg-emerald-500"
+              >
+                View demo
+              </Link>
+            </>
+          )}
         </div>
       </Container>
     </header>
@@ -121,7 +160,7 @@ export function Footer() {
           title="Hackathon"
           links={[
             { label: 'Season 4', href: 'https://www.testsprite.com/hackathon-s4' },
-            { label: 'Spec (SPEC.md)', href: '/runs' },
+            { label: 'Scoring', href: '/score' },
           ]}
         />
       </Container>

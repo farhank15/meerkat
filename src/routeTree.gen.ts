@@ -12,8 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as RunsRouteImport } from './routes/runs'
+import { Route as ScoreRouteImport } from './routes/score'
 import { Route as AuthSigninRouteImport } from './routes/auth.signin'
 import { Route as RunsIdRouteImport } from './routes/runs/$id'
+import { Route as ShareSlugRouteImport } from './routes/share/$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -30,6 +32,11 @@ const RunsRoute = RunsRouteImport.update({
   path: '/runs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ScoreRoute = ScoreRouteImport.update({
+  id: '/score',
+  path: '/score',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthSigninRoute = AuthSigninRouteImport.update({
   id: '/auth/signin',
   path: '/auth/signin',
@@ -40,42 +47,77 @@ const RunsIdRoute = RunsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => RunsRoute,
 } as any)
+const ShareSlugRoute = ShareSlugRouteImport.update({
+  id: '/share/$slug',
+  path: '/share/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/runs': typeof RunsRouteWithChildren
+  '/score': typeof ScoreRoute
   '/auth/signin': typeof AuthSigninRoute
   '/runs/$id': typeof RunsIdRoute
+  '/share/$slug': typeof ShareSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/runs': typeof RunsRouteWithChildren
+  '/score': typeof ScoreRoute
   '/auth/signin': typeof AuthSigninRoute
   '/runs/$id': typeof RunsIdRoute
+  '/share/$slug': typeof ShareSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/runs': typeof RunsRouteWithChildren
+  '/score': typeof ScoreRoute
   '/auth/signin': typeof AuthSigninRoute
   '/runs/$id': typeof RunsIdRoute
+  '/share/$slug': typeof ShareSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/runs' | '/auth/signin' | '/runs/$id'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/runs'
+    | '/score'
+    | '/auth/signin'
+    | '/runs/$id'
+    | '/share/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/runs' | '/auth/signin' | '/runs/$id'
-  id: '__root__' | '/' | '/login' | '/runs' | '/auth/signin' | '/runs/$id'
+  to:
+    | '/'
+    | '/login'
+    | '/runs'
+    | '/score'
+    | '/auth/signin'
+    | '/runs/$id'
+    | '/share/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/runs'
+    | '/score'
+    | '/auth/signin'
+    | '/runs/$id'
+    | '/share/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   RunsRoute: typeof RunsRouteWithChildren
+  ScoreRoute: typeof ScoreRoute
   AuthSigninRoute: typeof AuthSigninRoute
+  ShareSlugRoute: typeof ShareSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -101,6 +143,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RunsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/score': {
+      id: '/score'
+      path: '/score'
+      fullPath: '/score'
+      preLoaderRoute: typeof ScoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/signin': {
       id: '/auth/signin'
       path: '/auth/signin'
@@ -114,6 +163,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/runs/$id'
       preLoaderRoute: typeof RunsIdRouteImport
       parentRoute: typeof RunsRoute
+    }
+    '/share/$slug': {
+      id: '/share/$slug'
+      path: '/share/$slug'
+      fullPath: '/share/$slug'
+      preLoaderRoute: typeof ShareSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -132,7 +188,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   RunsRoute: RunsRouteWithChildren,
+  ScoreRoute: ScoreRoute,
   AuthSigninRoute: AuthSigninRoute,
+  ShareSlugRoute: ShareSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

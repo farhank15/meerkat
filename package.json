@@ -15,7 +15,8 @@
     "format": "prettier --write . && eslint --fix",
     "check": "prettier --check .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "score": "vite-node src/lib/cli/score.ts"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
