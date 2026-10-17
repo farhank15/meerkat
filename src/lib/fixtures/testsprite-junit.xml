@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="testsprite" tests="67" failures="3" errors="0" skipped="0" time="184.20">
+  <testsuite name="meerkat-demo" tests="67" failures="3" errors="0" skipped="0" time="184.20">
+    <testcase name="SV-SMK-01 demo" classname="meerkat" time="1.80"/>
+    <testcase name="SV-XX-02 demo" classname="meerkat" time="2.20"/>
+    <testcase name="SV-XX-03 demo" classname="meerkat" time="2.60"/>
+    <testcase name="SV-XX-04 demo" classname="meerkat" time="3.00"/>
+    <testcase name="SV-XX-05 demo" classname="meerkat" time="3.40"/>
+    <testcase name="SV-XX-06 demo" classname="meerkat" time="3.80"/>
+    <testcase name="SV-XX-07 demo" classname="meerkat" time="4.20"/>
+    <testcase name="SV-XX-08 demo" classname="meerkat" time="1.80"/>
+    <testcase name="SV-XX-09 demo" classname="meerkat" time="2.20"/>
+    <testcase name="SV-XX-10 demo" classname="meerkat" time="2.60"/>
+    <testcase name="SV-XX-11 demo" classname="meerkat" time="3.00"/>
+    <testcase name="SV-XX-12 demo" classname="meerkat" time="3.40"/>
+    <testcase name="SV-XX-13 demo" classname="meerkat" time="3.80"/>
+    <testcase name="SV-XX-14 demo" classname="meerkat" time="4.20">
+      <failure message="Expected the runs table to list 1 run, received 0">AssertionError: Expected the runs table to list 1 run, received 0</failure>
+    </testcase>
+    <testcase name="SV-XX-15 demo" classname="meerkat" time="1.80"/>
+    <testcase name="SV-XX-16 demo" classname="meerkat" time="2.20"/>
+    <testcase name="SV-XX-17 demo" classname="meerkat" time="2.60"/>
+    <testcase name="SV-XX-18 demo" classname="meerkat" time="3.00"/>
+    <testcase name="SV-XX-19 demo" classname="meerkat" time="3.40"/>
+    <testcase name="SV-XX-20 demo" classname="meerkat" time="3.80"/>
+    <testcase name="SV-XX-21 demo" classname="meerkat" time="4.20"/>
+    <testcase name="SV-XX-22 demo" classname="meerkat" time="1.80"/>
+    <testcase name="SV-XX-23 demo" classname="meerkat" time="2.20"/>
+    <testcase name="SV-XX-24 demo" classname="meerkat" time="2.60"/>
+    <testcase name="SV-XX-25 demo" classname="meerkat" time="3.00"/>
+    <testcase name="SV-XX-26 demo" classname="meerkat" time="3.40"/>
+    <testcase name="SV-XX-27 demo" classname="meerkat" time="3.80">
+      <failure message="Expected status 200 from the runs endpoint, received 500">AssertionError: Expected status 200 from the runs endpoint, received 500</failure>
+    </testcase>
+    <testcase name="SV-XX-28 demo" classname="meerkat" time="4.20"/>
+    <testcase name="SV-XX-29 demo" classname="meerkat" time="1.80"/>
+    <testcase name="SV-XX-30 demo" classname="meerkat" time="2.20"/>
+    <testcase name="SV-XX-31 demo" classname="meerkat" time="2.60"/>
+    <testcase name="SV-XX-32 demo" classname="meerkat" time="3.00"/>
+    <testcase name="SV-XX-33 demo" classname="meerkat" time="3.40"/>
+    <testcase name="SV-XX-34 demo" classname="meerkat" time="3.80"/>
+    <testcase name="SV-XX-35 demo" classname="meerkat" time="4.20"/>
+    <testcase name="SV-XX-36 demo" classname="meerkat" time="1.80"/>
+    <testcase name="SV-XX-37 demo" classname="meerkat" time="2.20"/>
+    <testcase name="SV-XX-38 demo" classname="meerkat" time="2.60"/>
+    <testcase name="SV-XX-39 demo" classname="meerkat" time="3.00"/>
+    <testcase name="SV-XX-40 demo" classname="meerkat" time="3.40"/>
+    <testcase name="SV-XX-41 demo" classname="meerkat" time="3.80"/>
+    <testcase name="SV-XX-42 demo" classname="meerkat" time="4.20"/>
+    <testcase name="SV-XX-43 demo" classname="meerkat" time="1.80"/>
+    <testcase name="SV-XX-44 demo" classname="meerkat" time="2.20"/>
+    <testcase name="SV-XX-45 demo" classname="meerkat" time="2.60"/>
+    <testcase name="SV-XX-46 demo" classname="meerkat" time="3.00"/>
+    <testcase name="SV-XX-47 demo" classname="meerkat" time="3.40"/>
+    <testcase name="SV-XX-48 demo" classname="meerkat" time="3.80"/>
+    <testcase name="SV-XX-49 demo" classname="meerkat" time="4.20"/>
+    <testcase name="SV-XX-50 demo" classname="meerkat" time="1.80"/>
+    <testcase name="SV-XX-51 demo" classname="meerkat" time="2.20"/>
+    <testcase name="SV-XX-52 demo" classname="meerkat" time="2.60"/>
+    <testcase name="SV-XX-53 demo" classname="meerkat" time="3.00"/>
+    <testcase name="SV-XX-54 demo" classname="meerkat" time="3.40"/>
+    <testcase name="SV-XX-55 demo" classname="meerkat" time="3.80"/>
+    <testcase name="SV-XX-56 demo" classname="meerkat" time="4.20"/>
+    <testcase name="SV-XX-57 demo" classname="meerkat" time="1.80"/>
+    <testcase name="SV-XX-58 demo" classname="meerkat" time="2.20">
+      <failure message="Expected text 'Coverage traceability' to be visible, element not found">AssertionError: Expected text 'Coverage traceability' to be visible, element not found</failure>
+    </testcase>
+    <testcase name="SV-XX-59 demo" classname="meerkat" time="2.60"/>
+    <testcase name="SV-XX-60 demo" classname="meerkat" time="3.00"/>
+    <testcase name="landing page renders hero" classname="orphan" time="1.20"/>
+    <testcase name="navigation links resolve" classname="orphan" time="1.50"/>
+    <testcase name="sign-in form accepts demo credentials" classname="orphan" time="1.80"/>
+    <testcase name="runs table sorts by date" classname="orphan" time="2.10"/>
+    <testcase name="footer renders build info" classname="orphan" time="2.40"/>
+    <testcase name="share link opens without login" classname="orphan" time="2.70"/>
+    <testcase name="score page explains the formula" classname="orphan" time="3.00"/>
+  </testsuite>
+</testsuites>

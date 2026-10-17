@@ -6,15 +6,15 @@
 
 ### Your suite is green. But is it *meaningful*?
 
-Meerkat reads TestSprite's verdicts, scores how strong your suite really is,
-and closes the loop only when that verdict can be trusted.
+Meerkat scores how strong your test suite really is with the **Test Strength Index
+(TSI)** — and shows the evidence behind every number.
 
 [![TestSprite Hackathon S4](https://img.shields.io/badge/TestSprite-Hackathon_S4-blue)](https://www.testsprite.com/hackathon-s4)
-[![Suite](https://img.shields.io/badge/suite-33_core_scenarios-brightgreen)](SPEC.md)
-[![Loop](https://img.shields.io/badge/loop-verdict--audited-8A2BE2)](#the-loop)
+[![Engine tests](https://img.shields.io/badge/engine_tests-Vitest_%2B_fast--check-brightgreen)](src/lib)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**[Live demo](https://meerkat-app.vercel.app)**
+**[Live demo](https://meerkat-git-feat-phase2-mvp-flaminextdevs-projects.vercel.app)**
+· production (`meerkat-app.vercel.app`) goes live once PR #1 merges.
 
 </div>
 
@@ -22,141 +22,96 @@ and closes the loop only when that verdict can be trusted.
 
 ## Green is not the same as meaningful
 
-A passing check tells you a test ran. It doesn't tell you whether that test asserted
-anything, whether it covers the requirement you just changed, or whether it passed
-because the app works — or because the assertion was too weak to ever fail.
+A passing check tells you a test ran. It doesn't tell you whether that test covered
+the requirement you just changed, or whether it passed because the app works — or
+because the assertion was too weak to ever fail.
 
-Meerkats stand tall and watch over the colony: one sentinel always on duty. **Meerkat
-does the same for your test suite.** It stands watch over every pull request and asks
-the question green checkmarks never ask.
-
-*For maintainers and reviewers of AI-coded repos who already have green TestSprite
-checks and need to know whether that green means anything — before they merge.*
+Meerkat stands watch over every pull request and asks the question green checkmarks
+never ask: **does this green suite actually catch anything?**
 
 ## What Meerkat does
 
-- **Scores suite strength, not just pass/fail.** Coverage, stability, assertion depth, and pass rate fold into one number — the **Test Strength Index (TSI)**.
-- **Catches the vacuous pass.** A test that passes without asserting anything is counted, labelled `vacuous`, and excluded from the score. Green that proves nothing is not green.
-- **Adds a trust layer to the verdict.** A refused run is not a failure. An incomplete rerun never passes the gate. A diff against a run with no verdict is refused.
-- **Tells spec-drift apart from bugs.** A failure caused by a changed spec is labelled `spec-drift`, not `regression`.
-- **Traces every number.** Click any score to see the test rows behind it, the line in `SPEC.md`, and the commit SHA. Nothing is unexplained.
-- **Tracks the trend.** Every run is compared to the `main` baseline, so "did test strength go up or down since the last PR?" has an answer.
-
-## The loop
-
-Meerkat's headline feature is what happens *after* a red check. Every failure is
-classified **before** anything is touched:
-
-| Verdict classification | Action | Label |
-|---|---|---|
-| `refused` (not a failure) | **no action** | `refused (not a failure)` |
-| incomplete rerun | **held** | `incomplete rerun refused` |
-| `spec-drift` (spec changed, not code) | **test update needed** | `spec-drift — test update needed` |
-| `regression` + bundle available | **agent fixes the code → push → rerun** | `regression — fix proposed` |
-| bundle missing | manual | `no bundle — manual loop` |
-
-An agent only touches your code when the verdict is a genuine regression. A refused or
-drifted verdict — the two ways green-checkmark tools silently lie — **never** triggers a
-fix. The loop is recorded on the PR and on the dashboard's **Loop** page.
-
-## Every pull request, in full
-
-| Signal | What you get |
-|---|---|
-| **TSI + delta** | Comment on your PR: index, coverage, stability, pass rate, and the change vs. the last run |
-| **Assertion depth** | Per-test counts of plan steps of type `assertion`. A pass with **zero** assertions is labelled `vacuous` and excluded from pass rate; a 1-assertion pass is labelled `shallow` |
-| **Ratchet check** | A separate status check that **blocks merge when TSI drops below the `main` baseline** |
-| **Verdict audit** | Refused tests labelled `refused (not a failure)`; incomplete reruns hold the gate at `neutral`; diffs against verdict-less runs are refused |
-| **Drift classification** | Failures caused by a changed spec are labelled `spec-drift`, not `regression` |
-| **Auto-remediation** | A trustworthy regression gets a fix commit on the PR branch — visible, gated, reviewable |
-| **Per-PR preview** | TestSprite runs each PR against **that PR's own deployment**, not prod — Meerkat adds an optional context matrix on top |
-| **Step narrative** | Failures come back as *"failed at step 3/5: click 'Verify' — expected '95', received '96'"*, parsed from TestSprite's own failure bundle |
-| **Coverage gaps** | Run detail lists every `SPEC.md` scenario ID with `covered` / `gap` status |
-| **Audit trail** | Click any score to see the test rows behind it, the `SPEC.md` line, and the commit SHA |
-| **Flake table** | Tests that passed in one run and failed in another run of the *same SHA* |
+- **Scores suite strength, not just pass/fail.** Coverage, stability, and pass rate
+  fold into one deterministic number — the **Test Strength Index (TSI)**.
+- **Traces every number.** Run detail shows the coverage table (every `SPEC.md`
+  scenario ID with `covered` / `gap`), the TSI source breakdown, the audit trail,
+  and commit traceability. Nothing is unexplained.
+- **Shares publicly.** Any project can be published to a public, unauthenticated
+  scorecard link — unknown slugs return a clean not-found, never a login wall.
+- **Runs from your own artifacts.** The companion `suitevitals score` CLI scores a
+  TestSprite JUnit result against a `SPEC.md` contract. Same input → byte-identical
+  output.
 
 ## The Test Strength Index
 
 ```
-coverage        = covered_ids / total_ids          # SPEC.md scenario IDs ↔ test names in TestSprite
-stability       = 1 − conflicted/tested            # same-SHA reruns; <2 runs → 1.0 (labelled estimated)
-assertions      = plan steps of type "assertion", per test   # from the test plan (planSteps[])
-meaningful_pass = passed AND assertions ≥ 1         # a 0-assertion pass is "vacuous" and excluded
-pass_rate       = meaningful_passes / total
+coverage        = covered_ids / total_ids          # SPEC.md scenario IDs ↔ test names
+stability       = 1 − conflicted/tested            # <2 runs → 1.0 (labelled estimated)
+pass_rate       = meaningful_passes / total_tests
 TSI             = round(100 × (0.50×coverage + 0.30×stability + 0.20×pass_rate))
 ```
 
-Every input comes from TestSprite's own surfaces, and every formula is deterministic —
-**the same run data always produces the same TSI, byte for byte.** No timestamps, no
-randomness inside the score.
-
-```text
-TSI-01: coverage 60/67, stability 66/67, pass 63/67 (1 vacuous)
-        → TSI = round(100×(0.50×0.895522 + 0.30×0.985075 + 0.20×0.940299)) = 93
-
-ADQ-02: 5 plan steps, 0 of type "assertion", status passed
-        → labelled "vacuous (0 assertions)", excluded from pass rate
-
-FIX-01: regression + bundle → agent fix commit → rerun TSI 93 → green
-        ("loop: regression → fix proposed → green")
-```
+Every formula is deterministic — **the same run data always produces the same TSI,
+byte for byte.** No timestamps, no randomness inside the score. The seeded demo run
+(`SV-TSI-01`: coverage 60/67, stability 66/67, pass 63/67) scores **93**.
 
 ## Built on TestSprite
 
-The **TestSprite GitHub App** is the primary path: connect it in the portal and every pull
-request gets tested against its own preview deployment — **no workflow files required,
-nothing added to your repository.** TestSprite resolves which URL to test per PR from the
-deployment event or from a target URL pattern (`{pr}`, `{branch-slug}`, `{sha}`, …), and
-per-repo toggles decide whether draft PRs are included and whether the result blocks the
-merge. The App reports back as a `testsprite-dev` comment that updates in place.
+Meerkat is wired into TestSprite two ways:
 
-Meerkat then reads TestSprite's own surfaces — the run list, each test's run history, and
-the test plan behind it — and adds a **second, independent check**: `SuiteVitals Ratchet`,
-carrying the score, the delta, the gaps, the drift classification, and the loop decision.
+1. **GitHub Action check on every PR.** The `TestSprite/testsprite-action` runs on
+   each pull request and reports a `testsprite-junit` check — the Free-plan-friendly
+   path that needs no Starter upgrade.
+2. **Portal exploratory run.** TestSprite's portal explores and exercises the live
+   UI (sign-in, run detail, coverage traceability, public share) and reports what
+   passes, fails, or is blocked.
 
-Two checks, two jobs: **TestSprite decides whether the app works. Meerkat decides whether
-that verdict is worth acting on.** Meerkat never interferes with TestSprite's own
-blocking behaviour. This repo's own pull requests are gated by both.
+Two lenses, one goal: **TestSprite decides whether the app works. Meerkat decides
+whether that verdict is worth acting on.**
 
-<sub>Integration details verified against TestSprite's own documentation —
+<sub>Integration verified against TestSprite's documentation —
 [GitHub Integration](https://docs.testsprite.com/web-portal/integrations/github-integration) ·
 [Reading Results](https://docs.testsprite.com/cli/core/reading-results).</sub>
 
-## What the suite covers
+## What the engine covers
 
-**33 core scenarios across 12 families**, every one asserting at least one exact number,
-label, or line — never just "renders correctly". The suite is sized to run on **every**
-pull request within a free-tier credit budget, and grows one PR at a time.
+The scoring engine is unit-tested with **Vitest + fast-check** (property-based). Key
+areas:
 
-| Family | # | Focus |
-|---|:---:|---|
-| **SMK** | 2 | Landing scorecard, API health |
-| **CFG** | 2 | Action defaults, draft PRs |
-| **ING** | 3 | JUnit parsing (counts, skips, malformed) |
-| **TSI** | 4 | Formula (exact fixture → **93**, rounding, determinism, delta) |
-| **ADQ** | 3 | Assertion depth (per-test `assertion` step count, vacuous pass caught, shallow pass flagged) |
-| **COV** | 3 | Traceability (partial match, case-sensitivity, detail table) |
-| **RAT** | 3 | Ratchet (drop blocks, baseline update, two checks) |
-| **PRM** | 2 | PR comment (content, edit-in-place) |
-| **VDT** | 2 | Verdict trust (refused ≠ failed, incomplete rerun) |
-| **DRF** | 2 | Spec drift (drift-vs-bug, spec-only neutral) |
-| **AUD** | 3 | Audit trail (TSI → test rows, gap → SPEC line, SHA provenance) |
-| **FIX** | 4 | Auto-remediation (regression → green, refused gate, drift gate, escalation) |
+| Area | Focus |
+|---|---|
+| **TSI** | Formula (exact fixture → **93**), rounding, determinism, delta |
+| **JUnit** | Parsing counts, skips, malformed input (throws `parse-error`) |
+| **Coverage** | Traceability (partial match, case-sensitivity, gap/orphan detection) |
+| **Scoring CLI** | `scoreFromArtifacts` — deterministic score from JUnit + SPEC |
 
-The full contract lives in [`SPEC.md`](SPEC.md). That file is also the oracle for the
-audit trail — every score Meerkat reports traces back to a line in it.
+The scenario contract lives in [`SPEC.md`](SPEC.md) and is the oracle for coverage
+traceability — every coverage number Meerkat reports traces back to a line in it.
 
 ## Honest by design
 
-Meerkat does not invent data. Stability needs two runs of the same SHA; with one run it
-reports `1.0`, labelled *estimated*, rather than guessing at flakiness. Assertion depth
-comes from each test's own plan, where a step's `type` is `action` or `assertion`; when a
-plan isn't available, pass rate falls back to plain `passed/total`, labelled *estimated*.
-Coverage is ID-based — it matches `SPEC.md` scenario IDs against test names, so it stays a
-testable contract instead of depending on how any generator happened to name its files.
-And we don't claim novelty for the commodity parts: mutation testing, flake detection, and
-test-impact analysis are established prior art. Meerkat's contribution is the
-**verdict-audited loop**.
+Meerkat does not invent data. Stability needs two runs of the same SHA; with one run
+it reports `1.0`, labelled *estimated*. Coverage is ID-based — it matches `SPEC.md`
+scenario IDs against test names, so it stays a testable contract instead of depending
+on how any generator happened to name its files.
+
+The demo runs on a **seeded in-memory fixture** (no live database required to run or
+test the app). A Neon/Drizzle persistence layer is a planned follow-up; the scoring
+engine is already pure and database-independent.
+
+What is **proven** and what is still a **hypothesis** is tracked in
+[`VALIDATION.md`](VALIDATION.md) — including the experiment that could falsify the
+metric, and the maturity gates the project has not passed yet.
+
+## Try it
+
+```bash
+# Run the scoring engine on your own artifacts
+npm run score -- --junit testsprite-junit.xml --spec SPEC.md
+
+# Run the engine test suite (also exercised by the PR's testsprite-junit check)
+npm test
+```
 
 ## Built with
 
@@ -164,24 +119,13 @@ test-impact analysis are established prior art. Meerkat's contribution is the
 |---|---|
 | Framework | [TanStack Start](https://tanstack.com/start) (React + TypeScript) |
 | Hosting | Vercel, with per-PR preview deployments |
-| Database | Postgres (Neon) + Drizzle ORM |
 | Styling | Tailwind CSS |
-| Test ingestion | TestSprite's own surfaces — run list, run history, test plans; the JUnit report for the offline path |
 | Engine tests | Vitest + fast-check (property-based) |
-| CLI | Node + TypeScript, zero-config defaults |
-
-## Contributing
-
-Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+| Test ingestion | TestSprite (GitHub Action check + portal exploratory run) |
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
-
-## Thanks
-
-- [TestSprite Hackathon Season 4](https://www.testsprite.com/hackathon-s4), the TestSprite **GitHub App**, and the failure-bundle pipeline this tool stands on
-- Everyone in QA who keeps asking *"but does it actually catch anything — and who fixes it?"*
 
 ---
 
