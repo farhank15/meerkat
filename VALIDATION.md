@@ -40,12 +40,13 @@ unvalidated hypothesis. Last updated 2026-10-17.
 | E4 | Malformed JUnit throws `parse-error`, never crashes | **Proven** | `src/lib/junit.test.ts` |
 | E5 | Coverage mapping is case-sensitive; gaps and orphans are distinguished | **Proven** | `src/lib/coverage.test.ts` |
 | E6 | Stability falls back to `1.0` (labelled *estimated*) with fewer than two runs of the same SHA | **Proven** | `src/lib/tsi.ts:34` |
-| E7 | Assertion depth: `0 = vacuous`, `1 = shallow`, `≥2 = meaningful` | **Implemented, unvalidated** | `src/lib/assertionDepth.ts` |
-| E8 | Meaningful pass rate predicts real fault detection better than raw pass rate | **Hypothesis — no evidence** | — |
-| E9 | TSI rank-correlates with mutation score | **Hypothesis — no evidence** | — |
-| E10 | Verdict classification (refused / incomplete / spec-drift / regression) is stable | **Implemented, unvalidated** | `src/lib/classifier.ts` |
+| E7 | The JUnit parser keeps a verdict per testcase, including `<failure>` and `<error>` messages | **Proven** | `src/lib/junit.test.ts`, `src/lib/fixture.test.ts` |
+| E8 | Assertion depth: `0 = vacuous`, `1 = shallow`, `≥2 = meaningful` | **Implemented, unvalidated** | `src/lib/assertionDepth.ts` |
+| E9 | Meaningful pass rate predicts real fault detection better than raw pass rate | **Hypothesis — no evidence** | — |
+| E10 | TSI rank-correlates with mutation score | **Hypothesis — no evidence** | — |
+| E11 | Verdict classification (refused / incomplete / spec-drift / regression) is stable | **Implemented, unvalidated** | `src/lib/classifier.ts` |
 
-Rows E7–E10 are the product's actual intellectual bet. Everything above them is
+Rows E8–E11 are the product's actual intellectual bet. Everything above them is
 engineering hygiene.
 
 ---
@@ -135,7 +136,7 @@ Each level has an exit condition. We are at L0.
 
 | Level | Meaning | Exit condition | Status |
 |---|---|---|---|
-| **L0 — Engine correct** | formulas, parsing, determinism | unit + property tests green; fixture reproduces exactly | **Done** (36/36) |
+| **L0 — Engine correct** | formulas, parsing, determinism | unit + property tests green; fixture reproduces exactly | **Done** (46/46) |
 | **L1 — Proxy valid** | the metric measures what it claims | H1 confirmed at ρ ≥ 0.70 with published protocol | Not started |
 | **L2 — Product usable** | a team can use it without us | real ingestion, persistence, multi-run history, no seeded fixture | Partial |
 | **L3 — Gate trusted** | safe to block a merge | L1 + anti-gaming classifier + ratchet + audited false-positive rate | Not started |
@@ -150,8 +151,9 @@ Claiming L2 or L3 before L1 is the failure mode this document exists to prevent.
   the renormalised formula (0.60 stability + 0.40 pass rate) and a weaker signal.
 - **TestSprite coupling.** Assertion depth is derived from TestSprite plan steps, so
   the strongest component currently only works for TestSprite-generated suites.
-- **Seeded demo data.** The dashboard reads an in-memory fixture; there is no
-  ingestion path from a real run yet.
+- **Seeded demo data.** The dashboard parses a committed JUnit artifact at build
+  time, so every row is traceable, but there is still no ingestion path from a live
+  TestSprite run.
 - **Single run.** Stability is labelled *estimated* until two runs share a SHA.
 - **Client-side session.** The demo gate reads a cookie; it is not a security
   boundary and is not presented as one.
@@ -160,7 +162,7 @@ Claiming L2 or L3 before L1 is the failure mode this document exists to prevent.
 
 ## 8. Status snapshot
 
-- Engine tests: **36/36 passing** (`npm test`)
+- Engine tests: **46/46 passing** (`npm test`)
 - Typecheck: clean (`npm run typecheck`)
 - Build: clean (`npm run build`)
 - TestSprite suite: 37 scenarios — results tracked in the pull request check
