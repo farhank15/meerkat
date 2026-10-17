@@ -40,8 +40,23 @@ export function TraceabilitySummary({ run }: { run: Run }) {
   )
 }
 
+/** Stable DOM id for a testcase row, so a spec row can link straight to it. */
+export function slugifyTestName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 /** Per-spec-ID coverage: covered, or an explicit gap with the orphan test name. */
-export function SpecTable({ run }: { run: Run }) {
+export function SpecTable({
+  run,
+  testHref,
+}: {
+  run: Run
+  /** When provided, the test name renders as a link to its detail view. */
+  testHref?: (name: string) => string
+}) {
   return (
     <div className="overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/50">
       <table className="w-full text-sm">
@@ -64,7 +79,20 @@ export function SpecTable({ run }: { run: Run }) {
                 )}
               </td>
               <td className="px-5 py-2.5 text-neutral-500">
-                {s.testName ?? <span className="text-neutral-600">no test</span>}
+                {s.testName ? (
+                  testHref ? (
+                    <a
+                      href={testHref(s.testName)}
+                      className="text-emerald-400 underline-offset-2 transition-colors hover:text-emerald-300 hover:underline"
+                    >
+                      {s.testName}
+                    </a>
+                  ) : (
+                    s.testName
+                  )
+                ) : (
+                  <span className="text-neutral-600">no test</span>
+                )}
               </td>
             </tr>
           ))}

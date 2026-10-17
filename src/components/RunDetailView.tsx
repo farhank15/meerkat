@@ -2,13 +2,22 @@
 // /share/$slug/run/$id so a shared scorecard can open a run without a login wall.
 
 import { Link } from '@tanstack/react-router'
-import type { Run } from '@/lib/store'
+import { getProject, type Run } from '@/lib/store'
 import type { JUnitStatus } from '@/lib/junit'
 import { Container, ScoreCard } from '@/components/site'
-import { SpecTable, TraceabilitySummary } from '@/components/CoverageTrace'
+import { slugifyTestName, SpecTable, TraceabilitySummary } from '@/components/CoverageTrace'
+
+/** Only link a SHA we can address: 40 hex chars on the project's real repo. */
+function commitUrl(repoUrl: string | undefined, sha: string | undefined): string | null {
+  if (!repoUrl || !sha || !/^[0-9a-f]{40}$/.test(sha)) return null
+  return `${repoUrl}/commit/${sha}`
+}
 
 export function RunDetailView({ run, publicView = false }: { run: Run; publicView?: boolean }) {
   const { tsi, coverage, stability, passRate } = run.metric
+  const repoUrl = getProject(run.projectId)?.repoUrl
+  const runCommit = commitUrl(repoUrl, run.sha)
+  const fixCommit = commitUrl(repoUrl, run.loop?.fixCommit)
 
   return (
     <Container className="py-12">
@@ -47,14 +56,20 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
             <span>PR {run.pr}</span>
             <span>branch {run.branch}</span>
             <span>{run.environment}</span>
-            <a
-              href={`https://github.com/farhank15/meerkat/commit/${run.sha}`}
-              target="_blank"
-              rel="noreferrer"
-              className="font-mono text-xs text-emerald-400 underline-offset-2 hover:text-emerald-300 hover:underline"
-            >
-              Commit {run.sha.slice(0, 7)} ↗
-            </a>
+            {runCommit ? (
+              <a
+                href={runCommit}
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono text-xs text-emerald-400 underline-offset-2 hover:text-emerald-300 hover:underline"
+              >
+                Commit {run.sha.slice(0, 7)} ↗
+              </a>
+            ) : (
+              <span className="font-mono text-xs text-neutral-500">
+                Commit {run.sha.slice(0, 7)}
+              </span>
+            )}
           </div>
 
           {/* Provenance strip — the artifacts behind every number below. */}
@@ -118,7 +133,11 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
               </thead>
               <tbody>
                 {run.testCases.map((t) => (
-                  <tr key={t.name} className="border-b border-white/5 last:border-0">
+                  <tr
+                    key={t.name}
+                    id={`testcase-${slugifyTestName(t.name)}`}
+                    className="scroll-mt-24 border-b border-white/5 last:border-0"
+                  >
                     <td className="px-4 py-2 text-neutral-300">
                       {t.name}
                       {t.message && (
@@ -150,7 +169,7 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
               Open coverage page →
             </Link>
           </div>
-          <SpecTable run={run} />
+          <SpecTable run={run} testHref={(name) => `#testcase-${slugifyTestName(name)}`} />
         </div>
 
         <aside className="space-y-6">
@@ -188,14 +207,20 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
                 <div className="flex justify-between gap-3">
                   <dt className="text-neutral-500">Commit SHA</dt>
                   <dd>
-                    <a
-                      href={`https://github.com/farhank15/meerkat/commit/${run.sha}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-mono text-xs text-emerald-400 underline-offset-2 hover:text-emerald-300 hover:underline"
-                    >
-                      {run.sha.slice(0, 7)}
-                    </a>
+                    {runCommit ? (
+                      <a
+                        href={runCommit}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-mono text-xs text-emerald-400 underline-offset-2 hover:text-emerald-300 hover:underline"
+                      >
+                        {run.sha.slice(0, 7)}
+                      </a>
+                    ) : (
+                      <span className="font-mono text-xs text-neutral-500">
+                        {run.sha.slice(0, 7)}
+                      </span>
+                    )}
                   </dd>
                 </div>
                 <div className="flex justify-between">
@@ -218,14 +243,20 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
                   <div className="flex justify-between gap-3">
                     <dt className="text-neutral-500">Commit traceability</dt>
                     <dd className="text-right">
-                      <a
-                        href={`https://github.com/farhank15/meerkat/commit/${run.loop.fixCommit}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-mono text-xs text-emerald-400 underline-offset-2 hover:text-emerald-300 hover:underline"
-                      >
-                        {run.loop.fixCommit.slice(0, 7)}
-                      </a>
+                      {fixCommit ? (
+                        <a
+                          href={fixCommit}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-mono text-xs text-emerald-400 underline-offset-2 hover:text-emerald-300 hover:underline"
+                        >
+                          {run.loop.fixCommit?.slice(0, 7)}
+                        </a>
+                      ) : (
+                        <span className="font-mono text-xs text-neutral-500">
+                          {run.loop.fixCommit?.slice(0, 7)}
+                        </span>
+                      )}
                     </dd>
                   </div>
                 )}

@@ -4,7 +4,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { getRun } from '@/lib/store'
 import { Container, ScoreCard } from '@/components/site'
-import { SpecTable, TraceabilitySummary } from '@/components/CoverageTrace'
+import { slugifyTestName, SpecTable, TraceabilitySummary } from '@/components/CoverageTrace'
 
 export const Route = createFileRoute('/runs/$id/coverage')({
   component: CoveragePage,
@@ -49,7 +49,10 @@ function CoveragePage() {
           <h2 className="mb-3 mt-10 text-sm font-semibold uppercase tracking-wider text-neutral-500">
             Specification IDs
           </h2>
-          <SpecTable run={run} />
+          <SpecTable
+            run={run}
+            testHref={(name) => `/runs/${run.id}#testcase-${slugifyTestName(name)}`}
+          />
         </div>
 
         <aside className="space-y-6">

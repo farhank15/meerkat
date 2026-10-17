@@ -5,6 +5,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { DEMO_RUN, getProjectBySlug } from '@/lib/store'
 import { Container, ScoreCard } from '@/components/site'
 import { ShareNotFound } from '@/components/ShareNotFound'
+import { slugifyTestName } from '@/components/CoverageTrace'
 
 export const Route = createFileRoute('/share/$slug/')({
   component: SharePage,
@@ -88,7 +89,16 @@ function SharePage() {
                       )}
                     </td>
                     <td className="px-5 py-2.5 text-neutral-500">
-                      {s.testName ?? <span className="text-neutral-600">no test</span>}
+                      {s.testName ? (
+                        <a
+                          href={`/share/${slug}/run/${DEMO_RUN.id}#testcase-${slugifyTestName(s.testName)}`}
+                          className="text-emerald-400 underline-offset-2 transition-colors hover:text-emerald-300 hover:underline"
+                        >
+                          {s.testName}
+                        </a>
+                      ) : (
+                        <span className="text-neutral-600">no test</span>
+                      )}
                     </td>
                   </tr>
                 ))}

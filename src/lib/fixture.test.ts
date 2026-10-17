@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { parseJUnit } from './junit'
 import junitXml from './fixtures/testsprite-junit.xml?raw'
 import { DEMO_RUN } from './store'
+import { slugifyTestName } from '@/components/CoverageTrace'
 
 describe('demo JUnit artifact', () => {
   const parsed = parseJUnit(junitXml)
@@ -63,5 +64,19 @@ describe('run built from the artifact', () => {
     expect(DEMO_RUN.sha).toMatch(/^[0-9a-f]{40}$/)
     expect(DEMO_RUN.loop?.fixCommit).toMatch(/^[0-9a-f]{40}$/)
     expect(DEMO_RUN.loop?.fixCommit).not.toBe(DEMO_RUN.sha)
+  })
+})
+
+describe('testcase anchors', () => {
+  it('slugifies a test name into a stable DOM id', () => {
+    expect(slugifyTestName('SV-SMK-01 demo')).toBe('sv-smk-01-demo')
+    expect(slugifyTestName('sign-in form accepts demo credentials')).toBe(
+      'sign-in-form-accepts-demo-credentials',
+    )
+  })
+
+  it('produces a unique anchor for every testcase (no collisions)', () => {
+    const slugs = DEMO_RUN.testCases.map((t) => slugifyTestName(t.name))
+    expect(new Set(slugs).size).toBe(slugs.length)
   })
 })
