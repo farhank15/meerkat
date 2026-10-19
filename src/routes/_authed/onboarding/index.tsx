@@ -5,6 +5,7 @@ import { Badge, Button, Card, CardContent, CardHeader } from '@/components/ui/pr
 import { Field, Input } from '@/components/ui/form'
 import { CodeBlock } from '@/components/ui/code'
 import { ArrowLeftIcon, ArrowRightIcon, CheckIcon } from '@/components/ui/icons'
+import { cn } from '@/lib/cn'
 import { createProjectFn } from '@/server/projects'
 import { createKeyFn } from '@/server/keys'
 import { completeOnboardingFn, updateWorkspaceFn } from '@/server/workspace'
@@ -148,7 +149,12 @@ function Onboarding() {
             >
               {index < step ? <CheckIcon width={11} height={11} /> : index + 1}
             </span>
-            <span className={index === step ? 'text-2xs font-medium text-ink' : 'text-2xs text-ink-subtle'}>
+            <span
+              className={cn(
+                'text-2xs',
+                index === step ? 'font-medium text-ink' : 'hidden text-ink-subtle sm:inline',
+              )}
+            >
               {label}
             </span>
             {index < STEPS.length - 1 && <span className="h-px flex-1 bg-line" aria-hidden />}

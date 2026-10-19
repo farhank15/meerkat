@@ -1,7 +1,11 @@
 // Native <dialog> wrapper — focus trapping, Escape and the top layer come from
 // the platform, so there is no custom keyboard handling to get wrong.
+//
+// Tailwind's preflight resets `margin` to 0 on every element, which also wipes
+// the UA `margin: auto` that centers a modal dialog. `m-auto` + `inset-0` puts
+// the centering back explicitly; without them the panel sticks to a corner.
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef } from 'react'
 
 import { cn } from '@/lib/cn'
 import { IconButton, Button } from './primitives'
@@ -25,6 +29,8 @@ export function Dialog({
   size?: 'sm' | 'md' | 'lg'
 }) {
   const ref = useRef<HTMLDialogElement>(null)
+  const titleId = useId()
+  const descriptionId = useId()
 
   useEffect(() => {
     const el = ref.current
@@ -36,25 +42,31 @@ export function Dialog({
   return (
     <dialog
       ref={ref}
-      aria-labelledby="dialog-title"
+      aria-labelledby={titleId}
+      aria-describedby={description ? descriptionId : undefined}
       onClose={onClose}
       onCancel={(event) => {
         event.preventDefault()
         onClose()
       }}
       className={cn(
-        'w-[calc(100vw-2rem)] rounded-lg border border-line bg-surface p-0 text-ink shadow-pop backdrop:bg-black/70',
+        'inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] overflow-y-auto overscroll-contain',
+        'rounded-lg border border-line bg-surface p-0 text-ink shadow-pop backdrop:bg-black/70',
         size === 'sm' && 'max-w-sm',
         size === 'md' && 'max-w-lg',
         size === 'lg' && 'max-w-2xl',
       )}
     >
       <div className="flex items-start justify-between gap-4 border-b border-line px-4 py-3">
-        <div>
-          <h2 id="dialog-title" className="text-sm font-semibold text-ink">
+        <div className="min-w-0">
+          <h2 id={titleId} className="text-sm font-semibold text-ink">
             {title}
           </h2>
-          {description && <p className="mt-0.5 text-xs text-ink-muted">{description}</p>}
+          {description && (
+            <p id={descriptionId} className="mt-0.5 text-xs text-ink-muted">
+              {description}
+            </p>
+          )}
         </div>
         <IconButton label="Close dialog" onClick={onClose}>
           <CloseIcon />

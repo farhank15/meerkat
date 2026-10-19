@@ -62,6 +62,13 @@
     min-height: 100%;
   }
 
+  /* Native controls (select popups, scrollbars, date pickers) follow the OS
+     theme unless told otherwise — without this the select menu renders light
+     on a dark console. */
+  html {
+    color-scheme: dark;
+  }
+
   body {
     margin: 0;
     background-color: var(--color-canvas);

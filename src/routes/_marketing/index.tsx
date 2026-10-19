@@ -249,14 +249,17 @@ function Landing() {
 
       {/* ── Proof strip ──────────────────────────────────────────────────── */}
       <section className="border-b border-line bg-surface/40">
-        <div className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-px px-5 py-0 sm:grid-cols-4">
+        <div className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-4 px-5 py-6 sm:grid-cols-4">
           {[
             ['33', 'contract scenarios'],
             ['12', 'scenario families'],
             ['3', 'weighted signals'],
             ['1', 'deterministic number'],
           ].map(([value, label]) => (
-            <div key={label} className="border-l border-line px-4 py-5 first:border-l-0 sm:first:border-l">
+            <div
+              key={label}
+              className="sm:border-l sm:border-line sm:pl-4 sm:first:border-l-0 sm:first:pl-0"
+            >
               <div className="mono-nums text-2xl font-semibold text-ink">{value}</div>
               <div className="mt-0.5 text-2xs uppercase tracking-wider text-ink-subtle">{label}</div>
             </div>

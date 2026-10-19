@@ -17,7 +17,14 @@ function shortWhen(iso: string | null): string {
   if (!iso) return '—'
   const date = new Date(iso)
   if (Number.isNaN(date.getTime())) return '—'
-  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+  // UTC on both sides — the scorecard is server-rendered and the client may
+  // sit in another zone.
+  return date.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
 }
 
 function percent(value: number | null): string {

@@ -21,7 +21,14 @@ export const Route = createFileRoute('/_authed/_app/api-keys')({
 
 function formatDate(iso: string | null): string {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+  // Pin the zone: the server renders UTC and the client may not, which would
+  // otherwise produce a hydration mismatch and a different day.
+  return new Date(iso).toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
 }
 
 const STATE_TONE = { active: 'ok', expired: 'warn', revoked: 'neutral' } as const
