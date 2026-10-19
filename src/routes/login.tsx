@@ -100,8 +100,8 @@ function Login() {
               name="email"
               type="email"
               autoComplete="username"
-              defaultValue={mode === 'signin' ? 'demo@suitevitals.dev' : undefined}
               required
+              placeholder="you@example.com"
               className="mt-2 w-full rounded-xl border border-white/10 bg-neutral-900 px-3.5 py-2.5 text-neutral-100 outline-none transition-colors placeholder:text-neutral-600 focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/10"
             />
           </label>
@@ -112,9 +112,9 @@ function Login() {
               name="password"
               type="password"
               autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-              defaultValue={mode === 'signin' ? 'demo-password-1' : undefined}
               required
               minLength={mode === 'register' ? 8 : undefined}
+              placeholder={mode === 'signin' ? '••••••••' : 'At least 8 characters'}
               className="mt-2 w-full rounded-xl border border-white/10 bg-neutral-900 px-3.5 py-2.5 text-neutral-100 outline-none transition-colors placeholder:text-neutral-600 focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/10"
             />
           </label>
@@ -173,11 +173,14 @@ function Login() {
           </div>
 
           {mode === 'signin' && (
-            <div className="mt-4 rounded-xl border border-white/5 bg-white/3 px-3.5 py-3 text-xs text-neutral-500">
-              <span className="font-medium text-neutral-400">Demo account</span> ·{' '}
-              <span className="font-mono text-neutral-400">demo@suitevitals.dev</span> /{' '}
-              <span className="font-mono text-neutral-400">demo-password-1</span>
-            </div>
+            <details className="mt-4 rounded-xl border border-white/5 bg-white/3 px-3.5 py-3 text-xs text-neutral-500">
+              <summary className="cursor-pointer select-none font-medium text-neutral-400">
+                Checking the demo? Show demo credentials
+              </summary>
+              <p className="mt-2 font-mono text-neutral-400">
+                demo@suitevitals.dev / demo-password-1
+              </p>
+            </details>
           )}
         </form>
       </div>

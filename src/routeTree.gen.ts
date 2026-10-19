@@ -10,23 +10,38 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuditorRouteImport } from './routes/auditor'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LoopRouteImport } from './routes/loop'
 import { Route as RunsRouteImport } from './routes/runs'
 import { Route as ScoreRouteImport } from './routes/score'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as ApiRunsRouteImport } from './routes/api/runs'
 import { Route as AuthSigninRouteImport } from './routes/auth.signin'
 import { Route as RunsIndexRouteImport } from './routes/runs/index'
 import { Route as RunsIdRouteImport } from './routes/runs/$id'
 import { Route as ShareIndexRouteImport } from './routes/share/index'
 import { Route as ShareSlugRouteImport } from './routes/share/$slug'
+import { Route as ApiAuthGithubRouteImport } from './routes/api/auth/github'
+import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
+import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
+import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
+import { Route as ApiAuthRegisterRouteImport } from './routes/api/auth/register'
+import { Route as ApiBadgeTsiDotsvgRouteImport } from './routes/api/badge/tsi[.]svg'
 import { Route as RunsIdIndexRouteImport } from './routes/runs/$id/index'
 import { Route as RunsIdCoverageRouteImport } from './routes/runs/$id/coverage'
 import { Route as ShareSlugIndexRouteImport } from './routes/share/$slug/index'
+import { Route as ApiAuthGithubCallbackRouteImport } from './routes/api/auth/github.callback'
 import { Route as ShareSlugRunIdRouteImport } from './routes/share/$slug/run/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuditorRoute = AuditorRouteImport.update({
+  id: '/auditor',
+  path: '/auditor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -47,6 +62,16 @@ const RunsRoute = RunsRouteImport.update({
 const ScoreRoute = ScoreRouteImport.update({
   id: '/score',
   path: '/score',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRunsRoute = ApiRunsRouteImport.update({
+  id: '/api/runs',
+  path: '/api/runs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthSigninRoute = AuthSigninRouteImport.update({
@@ -74,6 +99,36 @@ const ShareSlugRoute = ShareSlugRouteImport.update({
   path: '/share/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthGithubRoute = ApiAuthGithubRouteImport.update({
+  id: '/api/auth/github',
+  path: '/api/auth/github',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
+  id: '/api/auth/login',
+  path: '/api/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
+  id: '/api/auth/logout',
+  path: '/api/auth/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthMeRoute = ApiAuthMeRouteImport.update({
+  id: '/api/auth/me',
+  path: '/api/auth/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthRegisterRoute = ApiAuthRegisterRouteImport.update({
+  id: '/api/auth/register',
+  path: '/api/auth/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBadgeTsiDotsvgRoute = ApiBadgeTsiDotsvgRouteImport.update({
+  id: '/api/badge/tsi.svg',
+  path: '/api/badge/tsi.svg',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RunsIdIndexRoute = RunsIdIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -89,6 +144,11 @@ const ShareSlugIndexRoute = ShareSlugIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ShareSlugRoute,
 } as any)
+const ApiAuthGithubCallbackRoute = ApiAuthGithubCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => ApiAuthGithubRoute,
+} as any)
 const ShareSlugRunIdRoute = ShareSlugRunIdRouteImport.update({
   id: '/run/$id',
   path: '/run/$id',
@@ -97,107 +157,176 @@ const ShareSlugRunIdRoute = ShareSlugRunIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auditor': typeof AuditorRoute
   '/login': typeof LoginRoute
   '/loop': typeof LoopRoute
   '/runs': typeof RunsRouteWithChildren
   '/score': typeof ScoreRoute
+  '/api/health': typeof ApiHealthRoute
+  '/api/runs': typeof ApiRunsRoute
   '/auth/signin': typeof AuthSigninRoute
   '/runs/$id': typeof RunsIdRouteWithChildren
   '/share/$slug': typeof ShareSlugRouteWithChildren
   '/runs/': typeof RunsIndexRoute
   '/share/': typeof ShareIndexRoute
+  '/api/auth/github': typeof ApiAuthGithubRouteWithChildren
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/me': typeof ApiAuthMeRoute
+  '/api/auth/register': typeof ApiAuthRegisterRoute
+  '/api/badge/tsi.svg': typeof ApiBadgeTsiDotsvgRoute
   '/runs/$id/coverage': typeof RunsIdCoverageRoute
   '/runs/$id/': typeof RunsIdIndexRoute
   '/share/$slug/': typeof ShareSlugIndexRoute
+  '/api/auth/github/callback': typeof ApiAuthGithubCallbackRoute
   '/share/$slug/run/$id': typeof ShareSlugRunIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auditor': typeof AuditorRoute
   '/login': typeof LoginRoute
   '/loop': typeof LoopRoute
   '/score': typeof ScoreRoute
+  '/api/health': typeof ApiHealthRoute
+  '/api/runs': typeof ApiRunsRoute
   '/auth/signin': typeof AuthSigninRoute
   '/runs': typeof RunsIndexRoute
   '/share': typeof ShareIndexRoute
+  '/api/auth/github': typeof ApiAuthGithubRouteWithChildren
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/me': typeof ApiAuthMeRoute
+  '/api/auth/register': typeof ApiAuthRegisterRoute
+  '/api/badge/tsi.svg': typeof ApiBadgeTsiDotsvgRoute
   '/runs/$id/coverage': typeof RunsIdCoverageRoute
   '/runs/$id': typeof RunsIdIndexRoute
   '/share/$slug': typeof ShareSlugIndexRoute
+  '/api/auth/github/callback': typeof ApiAuthGithubCallbackRoute
   '/share/$slug/run/$id': typeof ShareSlugRunIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auditor': typeof AuditorRoute
   '/login': typeof LoginRoute
   '/loop': typeof LoopRoute
   '/runs': typeof RunsRouteWithChildren
   '/score': typeof ScoreRoute
+  '/api/health': typeof ApiHealthRoute
+  '/api/runs': typeof ApiRunsRoute
   '/auth/signin': typeof AuthSigninRoute
   '/runs/$id': typeof RunsIdRouteWithChildren
   '/share/$slug': typeof ShareSlugRouteWithChildren
   '/runs/': typeof RunsIndexRoute
   '/share/': typeof ShareIndexRoute
+  '/api/auth/github': typeof ApiAuthGithubRouteWithChildren
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/me': typeof ApiAuthMeRoute
+  '/api/auth/register': typeof ApiAuthRegisterRoute
+  '/api/badge/tsi.svg': typeof ApiBadgeTsiDotsvgRoute
   '/runs/$id/coverage': typeof RunsIdCoverageRoute
   '/runs/$id/': typeof RunsIdIndexRoute
   '/share/$slug/': typeof ShareSlugIndexRoute
+  '/api/auth/github/callback': typeof ApiAuthGithubCallbackRoute
   '/share/$slug/run/$id': typeof ShareSlugRunIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auditor'
     | '/login'
     | '/loop'
     | '/runs'
     | '/score'
+    | '/api/health'
+    | '/api/runs'
     | '/auth/signin'
     | '/runs/$id'
     | '/share/$slug'
     | '/runs/'
     | '/share/'
+    | '/api/auth/github'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/me'
+    | '/api/auth/register'
+    | '/api/badge/tsi.svg'
     | '/runs/$id/coverage'
     | '/runs/$id/'
     | '/share/$slug/'
+    | '/api/auth/github/callback'
     | '/share/$slug/run/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auditor'
     | '/login'
     | '/loop'
     | '/score'
+    | '/api/health'
+    | '/api/runs'
     | '/auth/signin'
     | '/runs'
     | '/share'
+    | '/api/auth/github'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/me'
+    | '/api/auth/register'
+    | '/api/badge/tsi.svg'
     | '/runs/$id/coverage'
     | '/runs/$id'
     | '/share/$slug'
+    | '/api/auth/github/callback'
     | '/share/$slug/run/$id'
   id:
     | '__root__'
     | '/'
+    | '/auditor'
     | '/login'
     | '/loop'
     | '/runs'
     | '/score'
+    | '/api/health'
+    | '/api/runs'
     | '/auth/signin'
     | '/runs/$id'
     | '/share/$slug'
     | '/runs/'
     | '/share/'
+    | '/api/auth/github'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/me'
+    | '/api/auth/register'
+    | '/api/badge/tsi.svg'
     | '/runs/$id/coverage'
     | '/runs/$id/'
     | '/share/$slug/'
+    | '/api/auth/github/callback'
     | '/share/$slug/run/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuditorRoute: typeof AuditorRoute
   LoginRoute: typeof LoginRoute
   LoopRoute: typeof LoopRoute
   RunsRoute: typeof RunsRouteWithChildren
   ScoreRoute: typeof ScoreRoute
+  ApiHealthRoute: typeof ApiHealthRoute
+  ApiRunsRoute: typeof ApiRunsRoute
   AuthSigninRoute: typeof AuthSigninRoute
   ShareSlugRoute: typeof ShareSlugRouteWithChildren
   ShareIndexRoute: typeof ShareIndexRoute
+  ApiAuthGithubRoute: typeof ApiAuthGithubRouteWithChildren
+  ApiAuthLoginRoute: typeof ApiAuthLoginRoute
+  ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
+  ApiAuthMeRoute: typeof ApiAuthMeRoute
+  ApiAuthRegisterRoute: typeof ApiAuthRegisterRoute
+  ApiBadgeTsiDotsvgRoute: typeof ApiBadgeTsiDotsvgRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -207,6 +336,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auditor': {
+      id: '/auditor'
+      path: '/auditor'
+      fullPath: '/auditor'
+      preLoaderRoute: typeof AuditorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -235,6 +371,20 @@ declare module '@tanstack/react-router' {
       path: '/score'
       fullPath: '/score'
       preLoaderRoute: typeof ScoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/runs': {
+      id: '/api/runs'
+      path: '/api/runs'
+      fullPath: '/api/runs'
+      preLoaderRoute: typeof ApiRunsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/signin': {
@@ -272,6 +422,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShareSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/github': {
+      id: '/api/auth/github'
+      path: '/api/auth/github'
+      fullPath: '/api/auth/github'
+      preLoaderRoute: typeof ApiAuthGithubRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/login': {
+      id: '/api/auth/login'
+      path: '/api/auth/login'
+      fullPath: '/api/auth/login'
+      preLoaderRoute: typeof ApiAuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/logout': {
+      id: '/api/auth/logout'
+      path: '/api/auth/logout'
+      fullPath: '/api/auth/logout'
+      preLoaderRoute: typeof ApiAuthLogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/me': {
+      id: '/api/auth/me'
+      path: '/api/auth/me'
+      fullPath: '/api/auth/me'
+      preLoaderRoute: typeof ApiAuthMeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/register': {
+      id: '/api/auth/register'
+      path: '/api/auth/register'
+      fullPath: '/api/auth/register'
+      preLoaderRoute: typeof ApiAuthRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/badge/tsi.svg': {
+      id: '/api/badge/tsi.svg'
+      path: '/api/badge/tsi.svg'
+      fullPath: '/api/badge/tsi.svg'
+      preLoaderRoute: typeof ApiBadgeTsiDotsvgRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/runs/$id/': {
       id: '/runs/$id/'
       path: '/'
@@ -292,6 +484,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/share/$slug/'
       preLoaderRoute: typeof ShareSlugIndexRouteImport
       parentRoute: typeof ShareSlugRoute
+    }
+    '/api/auth/github/callback': {
+      id: '/api/auth/github/callback'
+      path: '/callback'
+      fullPath: '/api/auth/github/callback'
+      preLoaderRoute: typeof ApiAuthGithubCallbackRouteImport
+      parentRoute: typeof ApiAuthGithubRoute
     }
     '/share/$slug/run/$id': {
       id: '/share/$slug/run/$id'
@@ -342,15 +541,36 @@ const ShareSlugRouteWithChildren = ShareSlugRoute._addFileChildren(
   ShareSlugRouteChildren,
 )
 
+interface ApiAuthGithubRouteChildren {
+  ApiAuthGithubCallbackRoute: typeof ApiAuthGithubCallbackRoute
+}
+
+const ApiAuthGithubRouteChildren: ApiAuthGithubRouteChildren = {
+  ApiAuthGithubCallbackRoute: ApiAuthGithubCallbackRoute,
+}
+
+const ApiAuthGithubRouteWithChildren = ApiAuthGithubRoute._addFileChildren(
+  ApiAuthGithubRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuditorRoute: AuditorRoute,
   LoginRoute: LoginRoute,
   LoopRoute: LoopRoute,
   RunsRoute: RunsRouteWithChildren,
   ScoreRoute: ScoreRoute,
+  ApiHealthRoute: ApiHealthRoute,
+  ApiRunsRoute: ApiRunsRoute,
   AuthSigninRoute: AuthSigninRoute,
   ShareSlugRoute: ShareSlugRouteWithChildren,
   ShareIndexRoute: ShareIndexRoute,
+  ApiAuthGithubRoute: ApiAuthGithubRouteWithChildren,
+  ApiAuthLoginRoute: ApiAuthLoginRoute,
+  ApiAuthLogoutRoute: ApiAuthLogoutRoute,
+  ApiAuthMeRoute: ApiAuthMeRoute,
+  ApiAuthRegisterRoute: ApiAuthRegisterRoute,
+  ApiBadgeTsiDotsvgRoute: ApiBadgeTsiDotsvgRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
