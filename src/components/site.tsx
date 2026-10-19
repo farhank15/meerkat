@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
-import { isAuthed, clearSession } from '@/lib/session'
+import { isAuthed } from '@/lib/session'
 
 export function Container({
   children,
@@ -65,15 +65,28 @@ function useAuth() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const [mounted, setMounted] = useState(false)
   const [authed, setAuthed] = useState(false)
+  /** Real account email now lives server-side (HttpOnly session) — surfaced via /api/auth/me. */
+  const [email, setEmail] = useState<string | null>(null)
   useEffect(() => {
-    setAuthed(isAuthed())
-    setMounted(true)
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((body: { authed?: boolean; email?: string | null }) => {
+        const confirmed = body.authed === true
+        // Fallback to the legacy client cookie while that session expires.
+        setAuthed(confirmed || isAuthed())
+        setEmail(body.email ?? null)
+        setMounted(true)
+      })
+      .catch(() => {
+        setAuthed(isAuthed())
+        setMounted(true)
+      })
   }, [pathname])
-  return { mounted, authed }
+  return { mounted, authed, email }
 }
 
 export function Nav() {
-  const { mounted, authed } = useAuth()
+  const { mounted, authed, email } = useAuth()
   const navigate = useNavigate()
 
   return (
@@ -97,12 +110,13 @@ export function Nav() {
           {mounted && authed ? (
             <>
               <span className="hidden text-sm text-neutral-400 sm:inline">
-                demo@suitevitals.dev
+                {email ?? 'demo@suitevitals.dev'}
               </span>
               <button
                 type="button"
-                onClick={() => {
-                  clearSession()
+                onClick={async () => {
+                  // Server-side logout clears the HttpOnly session cookie.
+                  await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
                   navigate({ to: '/' })
                 }}
                 className="rounded-lg border border-white/10 px-3.5 py-2 text-sm font-medium text-neutral-300 transition-colors hover:border-white/20 hover:text-neutral-100"

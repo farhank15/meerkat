@@ -24,8 +24,10 @@
     "@tanstack/react-router": "1.170.44",
     "@tanstack/react-router-devtools": "1.167.2",
     "@tanstack/react-start": "1.169.1",
+    "drizzle-orm": "^0.45.4",
     "fast-xml-parser": "^4.5.0",
     "nitro": "3.0.260610-beta",
+    "postgres": "^3.4.9",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tailwindcss": "^4.1.18"
@@ -38,6 +40,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.1",
+    "drizzle-kit": "^0.31.11",
     "eslint": "^9.20.0",
     "fast-check": "^3.23.0",
     "prettier": "^3.8.1",
