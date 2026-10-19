@@ -13,8 +13,7 @@ Meerkat scores how strong your test suite really is with the **Test Strength Ind
 [![Engine tests](https://img.shields.io/badge/engine_tests-Vitest_%2B_fast--check-brightgreen)](src/lib)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**[Live demo](https://meerkat-git-feat-phase2-mvp-flaminextdevs-projects.vercel.app)**
-· production (`meerkat-app.vercel.app`) goes live once PR #1 merges.
+**[Live demo](https://meerkat-app.vercel.app)** · sign in with `demo@suitevitals.dev` / `demo-password-1`
 
 </div>
 
