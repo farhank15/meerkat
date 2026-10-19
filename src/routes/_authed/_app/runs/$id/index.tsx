@@ -134,6 +134,12 @@ function RunOverview() {
                 <span>PR #{meta.pr}</span>
               </>
             )}
+            {run.environment && (
+              <>
+                <span aria-hidden>·</span>
+                <span className="rounded bg-surface-raised px-1.5 py-0.5 text-ink-subtle">{run.environment}</span>
+              </>
+            )}
           </span>
         }
         actions={<StatusBadge status={run.status} />}

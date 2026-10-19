@@ -46,12 +46,23 @@ function AuditPage() {
           {audit.rationale}
         </Alert>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <Card>
+          <CardHeader
+            title="Verdict-Trust Gate:"
+            description="The gate cross-checks the green verdict before it is trusted — a red or held run never reports green."
+          />
+          <div className="px-4 py-3 text-xs leading-relaxed text-ink-muted">
+            {audit.headline} — {audit.rationale}
+          </div>
+        </Card>
+
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
           <Stat label="Vacuous passes" value={audit.counts.vacuous} hint="Excluded from the pass rate" tone={audit.counts.vacuous ? 'warn' : 'neutral'} />
           <Stat label="Shallow passes" value={audit.counts.shallow} hint="1 assertion — flagged, pass rate unchanged" tone={audit.counts.shallow ? 'warn' : 'neutral'} />
           <Stat label="Orphans" value={audit.counts.orphans} hint="No owning scenario" />
           <Stat label="Conflicts" value={audit.counts.conflicted} hint="Same scenario, different verdicts" tone={audit.counts.conflicted ? 'danger' : 'neutral'} />
           <Stat label="Spec gaps" value={audit.counts.gaps} hint="Uncovered scenarios" />
+          <Stat label="Meaningful passes" value={audit.counts.meaningfulPasses} hint="Asserted, non-vacuous" tone="ok" />
         </div>
 
         <Card>
@@ -71,20 +82,20 @@ function AuditPage() {
                     </div>
                     <Badge tone={SEVERITY_TONE[finding.severity]}>{finding.severity}</Badge>
                   </div>
-                  {finding.evidence.length > 0 && (
-                    <ul className="mt-2 space-y-0.5">
-                      {finding.evidence.slice(0, 6).map((item) => (
-                        <li key={item} className="font-mono text-2xs text-ink-subtle">
-                          {item}
-                        </li>
-                      ))}
-                      {finding.evidence.length > 6 && (
-                        <li className="text-2xs text-ink-subtle">
-                          +{finding.evidence.length - 6} more
-                        </li>
+                      {finding.evidence.length > 0 && (
+                        <ul className="mt-2 space-y-0.5">
+                          {finding.evidence.slice(0, 6).map((item) => (
+                            <li key={item} className="font-mono text-2xs text-ink-subtle">
+                              └ {item}
+                            </li>
+                          ))}
+                          {finding.evidence.length > 6 && (
+                            <li className="text-2xs text-ink-subtle">
+                              └ +{finding.evidence.length - 6} more
+                            </li>
+                          )}
+                        </ul>
                       )}
-                    </ul>
-                  )}
                 </li>
               ))}
             </ul>
