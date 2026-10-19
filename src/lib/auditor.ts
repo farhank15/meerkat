@@ -45,7 +45,7 @@ export function clusterFailures(rows: TestCaseRow[]): FailureCluster[] {
 
 export interface Finding {
   /** Stable topic key used by the UI for grouping. */
-  kind: 'vacuous' | 'orphan' | 'conflict' | 'gap'
+  kind: 'vacuous' | 'shallow' | 'orphan' | 'conflict' | 'gap'
   severity: 'high' | 'medium' | 'low'
   /** Human summary of one cluster of findings (singles are listed inline). */
   title: string
@@ -122,6 +122,17 @@ export function auditRun(run: Run): TrustAudit {
       detail:
         'Passed without asserting scenario behaviour — visible-only checks add green but no evidence, and are excluded from the pass rate.',
       evidence: vacuousRows.slice(0, 5).map((r) => r.name),
+    })
+  }
+
+  if (shallowRows.length > 0) {
+    findings.push({
+      kind: 'shallow',
+      severity: 'low',
+      title: `${shallowRows.length} shallow pass${shallowRows.length > 1 ? 'es' : ''} (1 assertion)`,
+      detail:
+        'Passed with a single assertion step. Unlike a vacuous pass it does assert behaviour, so it counts toward the pass rate — but the gate flags it so the reader knows the coverage is thin, not rich.',
+      evidence: shallowRows.slice(0, 5).map((r) => r.name),
     })
   }
 

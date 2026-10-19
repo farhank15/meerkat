@@ -39,3 +39,6 @@ docs/
 
 # OS
 .DS_Store
+
+# One-off seed snapshot (regenerated each run)
+scripts/.demo-loop-snapshot.json

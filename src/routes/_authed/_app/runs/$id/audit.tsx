@@ -46,8 +46,9 @@ function AuditPage() {
           {audit.rationale}
         </Alert>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           <Stat label="Vacuous passes" value={audit.counts.vacuous} hint="Excluded from the pass rate" tone={audit.counts.vacuous ? 'warn' : 'neutral'} />
+          <Stat label="Shallow passes" value={audit.counts.shallow} hint="1 assertion — flagged, pass rate unchanged" tone={audit.counts.shallow ? 'warn' : 'neutral'} />
           <Stat label="Orphans" value={audit.counts.orphans} hint="No owning scenario" />
           <Stat label="Conflicts" value={audit.counts.conflicted} hint="Same scenario, different verdicts" tone={audit.counts.conflicted ? 'danger' : 'neutral'} />
           <Stat label="Spec gaps" value={audit.counts.gaps} hint="Uncovered scenarios" />

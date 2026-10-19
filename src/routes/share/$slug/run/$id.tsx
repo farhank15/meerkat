@@ -7,6 +7,9 @@ import { Alert, Badge, Card, CardHeader, Stat, StatusBadge } from '@/components/
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table'
 import { ArrowLeftIcon, ExternalIcon } from '@/components/ui/icons'
 import { getPublicRunFn } from '@/server/public'
+import type { LoopAction } from '@/lib/store'
+
+import ratchetBaseline from '@/../baseline/tsi.json'
 
 export const Route = createFileRoute('/share/$slug/run/$id')({
   loader: async ({ params }) => {
@@ -22,11 +25,81 @@ function commitUrl(repoUrl: string | null, sha: string | null): string | null {
   return `${repoUrl}/commit/${sha}`
 }
 
+function LoopPanel({ loop }: { loop: LoopAction }) {
+  const escalated =
+    loop.result === 'failed' || loop.result === 'escalated' || /escalat/i.test(loop.action)
+  return (
+    <Card className="mt-4">
+      <CardHeader
+        title="Fix loop"
+        description="How this run moved from a red verdict to a trusted one — or why it was escalated."
+        action={
+          escalated ? (
+            <Badge tone="danger">escalated to human</Badge>
+          ) : (
+            <Badge tone={loop.result === 'green' ? 'ok' : 'warn'}>{loop.result}</Badge>
+          )
+        }
+      />
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-2xs sm:grid-cols-4">
+        {[
+          ['PR', loop.pr],
+          ['Classification', loop.classification],
+          ['Action', loop.action],
+          ['Result', loop.result],
+        ].map(([label, value]) => (
+          <div key={String(label)} className="flex justify-between gap-3">
+            <dt className="text-ink-subtle">{label}</dt>
+            <dd className="mono-nums text-ink-muted">{value}</dd>
+          </div>
+        ))}
+      </dl>
+      {loop.fixCommit && (
+        <div className="border-t border-line px-4 py-2.5">
+          <a
+            href={`https://github.com/farhank15/meerkat/commit/${loop.fixCommit}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 font-mono text-2xs text-accent hover:text-accent-strong"
+          >
+            fix commit {loop.fixCommit.slice(0, 8)} <ExternalIcon width={10} height={10} />
+          </a>
+        </div>
+      )}
+    </Card>
+  )
+}
+
+function PrChecksPanel({ baseline }: { baseline: number }) {
+  return (
+    <Card className="mt-4">
+      <CardHeader title="PR Checks" description="What GitHub reports on every pull request against this project." />
+      <ul className="divide-y divide-line">
+        <li className="flex items-center justify-between gap-4 px-4 py-3">
+          <div>
+            <p className="font-mono text-2xs text-ink">testsprite</p>
+            <p className="mt-0.5 text-2xs text-ink-subtle">TestSprite GitHub App · full suite, every pull request</p>
+          </div>
+          <Badge tone="ok">required</Badge>
+        </li>
+        <li className="flex items-center justify-between gap-4 px-4 py-3">
+          <div>
+            <p className="font-mono text-2xs text-ink">SuiteVitals Ratchet</p>
+            <p className="mt-0.5 text-2xs text-ink-subtle">fixed main baseline · a drop below it keeps the loop from going green</p>
+          </div>
+          <Badge tone="info">baseline {baseline}</Badge>
+        </li>
+      </ul>
+    </Card>
+  )
+}
+
 function PublicRun() {
   const { id, run, project, meta } = Route.useLoaderData()
   const scored = run.status === 'complete'
   const commit = commitUrl(project.repoUrl, meta.sha)
   const failing = (run.testCases ?? []).filter((testCase) => testCase.status === 'failed')
+  const shallowCount = (run.testCases ?? []).filter((testCase) => testCase.shallow).length
   const metric = run.metric
 
   const ratio = (value: number | undefined) =>
@@ -121,6 +194,22 @@ function PublicRun() {
           </Table>
         </Card>
       )}
+
+      {shallowCount > 0 && (
+        <Alert
+          tone="warn"
+          title={`${shallowCount} shallow pass${shallowCount > 1 ? 'es' : ''} (1 assertion)`}
+          className="mt-4"
+        >
+          These passed with a single assertion step. They do assert behaviour, so they count
+          toward the pass rate — but the gate flags them so the reader knows the coverage is
+          thin, not rich.
+        </Alert>
+      )}
+
+      {run.loop && <LoopPanel loop={run.loop} />}
+
+      <PrChecksPanel baseline={ratchetBaseline.tsi} />
     </div>
   )
 }
