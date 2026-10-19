@@ -1,0 +1,5 @@
+{
+  "tsi": 50,
+  "note": "latest complete real run on main — wave bb1fa7 (TSI 50, PR #3 green, 2026-10-19). Ratchet blocks any complete run scoring below this.",
+  "source": "https://meerkat-app.vercel.app/api/runs"
+}
