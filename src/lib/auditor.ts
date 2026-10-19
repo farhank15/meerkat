@@ -67,6 +67,7 @@ export interface TrustAudit {
     orphans: number
     conflicted: number
     gaps: number
+    shallow: number
   }
 }
 
@@ -99,6 +100,8 @@ export function auditRun(run: Run): TrustAudit {
   const gaps = (run.specEntries ?? []).filter((s) => !s.covered)
   const failed = rows.filter((r) => r.status === 'failed')
 
+  const shallowRows = (run.testCases ?? []).filter((t) => t.shallow)
+
   const counts = {
     total: rows.length,
     meaningfulPasses: run.meaningfulPasses,
@@ -106,6 +109,7 @@ export function auditRun(run: Run): TrustAudit {
     orphans: orphanRows.length,
     conflicted: run.conflicted || conflictedRows.length,
     gaps: gaps.length,
+    shallow: shallowRows.length,
   }
 
   const findings: Finding[] = []

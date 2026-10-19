@@ -138,11 +138,13 @@ export function GapList({ run }: { run: Run }) {
           links to it in the repo.
         </p>
       </div>
-      <ul className="divide-y divide-white/5">
+      <div className="divide-y divide-white/5">
         {gaps.map((g) => (
-          <li key={g.id} className="flex flex-col gap-1.5 px-5 py-3">
-            <div className="flex items-center justify-between gap-4">
-              <span className="font-mono text-xs text-neutral-300">{g.id}</span>
+          <details key={g.id} className="group px-5 py-3 [&_summary::-webkit-details-marker]:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
+              <span className="font-mono text-xs text-neutral-300 transition-colors group-open:text-amber-300">
+                {g.id}
+              </span>
               <span className="flex items-center gap-1">
                 <a
                   href={specLineHref(g.specLine)}
@@ -156,15 +158,23 @@ export function GapList({ run }: { run: Run }) {
                   ↗
                 </span>
               </span>
+            </summary>
+            {/* Click-to-open source view: the SPEC.md row itself, ID included —
+                verification of the reference without leaving the run page. */}
+            <div className="mt-2 rounded-md border border-white/5 bg-neutral-950/60 p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-400/80">
+                SPEC.md source line
+              </p>
+              <p className="mt-1 font-mono text-[11px] italic leading-relaxed text-neutral-300">
+                &lt;{g.specLine}&gt; `{g.id} · {g.asserts}`
+              </p>
+              <p className="mt-1 text-[11px] text-neutral-500">
+                Opens on click — the manifest line behind this gap, quoted in place.
+              </p>
             </div>
-            {/* In-page proof: the SPEC.md row itself, ID included — verification
-                of the reference without leaving the run page. */}
-            <p className="font-mono text-[11px] italic leading-relaxed text-neutral-500">
-              &lt;{g.specLine}&gt; `{g.id} · {g.asserts}`
-            </p>
-          </li>
+          </details>
         ))}
-      </ul>
+      </div>
     </div>
   )
 }

@@ -66,6 +66,8 @@ export interface TestCaseRow {
   status: JUnitStatus
   message?: string
   vacuous?: boolean
+  /** Exactly one assertion step — flagged to the reader, pass rate unchanged. */
+  shallow?: boolean
 }
 
 export interface Run {
@@ -140,6 +142,11 @@ const DEMO_JUNIT = parseJUnit(junitXml)
 /** One green test that asserted nothing — the vacuous pass the score excludes. */
 const VACUOUS_TEST = 'View the public scorecard'
 
+/** One green test with exactly one assertion step — flagged `shallow (1
+ * assertion)`, a signal shown to the reader, not a penalty: the pass rate
+ * keeps counting it, exactly as SPEC.md line 83 promises. */
+const SHALLOW_TEST = 'Open a public share page by slug'
+
 /** Two runs of the same SHA disagreed — the stability penalty. */
 const CONFLICTED = 2
 
@@ -159,6 +166,7 @@ function buildSpecEntries(): SpecEntry[] {
       status: tc.status,
       failureMessage: tc.message,
       vacuous: tc.name === VACUOUS_TEST,
+      shallow: tc.name === SHALLOW_TEST,
       asserts: s.asserts,
     }
   })
@@ -172,6 +180,7 @@ function buildTestCases(): TestCaseRow[] {
     status: c.status,
     message: c.message,
     vacuous: c.name === VACUOUS_TEST,
+    shallow: c.name === SHALLOW_TEST,
   }))
 }
 

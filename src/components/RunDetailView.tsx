@@ -3,7 +3,7 @@
 
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
-import { getProject, type Run } from '@/lib/store'
+import { DEMO_BASELINE, getProject, type Run } from '@/lib/store'
 import { clusterFailures } from '@/lib/auditor'
 import type { JUnitStatus } from '@/lib/junit'
 import { Container, ScoreCard } from '@/components/site'
@@ -268,6 +268,47 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
               </div>
             </div>
           )}
+
+          {/* PR Checks — the two verifications GitHub reports on every pull
+              request: the full TestSprite App suite, and the fixed Main
+              baseline that runs have to beat before the loop can go green. */}
+          <div className="mb-3 mt-10">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-500">
+              PR Checks
+            </h2>
+            <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/50">
+              <table className="w-full text-sm">
+                <tbody className="divide-y divide-white/5">
+                  <tr>
+                    <td className="px-5 py-3 font-mono">
+                      testsprite-dev
+                      <span className="block text-xs text-neutral-500">
+                        TestSprite GitHub App · full suite, every pull request
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-300">
+                        required
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-5 py-3 font-mono">
+                      SuiteVitals Ratchet
+                      <span className="block text-xs text-neutral-500">
+                        fixed main baseline · a drop below it keeps the loop from going green
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-xs text-sky-300">
+                        baseline {DEMO_BASELINE}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
 
           {/* Coverage traceability — every SPEC.md scenario ID. */}
           <div className="mb-3 mt-10 flex items-center justify-between">
