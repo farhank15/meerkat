@@ -83,12 +83,12 @@ async function main() {
   }
 
   // Real escalation story: a fix attempt failed once, escalated to a human,
-  // and was ultimately resolved (green) by the fix commit below.
+  // and was ultimately resolved by the fix commit below.
   data.loop = {
     pr: data.pr ?? '#12',
     classification: 'regression',
     action: 'escalated to human after 1 failed fix attempt',
-    result: 'green',
+    result: 'escalated',
     fixCommit: '1a84fd8410a6ed0fca3592c0fe948ced0b631c94',
   }
 

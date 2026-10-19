@@ -77,7 +77,7 @@ function PrChecksPanel({ baseline }: { baseline: number }) {
       <ul className="divide-y divide-line">
         <li className="flex items-center justify-between gap-4 px-4 py-3">
           <div>
-            <p className="font-mono text-2xs text-ink">testsprite</p>
+            <p className="font-mono text-2xs text-ink">testsprite-dev</p>
             <p className="mt-0.5 text-2xs text-ink-subtle">TestSprite GitHub App · full suite, every pull request</p>
           </div>
           <Badge tone="ok">required</Badge>
