@@ -112,6 +112,10 @@ jobs:
           node-version: '24'
       - name: Install TestSprite CLI (read-only use)
         run: npm install -g @testsprite/testsprite-cli@0.14.0 --silent
+      - name: Configure CLI credentials from the repo secret
+        env:
+          TESTSPRITE_API_KEY: ${{ secrets.TESTSPRITE_API_KEY }}
+        run: testsprite setup --from-env --no-agent -y
       - name: Wait for the App run on this commit to settle
         run: |
           set -uo pipefail
@@ -159,6 +163,10 @@ jobs:
           node-version: '24'
       - name: Install TestSprite CLI (read-only use)
         run: npm install -g @testsprite/testsprite-cli@0.14.0 --silent
+      - name: Configure CLI credentials from the repo secret
+        env:
+          TESTSPRITE_API_KEY: ${{ secrets.TESTSPRITE_API_KEY }}
+        run: testsprite setup --from-env --no-agent -y
       - name: Gate the run against the committed baseline
         env:
           TESTSPRITE_PROJECT_ID: ${{ vars.TESTSPRITE_PROJECT_ID }}
@@ -282,6 +290,7 @@ jobs:
           BEFORE=$(node -e "console.log(new Date().toISOString())")
           echo "new head: $NEW_SHA — waves must start after $BEFORE"
           npm install -g @testsprite/testsprite-cli@0.14.0 --silent
+          TESTSPRITE_API_KEY="${{ secrets.TESTSPRITE_API_KEY }}" testsprite setup --from-env --no-agent -y >/dev/null
           pre_digest=""; changed=0
           for attempt in $(seq 1 28); do
             sleep 90
