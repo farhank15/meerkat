@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LoopRouteImport } from './routes/loop'
 import { Route as RunsRouteImport } from './routes/runs'
 import { Route as ScoreRouteImport } from './routes/score'
 import { Route as AuthSigninRouteImport } from './routes/auth.signin'
@@ -31,6 +32,11 @@ const IndexRoute = IndexRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoopRoute = LoopRouteImport.update({
+  id: '/loop',
+  path: '/loop',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RunsRoute = RunsRouteImport.update({
@@ -92,6 +98,7 @@ const ShareSlugRunIdRoute = ShareSlugRunIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/loop': typeof LoopRoute
   '/runs': typeof RunsRouteWithChildren
   '/score': typeof ScoreRoute
   '/auth/signin': typeof AuthSigninRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/loop': typeof LoopRoute
   '/score': typeof ScoreRoute
   '/auth/signin': typeof AuthSigninRoute
   '/runs': typeof RunsIndexRoute
@@ -120,6 +128,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/loop': typeof LoopRoute
   '/runs': typeof RunsRouteWithChildren
   '/score': typeof ScoreRoute
   '/auth/signin': typeof AuthSigninRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/loop'
     | '/runs'
     | '/score'
     | '/auth/signin'
@@ -152,6 +162,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/loop'
     | '/score'
     | '/auth/signin'
     | '/runs'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/login'
+    | '/loop'
     | '/runs'
     | '/score'
     | '/auth/signin'
@@ -180,6 +192,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  LoopRoute: typeof LoopRoute
   RunsRoute: typeof RunsRouteWithChildren
   ScoreRoute: typeof ScoreRoute
   AuthSigninRoute: typeof AuthSigninRoute
@@ -201,6 +214,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/loop': {
+      id: '/loop'
+      path: '/loop'
+      fullPath: '/loop'
+      preLoaderRoute: typeof LoopRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/runs': {
@@ -325,6 +345,7 @@ const ShareSlugRouteWithChildren = ShareSlugRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  LoopRoute: LoopRoute,
   RunsRoute: RunsRouteWithChildren,
   ScoreRoute: ScoreRoute,
   AuthSigninRoute: AuthSigninRoute,

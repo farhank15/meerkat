@@ -4,7 +4,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { getRun } from '@/lib/store'
 import { Container, ScoreCard } from '@/components/site'
-import { slugifyTestName, SpecTable, TraceabilitySummary } from '@/components/CoverageTrace'
+import { slugifyTestName, GapList, OrphanTable, SpecTable, TraceabilitySummary } from '@/components/CoverageTrace'
 
 export const Route = createFileRoute('/runs/$id/coverage')({
   component: CoveragePage,
@@ -53,6 +53,11 @@ function CoveragePage() {
             run={run}
             testHref={(name) => `/runs/${run.id}#testcase-${slugifyTestName(name)}`}
           />
+
+          <div className="mt-6 space-y-6">
+            <GapList run={run} />
+            <OrphanTable run={run} />
+          </div>
         </div>
 
         <aside className="space-y-6">

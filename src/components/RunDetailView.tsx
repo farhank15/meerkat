@@ -5,7 +5,7 @@ import { Link } from '@tanstack/react-router'
 import { getProject, type Run } from '@/lib/store'
 import type { JUnitStatus } from '@/lib/junit'
 import { Container, ScoreCard } from '@/components/site'
-import { slugifyTestName, SpecTable, TraceabilitySummary } from '@/components/CoverageTrace'
+import { slugifyTestName, GapList, OrphanTable, SpecTable, TraceabilitySummary } from '@/components/CoverageTrace'
 
 /** Only link a SHA we can address: 40 hex chars on the project's real repo. */
 function commitUrl(repoUrl: string | undefined, sha: string | undefined): string | null {
@@ -18,6 +18,7 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
   const repoUrl = getProject(run.projectId)?.repoUrl
   const runCommit = commitUrl(repoUrl, run.sha)
   const fixCommit = commitUrl(repoUrl, run.loop?.fixCommit)
+  const scored = run.status === 'complete'
 
   return (
     <Container className="py-12">
@@ -91,13 +92,40 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
               away from zero.
             </p>
             <dl className="mt-4 grid grid-cols-3 gap-3">
-              <Breakdown label="Coverage" value={coverage} weight="50%" />
-              <Breakdown label="Stability" value={stability} weight="30%" />
-              <Breakdown label="Pass rate" value={passRate} weight="20%" />
+              <Breakdown
+                label="Coverage"
+                value={coverage}
+                weight="50%"
+                detail={`${run.coverageIdsCovered}/${run.coverageIdsTotal} scenarios`}
+              />
+              <Breakdown
+                label="Stability"
+                value={stability}
+                weight="30%"
+                detail={`${run.tested - run.conflicted}/${run.tested} stable`}
+              />
+              <Breakdown
+                label="Pass rate"
+                value={passRate}
+                weight="20%"
+                detail={`${run.meaningfulPasses}/${run.total} meaningful`}
+              />
             </dl>
             <div className="mt-4 border-t border-white/5 pt-3 text-sm">
               <span className="text-neutral-500">Result · </span>
-              <span className="font-semibold tabular-nums text-neutral-100">{tsi}</span>
+              <span className="font-semibold tabular-nums text-neutral-100">
+                {scored ? tsi : 'n/a'}
+              </span>
+              {scored && (
+                <div className="mt-1 font-mono text-xs text-neutral-500">
+                  0.50·{coverage.toFixed(4)} + 0.30·{stability.toFixed(4)} + 0.20·
+                  {passRate.toFixed(4)} = {(
+                    0.5 * coverage +
+                    0.3 * stability +
+                    0.2 * passRate
+                  ).toFixed(4)}
+                </div>
+              )}
             </div>
           </div>
 
@@ -170,16 +198,32 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
             </Link>
           </div>
           <SpecTable run={run} testHref={(name) => `#testcase-${slugifyTestName(name)}`} />
+
+          <div className="mt-6 space-y-6">
+            <GapList run={run} />
+            <OrphanTable run={run} />
+          </div>
         </div>
 
         <aside className="space-y-6">
-          <ScoreCard
-            tsi={tsi}
-            coverage={coverage}
-            stability={stability}
-            passRate={passRate}
-            runId={run.id}
-          />
+          {scored ? (
+            <ScoreCard
+              tsi={tsi}
+              coverage={coverage}
+              stability={stability}
+              passRate={passRate}
+              runId={run.id}
+            />
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-neutral-900/50 p-5">
+              <div className="text-xs uppercase tracking-wider text-neutral-500">TSI</div>
+              <div className="mt-2 text-3xl font-bold text-neutral-400">n/a</div>
+              <p className="mt-2 text-xs text-neutral-500">
+                Score withheld — the rerun is incomplete ({run.verdict?.completed}/
+                {run.verdict?.requested} completed, {run.verdict?.refused} refused).
+              </p>
+            </div>
+          )}
 
           {/* Audit trail + commit traceability. */}
           {run.loop && (
@@ -264,23 +308,67 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
             </div>
           )}
 
-          {/* Verdict trust: an incomplete rerun is held, never silently green. */}
-          <div className="rounded-2xl border border-white/10 bg-neutral-900/50 p-5">
+          {/* Verdict trust: a failed run is never silently green, and an incomplete
+              rerun is held at neutral instead of being reported as a drop. */}
+          <div
+            id="verdict"
+            className="scroll-mt-24 rounded-2xl border border-white/10 bg-neutral-900/50 p-5"
+          >
             <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-500">
               Verdict
             </h2>
+            <p
+              className={`mt-2 text-sm font-medium ${
+                run.verdict?.state === 'green'
+                  ? 'text-emerald-400'
+                  : run.verdict?.state === 'failed'
+                    ? 'text-rose-400'
+                    : 'text-amber-400'
+              }`}
+            >
+              {run.verdict?.label ?? run.status}
+            </p>
             <dl className="mt-3 space-y-2.5 text-sm">
               <div className="flex justify-between">
                 <dt className="text-neutral-500">Run status</dt>
-                <dd className="font-medium text-emerald-400">{run.status}</dd>
+                <dd className="font-medium text-neutral-200">{run.status}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-neutral-500">Gate</dt>
-                <dd className="text-neutral-200">eligible</dd>
+                <dd className="text-neutral-200">
+                  {run.verdict?.state === 'green'
+                    ? 'eligible'
+                    : run.verdict?.state === 'failed'
+                      ? 'blocked'
+                      : 'neutral'}
+                </dd>
               </div>
+              {run.verdict?.requested !== undefined && (
+                <>
+                  <div className="flex justify-between">
+                    <dt className="text-neutral-500">Requested</dt>
+                    <dd className="tabular-nums text-neutral-200">{run.verdict.requested}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-neutral-500">Completed</dt>
+                    <dd className="tabular-nums text-neutral-200">{run.verdict.completed}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-neutral-500">Refused</dt>
+                    <dd className="tabular-nums text-amber-400">{run.verdict.refused}</dd>
+                  </div>
+                  <p className="font-mono text-xs text-neutral-500">
+                    {run.verdict.completed}/{run.verdict.requested} completed,{' '}
+                    {run.verdict.refused} refused
+                  </p>
+                </>
+              )}
               <p className="pt-1 text-xs text-neutral-500">
-                An incomplete rerun is held at <span className="text-neutral-300">neutral</span>{' '}
-                and never passes the gate; a refused run is not a failure.
+                {run.verdict?.detail}
+              </p>
+              <p className="text-xs text-neutral-500">
+                A refused testcase is not a failure. An incomplete rerun stays neutral and
+                never passes the gate.
               </p>
             </dl>
           </div>
@@ -297,7 +385,17 @@ function CaseStatus({ status, vacuous }: { status: JUnitStatus; vacuous?: boolea
   return <span className="text-emerald-400">passed</span>
 }
 
-function Breakdown({ label, value, weight }: { label: string; value: number; weight: string }) {
+function Breakdown({
+  label,
+  value,
+  weight,
+  detail,
+}: {
+  label: string
+  value: number
+  weight: string
+  detail: string
+}) {
   return (
     <div className="rounded-xl border border-white/5 bg-neutral-950/40 p-3">
       <div className="flex items-center justify-between">
@@ -305,8 +403,9 @@ function Breakdown({ label, value, weight }: { label: string; value: number; wei
         <span className="text-[10px] text-neutral-600">{weight}</span>
       </div>
       <div className="mt-1 text-lg font-semibold tabular-nums text-neutral-200">
-        {(value * 100).toFixed(0)}%
+        {(value * 100).toFixed(1)}%
       </div>
+      <div className="mt-0.5 font-mono text-[10px] text-neutral-500">{detail}</div>
     </div>
   )
 }

@@ -1,78 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites name="testsprite" tests="67" failures="3" errors="0" skipped="0" time="184.20">
   <testsuite name="meerkat-demo" tests="67" failures="3" errors="0" skipped="0" time="184.20">
-    <testcase name="SV-SMK-01 demo" classname="meerkat" time="1.80"/>
-    <testcase name="SV-XX-02 demo" classname="meerkat" time="2.20"/>
-    <testcase name="SV-XX-03 demo" classname="meerkat" time="2.60"/>
-    <testcase name="SV-XX-04 demo" classname="meerkat" time="3.00"/>
-    <testcase name="SV-XX-05 demo" classname="meerkat" time="3.40"/>
-    <testcase name="SV-XX-06 demo" classname="meerkat" time="3.80"/>
-    <testcase name="SV-XX-07 demo" classname="meerkat" time="4.20"/>
-    <testcase name="SV-XX-08 demo" classname="meerkat" time="1.80"/>
-    <testcase name="SV-XX-09 demo" classname="meerkat" time="2.20"/>
-    <testcase name="SV-XX-10 demo" classname="meerkat" time="2.60"/>
-    <testcase name="SV-XX-11 demo" classname="meerkat" time="3.00"/>
-    <testcase name="SV-XX-12 demo" classname="meerkat" time="3.40"/>
-    <testcase name="SV-XX-13 demo" classname="meerkat" time="3.80"/>
-    <testcase name="SV-XX-14 demo" classname="meerkat" time="4.20">
-      <failure message="Expected the runs table to list 1 run, received 0">AssertionError: Expected the runs table to list 1 run, received 0</failure>
+    <testcase name="SV-SMK-01 GET / renders the demo scorecard without login" classname="spec" time="1.80"/>
+    <testcase name="SV-SMK-02 GET /api/health" classname="spec" time="2.20"/>
+    <testcase name="SV-CFG-01 Action defaults with no spec-path / junit-path set" classname="spec" time="2.60"/>
+    <testcase name="SV-CFG-06 Draft PR still gets a check and a comment" classname="spec" time="3.00"/>
+    <testcase name="SV-ING-01 Counts from the 67-testcase fixture" classname="spec" time="3.40"/>
+    <testcase name="SV-ING-02 Skipped testcases count toward the total" classname="spec" time="3.80"/>
+    <testcase name="SV-ING-04 Malformed JUnit XML" classname="spec" time="4.20"/>
+    <testcase name="SV-TSI-01 Primary fixture" classname="spec" time="1.80"/>
+    <testcase name="SV-TSI-04 Rounding is half-up, not truncation" classname="spec" time="2.20">
+      <failure message="Expected 95.5 to round to 96, received 95">AssertionError: Expected 95.5 to round to 96, received 95</failure>
     </testcase>
-    <testcase name="SV-XX-15 demo" classname="meerkat" time="1.80"/>
-    <testcase name="SV-XX-16 demo" classname="meerkat" time="2.20"/>
-    <testcase name="SV-XX-17 demo" classname="meerkat" time="2.60"/>
-    <testcase name="SV-XX-18 demo" classname="meerkat" time="3.00"/>
-    <testcase name="SV-XX-19 demo" classname="meerkat" time="3.40"/>
-    <testcase name="SV-XX-20 demo" classname="meerkat" time="3.80"/>
-    <testcase name="SV-XX-21 demo" classname="meerkat" time="4.20"/>
-    <testcase name="SV-XX-22 demo" classname="meerkat" time="1.80"/>
-    <testcase name="SV-XX-23 demo" classname="meerkat" time="2.20"/>
-    <testcase name="SV-XX-24 demo" classname="meerkat" time="2.60"/>
-    <testcase name="SV-XX-25 demo" classname="meerkat" time="3.00"/>
-    <testcase name="SV-XX-26 demo" classname="meerkat" time="3.40"/>
-    <testcase name="SV-XX-27 demo" classname="meerkat" time="3.80">
-      <failure message="Expected status 200 from the runs endpoint, received 500">AssertionError: Expected status 200 from the runs endpoint, received 500</failure>
+    <testcase name="SV-TSI-06 Determinism" classname="spec" time="2.60"/>
+    <testcase name="SV-TSI-07 Delta against the previous run" classname="spec" time="3.00"/>
+    <testcase name="SV-ADQ-01 Per-test depth is reported" classname="spec" time="3.40"/>
+    <testcase name="SV-ADQ-02 A vacuous pass is caught and does not count as a pass" classname="spec" time="3.80"/>
+    <testcase name="SV-COV-01 Partial match" classname="spec" time="4.20">
+      <failure message="Expected coverage 30/33, received 30/34">AssertionError: Expected coverage 30/33, received 30/34</failure>
     </testcase>
-    <testcase name="SV-XX-28 demo" classname="meerkat" time="4.20"/>
-    <testcase name="SV-XX-29 demo" classname="meerkat" time="1.80"/>
-    <testcase name="SV-XX-30 demo" classname="meerkat" time="2.20"/>
-    <testcase name="SV-XX-31 demo" classname="meerkat" time="2.60"/>
-    <testcase name="SV-XX-32 demo" classname="meerkat" time="3.00"/>
-    <testcase name="SV-XX-33 demo" classname="meerkat" time="3.40"/>
-    <testcase name="SV-XX-34 demo" classname="meerkat" time="3.80"/>
-    <testcase name="SV-XX-35 demo" classname="meerkat" time="4.20"/>
-    <testcase name="SV-XX-36 demo" classname="meerkat" time="1.80"/>
-    <testcase name="SV-XX-37 demo" classname="meerkat" time="2.20"/>
-    <testcase name="SV-XX-38 demo" classname="meerkat" time="2.60"/>
-    <testcase name="SV-XX-39 demo" classname="meerkat" time="3.00"/>
-    <testcase name="SV-XX-40 demo" classname="meerkat" time="3.40"/>
-    <testcase name="SV-XX-41 demo" classname="meerkat" time="3.80"/>
-    <testcase name="SV-XX-42 demo" classname="meerkat" time="4.20"/>
-    <testcase name="SV-XX-43 demo" classname="meerkat" time="1.80"/>
-    <testcase name="SV-XX-44 demo" classname="meerkat" time="2.20"/>
-    <testcase name="SV-XX-45 demo" classname="meerkat" time="2.60"/>
-    <testcase name="SV-XX-46 demo" classname="meerkat" time="3.00"/>
-    <testcase name="SV-XX-47 demo" classname="meerkat" time="3.40"/>
-    <testcase name="SV-XX-48 demo" classname="meerkat" time="3.80"/>
-    <testcase name="SV-XX-49 demo" classname="meerkat" time="4.20"/>
-    <testcase name="SV-XX-50 demo" classname="meerkat" time="1.80"/>
-    <testcase name="SV-XX-51 demo" classname="meerkat" time="2.20"/>
-    <testcase name="SV-XX-52 demo" classname="meerkat" time="2.60"/>
-    <testcase name="SV-XX-53 demo" classname="meerkat" time="3.00"/>
-    <testcase name="SV-XX-54 demo" classname="meerkat" time="3.40"/>
-    <testcase name="SV-XX-55 demo" classname="meerkat" time="3.80"/>
-    <testcase name="SV-XX-56 demo" classname="meerkat" time="4.20"/>
-    <testcase name="SV-XX-57 demo" classname="meerkat" time="1.80"/>
-    <testcase name="SV-XX-58 demo" classname="meerkat" time="2.20">
-      <failure message="Expected text 'Coverage traceability' to be visible, element not found">AssertionError: Expected text 'Coverage traceability' to be visible, element not found</failure>
+    <testcase name="SV-COV-04 ID matching is case-sensitive" classname="spec" time="1.80"/>
+    <testcase name="SV-COV-09 Coverage table on the run detail page" classname="spec" time="2.20"/>
+    <testcase name="SV-RAT-01 A drop blocks the merge" classname="spec" time="2.60"/>
+    <testcase name="SV-RAT-03 A rise updates the baseline" classname="spec" time="3.00"/>
+    <testcase name="SV-PRM-01 Comment content" classname="spec" time="3.40"/>
+    <testcase name="SV-PRM-02 Edit in place" classname="spec" time="3.80"/>
+    <testcase name="SV-VDT-01 A refusal is not a failure" classname="spec" time="4.20"/>
+    <testcase name="SV-VDT-02 An incomplete rerun is refused" classname="spec" time="1.80"/>
+    <testcase name="SV-DRF-01 Drift is distinguished from a bug" classname="spec" time="2.20"/>
+    <testcase name="SV-DRF-03 A spec-only change is neutral" classname="spec" time="2.60"/>
+    <testcase name="SV-AUD-01 Trace the score to its JUnit source" classname="spec" time="3.00"/>
+    <testcase name="SV-AUD-02 Trace a gap to its SPEC line" classname="spec" time="3.40">
+      <failure message="Expected SPEC.md:83 to contain SV-ADQ-03, received an empty cell">AssertionError: Expected SPEC.md:83 to contain SV-ADQ-03, received an empty cell</failure>
     </testcase>
-    <testcase name="SV-XX-59 demo" classname="meerkat" time="2.60"/>
-    <testcase name="SV-XX-60 demo" classname="meerkat" time="3.00"/>
-    <testcase name="landing page renders hero" classname="orphan" time="1.20"/>
-    <testcase name="navigation links resolve" classname="orphan" time="1.50"/>
-    <testcase name="sign-in form accepts demo credentials" classname="orphan" time="1.80"/>
-    <testcase name="runs table sorts by date" classname="orphan" time="2.10"/>
-    <testcase name="footer renders build info" classname="orphan" time="2.40"/>
-    <testcase name="share link opens without login" classname="orphan" time="2.70"/>
-    <testcase name="score page explains the formula" classname="orphan" time="3.00"/>
+    <testcase name="SV-AUD-03 Provenance is pinned to a commit" classname="spec" time="3.80"/>
+    <testcase name="SV-FIX-01 A regression is fixed and goes green" classname="spec" time="4.20"/>
+    <testcase name="SV-FIX-02 A refusal is never auto-fixed" classname="spec" time="1.80"/>
+    <testcase name="SV-FIX-04 Drift updates the test, not the code" classname="spec" time="2.20"/>
+    <testcase name="Sign in with demo account" classname="orphan" time="1.20"/>
+    <testcase name="Reach the runs list from the homepage" classname="orphan" time="1.50"/>
+    <testcase name="View the runs list after sign in" classname="orphan" time="1.80"/>
+    <testcase name="Access dashboard from public entry point after sign in" classname="orphan" time="2.10"/>
+    <testcase name="Remain signed in when revisiting authenticated pages" classname="orphan" time="2.40"/>
+    <testcase name="Open a run from the runs list" classname="orphan" time="2.70"/>
+    <testcase name="View run detail from runs list" classname="orphan" time="3.00"/>
+    <testcase name="Open run audit trail from the runs list" classname="orphan" time="3.30"/>
+    <testcase name="Open commit traceability from the audit trail" classname="orphan" time="3.60"/>
+    <testcase name="Inspect TSI source breakdown" classname="orphan" time="1.20"/>
+    <testcase name="Open traceability from TSI score" classname="orphan" time="1.50"/>
+    <testcase name="View coverage table for a run" classname="orphan" time="1.80"/>
+    <testcase name="Open coverage traceability from the dashboard" classname="orphan" time="2.10"/>
+    <testcase name="Open a public share page by slug" classname="orphan" time="2.40"/>
+    <testcase name="View the public scorecard" classname="orphan" time="2.70"/>
+    <testcase name="Open the first run from the public scorecard" classname="orphan" time="3.00"/>
+    <testcase name="Handle an unknown public share slug" classname="orphan" time="3.30"/>
+    <testcase name="Open audit trail from the Loop page" classname="orphan" time="3.60"/>
+    <testcase name="View authenticated loop page trust summary" classname="orphan" time="1.20"/>
+    <testcase name="Inspect spec drift guidance on the Loop page" classname="orphan" time="1.50"/>
+    <testcase name="Review a failed verdict before remediation" classname="orphan" time="1.80"/>
+    <testcase name="Check incomplete rerun verdict handling" classname="orphan" time="2.10"/>
+    <testcase name="Identify an orphan test in coverage traceability" classname="orphan" time="2.40"/>
+    <testcase name="Open an uncovered specification entry" classname="orphan" time="2.70"/>
+    <testcase name="Open spec traceability from a gap entry" classname="orphan" time="3.00"/>
+    <testcase name="Open a coverage gap trace to SPEC location" classname="orphan" time="3.30"/>
+    <testcase name="Review coverage details for a covered specification ID" classname="orphan" time="3.60"/>
+    <testcase name="Review verdict labels on run detail" classname="orphan" time="1.20"/>
+    <testcase name="Inspect score breakdown on run detail" classname="orphan" time="1.50"/>
+    <testcase name="Open commit traceability from run detail" classname="orphan" time="1.80"/>
+    <testcase name="Produce the expected score for the primary fixture" classname="orphan" time="2.10"/>
+    <testcase name="Round the score using half-up behavior" classname="orphan" time="2.40"/>
+    <testcase name="Re-run the same scoring command and compare output" classname="orphan" time="2.70"/>
+    <testcase name="Score a JUnit file from the CLI" classname="orphan" time="3.00"/>
+    <testcase name="Report a missing JUnit file from the CLI" classname="orphan" time="3.30"/>
+    <testcase name="Handle malformed JUnit input without crashing" classname="orphan" time="3.60"/>
+    <testcase name="Show usage exit code when a required argument is missing" classname="orphan" time="1.20"/>
   </testsuite>
 </testsuites>

@@ -3,6 +3,12 @@
 // score from artifact → spec ID without leaving the run.
 
 import type { Run } from '@/lib/store'
+import { DEMO_PROJECT, getOrphans } from '@/lib/store'
+
+/** Link to the exact line in SPEC.md that defines a scenario. */
+function specLineHref(line: number): string {
+  return `${DEMO_PROJECT.repoUrl}/blob/main/SPEC.md#L${line}`
+}
 
 /** Provenance strip: which artifacts the score was derived from. */
 export function TraceabilitySummary({ run }: { run: Run }) {
@@ -64,6 +70,7 @@ export function SpecTable({
           <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-neutral-500">
             <th className="px-5 py-3 font-medium">ID</th>
             <th className="px-5 py-3 font-medium">Status</th>
+            <th className="px-5 py-3 font-medium">SPEC</th>
             <th className="px-5 py-3 font-medium">Test</th>
           </tr>
         </thead>
@@ -77,6 +84,16 @@ export function SpecTable({
                 ) : (
                   <span className="text-amber-400">gap</span>
                 )}
+              </td>
+              <td className="px-5 py-2.5">
+                <a
+                  href={specLineHref(s.specLine)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-mono text-xs text-neutral-400 underline-offset-2 hover:text-neutral-200 hover:underline"
+                >
+                  SPEC.md:{s.specLine}
+                </a>
               </td>
               <td className="px-5 py-2.5 text-neutral-500">
                 {s.testName ? (
@@ -98,6 +115,91 @@ export function SpecTable({
           ))}
         </tbody>
       </table>
+    </div>
+  )
+}
+
+/** Uncovered scenarios, each pointing at the exact line that defines it. */
+export function GapList({ run }: { run: Run }) {
+  const gaps = run.specEntries.filter((s) => !s.covered)
+
+  return (
+    <div
+      id="coverage-gaps"
+      className="overflow-hidden rounded-2xl border border-amber-500/20 bg-amber-500/[0.03]"
+    >
+      <div className="border-b border-white/5 px-5 py-3">
+        <h3 className="text-sm font-semibold text-amber-300">
+          Uncovered specification entries ({gaps.length})
+        </h3>
+        <p className="mt-1 text-xs text-neutral-500">
+          A gap is a scenario the contract promises and no testcase asserts. Each one
+          links to the line in SPEC.md that defines it.
+        </p>
+      </div>
+      <ul className="divide-y divide-white/5">
+        {gaps.map((g) => (
+          <li key={g.id} className="flex items-center justify-between gap-4 px-5 py-2.5">
+            <span className="font-mono text-xs text-neutral-300">{g.id}</span>
+            <a
+              href={specLineHref(g.specLine)}
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono text-xs text-amber-400 underline-offset-2 hover:text-amber-300 hover:underline"
+            >
+              SPEC.md:{g.specLine}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+/** Testcases that carry no SPEC ID — they run, but prove nothing about the contract. */
+export function OrphanTable({ run }: { run: Run }) {
+  const orphans = getOrphans(run)
+
+  return (
+    <div
+      id="orphan-tests"
+      className="overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/50"
+    >
+      <div className="border-b border-white/5 px-5 py-3">
+        <h3 className="text-sm font-semibold text-neutral-200">
+          Orphan tests ({orphans.length})
+        </h3>
+        <p className="mt-1 text-xs text-neutral-500">
+          These testcases carry no SPEC ID, so they cannot move the coverage score even
+          when they pass. Naming a test after its scenario is what turns it into evidence.
+        </p>
+      </div>
+      <div className="max-h-72 overflow-auto">
+        <table className="w-full text-sm">
+          <thead className="sticky top-0 bg-neutral-900">
+            <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-neutral-500">
+              <th className="px-5 py-2 font-medium">Testcase</th>
+              <th className="px-5 py-2 font-medium">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orphans.map((t) => (
+              <tr key={t.name} className="border-b border-white/5 last:border-0">
+                <td className="px-5 py-2 text-neutral-400">{t.name}</td>
+                <td className="px-5 py-2">
+                  {t.status === 'passed' ? (
+                    <span className="text-emerald-400">passed</span>
+                  ) : t.status === 'failed' ? (
+                    <span className="text-rose-400">failed</span>
+                  ) : (
+                    <span className="text-neutral-500">skipped</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

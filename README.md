@@ -53,7 +53,7 @@ TSI             = round(100 × (0.50×coverage + 0.30×stability + 0.20×pass_ra
 
 Every formula is deterministic — **the same run data always produces the same TSI,
 byte for byte.** No timestamps, no randomness inside the score. The seeded demo run
-(`SV-TSI-01`: coverage 60/67, stability 66/67, pass 63/67) scores **93**.
+(`SV-TSI-01`: coverage 30/33, stability 65/67, pass 63/67) scores **93**.
 
 ## Built on TestSprite
 

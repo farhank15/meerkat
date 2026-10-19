@@ -35,7 +35,7 @@ unvalidated hypothesis. Last updated 2026-10-17.
 | # | Claim | Status | Evidence |
 |---|---|---|---|
 | E1 | TSI is deterministic — same input, byte-identical output | **Proven** | `src/lib/scoring.test.ts`, property test over generated counts |
-| E2 | Fixture `60/67, 66/67, 63/67` → **93** | **Proven** | exact-value test |
+| E2 | Fixture `30/33, 65/67, 63/67` → **93** | **Proven** | exact-value test |
 | E3 | Rounding is half-away-from-zero, not `Math.round` | **Proven** | `roundHalfAwayFromZero` + negative-midpoint tests |
 | E4 | Malformed JUnit throws `parse-error`, never crashes | **Proven** | `src/lib/junit.test.ts` |
 | E5 | Coverage mapping is case-sensitive; gaps and orphans are distinguished | **Proven** | `src/lib/coverage.test.ts` |
@@ -136,7 +136,7 @@ Each level has an exit condition. We are at L0.
 
 | Level | Meaning | Exit condition | Status |
 |---|---|---|---|
-| **L0 — Engine correct** | formulas, parsing, determinism | unit + property tests green; fixture reproduces exactly | **Done** (46/46) |
+| **L0 — Engine correct** | formulas, parsing, determinism | unit + property tests green; fixture reproduces exactly | **Done** (50/50) |
 | **L1 — Proxy valid** | the metric measures what it claims | H1 confirmed at ρ ≥ 0.70 with published protocol | Not started |
 | **L2 — Product usable** | a team can use it without us | real ingestion, persistence, multi-run history, no seeded fixture | Partial |
 | **L3 — Gate trusted** | safe to block a merge | L1 + anti-gaming classifier + ratchet + audited false-positive rate | Not started |
@@ -162,7 +162,7 @@ Claiming L2 or L3 before L1 is the failure mode this document exists to prevent.
 
 ## 8. Status snapshot
 
-- Engine tests: **46/46 passing** (`npm test`)
+- Engine tests: **50/50 passing** (`npm test`)
 - Typecheck: clean (`npm run typecheck`)
 - Build: clean (`npm run build`)
 - TestSprite suite: 37 scenarios — results tracked in the pull request check

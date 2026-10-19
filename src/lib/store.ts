@@ -6,10 +6,14 @@
 import { tsiFromCounts } from '@/lib/tsi'
 import type { RunCounts } from '@/lib/types'
 import { parseJUnit, type JUnitStatus } from '@/lib/junit'
+import { parseSpec, type SpecScenario } from '@/lib/spec'
 import junitXml from './fixtures/testsprite-junit.xml?raw'
+import specMarkdown from '../../SPEC.md?raw'
 
 export interface SpecEntry {
   id: string
+  /** 1-based line in SPEC.md that defines this scenario — the gap trace target. */
+  specLine: number
   covered: boolean
   /** Testcase that asserts this ID, or null when the ID is a gap. */
   testName: string | null
@@ -34,6 +38,20 @@ export interface LoopAction {
   action: string
   result: string
   fixCommit?: string
+}
+
+/**
+ * What the run is allowed to claim. A refused or incomplete run is not a
+ * failure — it means the evidence is not there yet, so the score is withheld.
+ */
+export interface Verdict {
+  state: 'green' | 'failed' | 'incomplete' | 'refused'
+  label: string
+  detail: string
+  /** Requested / completed / refused counts, for an incomplete rerun. */
+  requested?: number
+  completed?: number
+  refused?: number
 }
 
 /** One row of the JUnit artifact, as the run detail renders it. */
@@ -71,6 +89,7 @@ export interface Run {
   specEntries: SpecEntry[]
   /** Every testcase in the artifact, including orphans. */
   testCases: TestCaseRow[]
+  verdict?: Verdict
   loop?: LoopAction
 }
 
@@ -102,28 +121,35 @@ export const DEMO_PROJECT: Project = {
 
 export const DEMO_BASELINE = 93
 
-// SV-TSI-01 fixture: 60/67 coverage, 66/67 stability, 63/67 meaningful → TSI 93.
-// The run is built from the committed JUnit artifact, not from a hand-written
-// loop, so every status the dashboard shows can be traced to a <testcase>.
+// The demo run is derived from two committed artifacts — SPEC.md (the contract)
+// and testsprite-junit.xml (what actually ran). Nothing is hard-coded, so every
+// score traces back to a scenario line and a testcase row.
+//
+// 33 SPEC IDs (30 covered, 3 gaps) + 37 orphan testcases = 67 testcases;
+// 64 passed / 3 failed / 1 vacuous / 2 conflicted → TSI 93.
+
+const SPEC: SpecScenario[] = parseSpec(specMarkdown)
 
 /** The artifact every demo number comes from. */
 const DEMO_JUNIT = parseJUnit(junitXml)
 
-/** 67 SPEC IDs. IDs 61-67 have no testcase — they are the gaps. */
-const SPEC_IDS = [
-  'SV-SMK-01',
-  ...Array.from({ length: 66 }, (_, i) => `SV-XX-${String(i + 2).padStart(2, '0')}`),
-]
-
 /** One green test that asserted nothing — the vacuous pass the score excludes. */
-const VACUOUS_TEST = 'SV-XX-33 demo'
+const VACUOUS_TEST = 'View the public scorecard'
+
+/** Two runs of the same SHA disagreed — the stability penalty. */
+const CONFLICTED = 2
+
+function specIdFor(testName: string): string | null {
+  return SPEC.find((s) => testName.includes(s.id))?.id ?? null
+}
 
 function buildSpecEntries(): SpecEntry[] {
-  return SPEC_IDS.map((id) => {
-    const tc = DEMO_JUNIT.cases.find((c) => c.name.includes(id))
-    if (!tc) return { id, covered: false, testName: null }
+  return SPEC.map((s) => {
+    const tc = DEMO_JUNIT.cases.find((c) => c.name.includes(s.id))
+    if (!tc) return { id: s.id, specLine: s.line, covered: false, testName: null }
     return {
-      id,
+      id: s.id,
+      specLine: s.line,
       covered: true,
       testName: tc.name,
       status: tc.status,
@@ -133,24 +159,28 @@ function buildSpecEntries(): SpecEntry[] {
   })
 }
 
-function buildDemoRun(): Run {
-  const specEntries = buildSpecEntries()
-  const coveredIds = specEntries.filter((s) => s.covered).length
-  const vacuousCount = specEntries.filter((s) => s.vacuous).length
-  const meaningfulPasses = DEMO_JUNIT.passed - vacuousCount
-
-  const testCases: TestCaseRow[] = DEMO_JUNIT.cases.map((c) => ({
+/** Every testcase in the artifact. `specId: null` means the test asserts no scenario. */
+function buildTestCases(): TestCaseRow[] {
+  return DEMO_JUNIT.cases.map((c) => ({
     name: c.name,
-    specId: SPEC_IDS.find((id) => c.name.includes(id)) ?? null,
+    specId: specIdFor(c.name),
     status: c.status,
     message: c.message,
     vacuous: c.name === VACUOUS_TEST,
   }))
+}
+
+function buildDemoRun(): Run {
+  const specEntries = buildSpecEntries()
+  const testCases = buildTestCases()
+  const coveredIds = specEntries.filter((s) => s.covered).length
+  const vacuousCount = testCases.filter((t) => t.vacuous).length
+  const meaningfulPasses = DEMO_JUNIT.passed - vacuousCount
 
   const counts: RunCounts = {
     coveredIds,
     totalIds: specEntries.length,
-    conflicted: 1,
+    conflicted: CONFLICTED,
     tested: DEMO_JUNIT.total,
     meaningfulPasses,
     totalTests: DEMO_JUNIT.total,
@@ -174,20 +204,27 @@ function buildDemoRun(): Run {
     skipped: DEMO_JUNIT.skipped,
     meaningfulPasses,
     vacuousCount,
-    conflicted: 1,
+    conflicted: CONFLICTED,
     tested: DEMO_JUNIT.total,
     coverageIdsTotal: specEntries.length,
     coverageIdsCovered: coveredIds,
     metric: {
       tsi,
       coverage: coveredIds / specEntries.length,
-      stability: 1 - 1 / DEMO_JUNIT.total,
+      stability: 1 - CONFLICTED / DEMO_JUNIT.total,
       passRate: meaningfulPasses / DEMO_JUNIT.total,
     },
     status: 'complete',
     createdAt: '2026-10-16T10:00:00Z',
     specEntries,
     testCases,
+    verdict: {
+      state: 'failed',
+      label: 'failed — 3 testcases before remediation',
+      detail:
+        'The run failed on the rounding rule, the coverage count and the gap trace. ' +
+        'No score is trusted until the failing testcases are fixed or shown to be drift.',
+    },
     loop: {
       pr: '#12',
       classification: 'regression',
@@ -199,6 +236,95 @@ function buildDemoRun(): Run {
 }
 
 export const DEMO_RUN: Run = buildDemoRun()
+
+/**
+ * A rerun where one of three requested testcases refused to execute. Two of
+ * three finished, so the score is withheld instead of being reported as a drop.
+ */
+function buildIncompleteRun(): Run {
+  const requested = ['SV-TSI-04', 'SV-ADQ-02', 'SV-DRF-01']
+  const refused = 'SV-DRF-01'
+
+  const testCases: TestCaseRow[] = requested.map((id) => {
+    const scenario = SPEC.find((s) => s.id === id)
+    const name = `${id} ${scenario?.asserts.replace(/`/g, '') ?? ''}`.trim()
+    if (id === refused) {
+      return {
+        name,
+        specId: id,
+        status: 'skipped' as JUnitStatus,
+        message: 'refused — the target deployment was replaced mid-run',
+      }
+    }
+    return { name, specId: id, status: 'passed' as JUnitStatus }
+  })
+
+  const specEntries: SpecEntry[] = requested.map((id) => {
+    const scenario = SPEC.find((s) => s.id === id)
+    const tc = testCases.find((c) => c.specId === id)
+    return {
+      id,
+      specLine: scenario?.line ?? 0,
+      covered: tc?.status === 'passed',
+      testName: tc?.name ?? null,
+      status: tc?.status,
+      failureMessage: tc?.message,
+    }
+  })
+
+  const passed = testCases.filter((c) => c.status === 'passed').length
+  const skipped = testCases.filter((c) => c.status === 'skipped').length
+
+  return {
+    id: 'run-demo-2',
+    projectId: DEMO_PROJECT.id,
+    sha: '532eeab3f7b0f2f4b0b0e4a1c9d2f3a4b5c6d7e8',
+    pr: '#13',
+    branch: 'feat/phase2-mvp',
+    environment: 'preview',
+    resolvedUrl: 'https://meerkat-git-feat-phase2-mvp-flaminextdevs-projects.vercel.app',
+    context: 'desktop-auth',
+    total: testCases.length,
+    passed,
+    failed: 0,
+    skipped,
+    meaningfulPasses: passed,
+    vacuousCount: 0,
+    conflicted: 0,
+    tested: passed,
+    coverageIdsTotal: requested.length,
+    coverageIdsCovered: passed,
+    // matcha: tsi 0 with status=incomplete — the UI renders "n/a", never 0.
+    metric: { tsi: 0, coverage: passed / requested.length, stability: 1, passRate: 1 },
+    status: 'incomplete',
+    createdAt: '2026-10-18T09:12:00Z',
+    specEntries,
+    testCases,
+    verdict: {
+      state: 'incomplete',
+      label: 'incomplete rerun refused',
+      detail:
+        'The rerun asked for 3 testcases; 2 finished and 1 refused because the ' +
+        'preview URL changed underneath it. The check stays neutral and the score is withheld.',
+      requested: 3,
+      completed: 2,
+      refused: 1,
+    },
+    loop: {
+      pr: '#13',
+      classification: 'spec-drift',
+      action: 'test update needed',
+      result: 'neutral',
+    },
+  }
+}
+
+export const DEMO_RUN_2: Run = buildIncompleteRun()
+
+/** Tests that assert no SPEC scenario — they prove nothing about the contract. */
+export function getOrphans(run: Run): TestCaseRow[] {
+  return run.testCases.filter((t) => t.specId === null)
+}
 
 export function authenticate(email: string, password: string): boolean {
   // matcha: demo-only auth — real auth persists a session for the seeded account.
@@ -213,14 +339,17 @@ export function getProject(id: string): Project | undefined {
   return id === DEMO_PROJECT.id ? DEMO_PROJECT : undefined
 }
 
+const ALL_RUNS: Run[] = [DEMO_RUN, DEMO_RUN_2]
+
 export function getRun(id: string): Run | undefined {
-  return id === DEMO_RUN.id ? DEMO_RUN : undefined
+  return ALL_RUNS.find((r) => r.id === id)
 }
 
 export function listRuns(projectId: string): Run[] {
-  return projectId === DEMO_PROJECT.id ? [DEMO_RUN] : []
+  return projectId === DEMO_PROJECT.id ? ALL_RUNS : []
 }
 
 export function getLoop(projectId: string): LoopAction[] {
-  return projectId === DEMO_PROJECT.id && DEMO_RUN.loop ? [DEMO_RUN.loop] : []
+  if (projectId !== DEMO_PROJECT.id) return []
+  return ALL_RUNS.flatMap((r) => (r.loop ? [r.loop] : []))
 }

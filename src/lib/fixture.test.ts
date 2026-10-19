@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { parseJUnit } from './junit'
 import junitXml from './fixtures/testsprite-junit.xml?raw'
+import specMarkdown from '../../SPEC.md?raw'
 import { DEMO_RUN } from './store'
 import { slugifyTestName } from '@/components/CoverageTrace'
 
@@ -19,9 +20,9 @@ describe('demo JUnit artifact', () => {
     }
   })
 
-  it('carries 7 orphan tests that assert no SPEC ID', () => {
+  it('carries 37 orphan tests that assert no SPEC ID', () => {
     const orphans = DEMO_RUN.testCases.filter((t) => t.specId === null)
-    expect(orphans).toHaveLength(7)
+    expect(orphans).toHaveLength(37)
     expect(DEMO_RUN.testCases).toHaveLength(67)
   })
 })
@@ -34,9 +35,9 @@ describe('run built from the artifact', () => {
     expect(DEMO_RUN.skipped).toBe(0)
   })
 
-  it('keeps coverage at 60/67 and the fixture TSI at 93', () => {
-    expect(DEMO_RUN.coverageIdsCovered).toBe(60)
-    expect(DEMO_RUN.coverageIdsTotal).toBe(67)
+  it('keeps coverage at 30/33 and the fixture TSI at 93', () => {
+    expect(DEMO_RUN.coverageIdsCovered).toBe(30)
+    expect(DEMO_RUN.coverageIdsTotal).toBe(33)
     expect(DEMO_RUN.metric.tsi).toBe(93)
   })
 
@@ -54,10 +55,17 @@ describe('run built from the artifact', () => {
     }
   })
 
-  it('marks the 7 uncovered SPEC IDs as gaps with no testcase', () => {
+  it('marks the 3 uncovered SPEC IDs as gaps with no testcase', () => {
     const gaps = DEMO_RUN.specEntries.filter((s) => !s.covered)
-    expect(gaps).toHaveLength(7)
+    expect(gaps).toHaveLength(3)
     for (const g of gaps) expect(g.testName).toBeNull()
+  })
+
+  it('points every gap at a SPEC.md line that really defines it', () => {
+    const lines = specMarkdown.split('\n')
+    for (const s of DEMO_RUN.specEntries) {
+      expect(lines[s.specLine - 1], `${s.id} line ${s.specLine}`).toContain(s.id)
+    }
   })
 
   it('links to real commits: full SHAs, and the fix is a different commit', () => {

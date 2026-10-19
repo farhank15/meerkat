@@ -87,7 +87,7 @@ export function Nav() {
           <a href="/#tsi" className="transition-colors hover:text-neutral-100">
             The TSI
           </a>
-          <a href="/#loop" className="transition-colors hover:text-neutral-100">
+          <a href="/loop" className="transition-colors hover:text-neutral-100">
             The Loop
           </a>
         </nav>
@@ -148,7 +148,7 @@ export function Footer() {
           links={[
             { label: 'The TSI', href: '/#tsi' },
             { label: 'How it works', href: '/#how' },
-            { label: 'The Loop', href: '/#loop' },
+            { label: 'The Loop', href: '/loop' },
             { label: 'Demo scorecard', href: '/runs' },
             { label: 'Public scorecard', href: '/share/meerkat-demo' },
           ]}

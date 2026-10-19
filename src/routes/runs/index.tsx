@@ -57,14 +57,26 @@ function Runs() {
                   </td>
                   <td className="px-5 py-3 text-neutral-400">{r.pr}</td>
                   <td className="px-5 py-3">
-                    <Link
-                      to="/runs/$id"
-                      params={{ id: r.id }}
-                      hash="tsi-breakdown"
-                      className="font-semibold tabular-nums text-neutral-100 hover:text-emerald-300"
-                    >
-                      {r.metric.tsi}
-                    </Link>
+                    {r.status === 'complete' ? (
+                      <Link
+                        to="/runs/$id"
+                        params={{ id: r.id }}
+                        hash="tsi-breakdown"
+                        className="font-semibold tabular-nums text-neutral-100 hover:text-emerald-300"
+                      >
+                        {r.metric.tsi}
+                      </Link>
+                    ) : (
+                      // A withheld score is not a zero — say so explicitly.
+                      <Link
+                        to="/runs/$id"
+                        params={{ id: r.id }}
+                        hash="verdict"
+                        className="text-neutral-500 hover:text-neutral-300"
+                      >
+                        n/a
+                      </Link>
+                    )}
                   </td>
                   <td className="px-5 py-3 text-neutral-400">{r.environment}</td>
                   <td className="px-5 py-3 text-right">
