@@ -3,7 +3,7 @@
 // a 403 would confirm that a private project exists.
 
 import { createServerFn } from '@tanstack/react-start'
-import { and, desc, eq } from 'drizzle-orm'
+import { and, desc, eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { getDb } from '@/db'
@@ -17,6 +17,14 @@ export interface PublicRun {
   status: string
   tsi: number | null
   startedAt: string | null
+  /** Scenario coverage, when the payload carries the counts. */
+  coverage: { covered: number; total: number } | null
+  /** 0..1, from the run payload. Null when the run withheld its score. */
+  stability: number | null
+  passRate: number | null
+  verdict: string | null
+  failing: number
+  total: number
 }
 
 export interface PublicProject {
@@ -26,7 +34,57 @@ export interface PublicProject {
   repoUrl: string | null
   runCount: number
   latest: PublicRun | null
+  recent: PublicRun[]
   trend: Array<{ at: string; tsi: number | null }>
+}
+
+type RunPayload = Partial<Run> & {
+  metric?: { stability?: number; passRate?: number }
+  verdict?: { state?: string }
+  testCases?: Array<{ status?: string }>
+}
+
+/**
+ * The public scorecard shows aggregate evidence, never the raw artifact. Every
+ * field is optional in stored payloads written by older ingest clients, so each
+ * read degrades to null instead of inventing a number.
+ */
+function summarize(data: unknown): Omit<PublicRun, 'id' | 'sha' | 'pr' | 'status' | 'tsi' | 'startedAt'> {
+  const run = (data ?? {}) as RunPayload
+  const covered = typeof run.coverageIdsCovered === 'number' ? run.coverageIdsCovered : null
+  const idsTotal = typeof run.coverageIdsTotal === 'number' ? run.coverageIdsTotal : null
+
+  return {
+    coverage: covered !== null && idsTotal !== null ? { covered, total: idsTotal } : null,
+    stability: typeof run.metric?.stability === 'number' ? run.metric.stability : null,
+    passRate: typeof run.metric?.passRate === 'number' ? run.metric.passRate : null,
+    verdict: typeof run.verdict?.state === 'string' ? run.verdict.state : null,
+    failing: Array.isArray(run.testCases)
+      ? run.testCases.filter((testCase) => testCase.status === 'failed').length
+      : 0,
+    total: typeof run.total === 'number' ? run.total : 0,
+  }
+}
+
+function toPublicRun(row: {
+  id: string
+  sha: string | null
+  pr: string | null
+  status: string
+  tsi: number | null
+  startedAt: Date | null
+  createdAt: Date
+  data: unknown
+}): PublicRun {
+  return {
+    id: row.id,
+    sha: row.sha,
+    pr: row.pr,
+    status: row.status,
+    tsi: row.tsi,
+    startedAt: (row.startedAt ?? row.createdAt).toISOString(),
+    ...summarize(row.data),
+  }
 }
 
 export const getPublicProjectFn = createServerFn({ method: 'GET' })
@@ -57,32 +115,31 @@ export const getPublicProjectFn = createServerFn({ method: 'GET' })
         tsi: runs.tsi,
         startedAt: runs.startedAt,
         createdAt: runs.createdAt,
+        data: runs.data,
       })
       .from(runs)
       .where(eq(runs.projectId, project.id))
       .orderBy(desc(runs.createdAt))
       .limit(20)
 
-    const latest = rows[0] ?? null
-    const scored = rows.filter((row) => typeof row.tsi === 'number')
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(runs)
+      .where(eq(runs.projectId, project.id))
+
+    const recent = rows.map(toPublicRun)
+    const latest = recent[0] ?? null
+    const scored = recent.filter((row) => typeof row.tsi === 'number')
 
     return {
       ...project,
-      runCount: rows.length,
-      latest: latest
-        ? {
-            id: latest.id,
-            sha: latest.sha,
-            pr: latest.pr,
-            status: latest.status,
-            tsi: latest.tsi,
-            startedAt: (latest.startedAt ?? latest.createdAt).toISOString(),
-          }
-        : null,
+      runCount: count,
+      latest,
+      recent: recent.slice(0, 8),
       trend: scored
         .slice(0, 12)
         .reverse()
-        .map((row) => ({ at: (row.startedAt ?? row.createdAt).toISOString(), tsi: row.tsi })),
+        .map((row) => ({ at: row.startedAt ?? '', tsi: row.tsi })),
     }
   })
 

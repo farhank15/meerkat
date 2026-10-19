@@ -34,15 +34,16 @@ export interface ParsedKey {
   secret: string
 }
 
+/** `mk_live_<8 hex>_<secret>` — the secret is base64url, so it may itself contain `_`. */
+const KEY_SHAPE = /^mk_live_([0-9a-f]{8})_(.+)$/
+
 export function parseApiKey(raw: string): ParsedKey | null {
   const value = raw.trim()
-  if (!value.startsWith(PREFIX_ROOT)) return null
+  const match = KEY_SHAPE.exec(value)
+  if (!match) return null
 
-  const parts = value.split('_')
-  // ['mk', 'live', handle, secret]
-  if (parts.length !== 4) return null
-  const [, , handle, secret] = parts
-  if (!/^[0-9a-f]{8}$/.test(handle) || secret.length < 20) return null
+  const [, handle, secret] = match
+  if (secret.length < 20) return null
 
   return { prefix: `${PREFIX_ROOT}${handle}`, secret }
 }

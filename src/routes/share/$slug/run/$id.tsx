@@ -27,6 +27,10 @@ function PublicRun() {
   const scored = run.status === 'complete'
   const commit = commitUrl(project.repoUrl, meta.sha)
   const failing = (run.testCases ?? []).filter((testCase) => testCase.status === 'failed')
+  const metric = run.metric
+
+  const ratio = (value: number | undefined) =>
+    typeof value === 'number' ? `${(value * 100).toFixed(1)}%` : '—'
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-10">
@@ -64,13 +68,21 @@ function PublicRun() {
       <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Stat
           label="Test Strength Index"
-          value={scored ? run.metric.tsi : '—'}
+          value={scored ? (metric?.tsi ?? '—') : '—'}
           hint={scored ? 'Deterministic score' : 'Verdict withheld'}
-          tone={!scored ? 'neutral' : run.metric.tsi >= 80 ? 'ok' : run.metric.tsi >= 50 ? 'warn' : 'danger'}
+          tone={
+            !scored || typeof metric?.tsi !== 'number'
+              ? 'neutral'
+              : metric.tsi >= 80
+                ? 'ok'
+                : metric.tsi >= 50
+                  ? 'warn'
+                  : 'danger'
+          }
         />
-        <Stat label="Coverage" value={`${(run.metric.coverage * 100).toFixed(1)}%`} hint="Weight 50%" />
-        <Stat label="Stability" value={`${(run.metric.stability * 100).toFixed(1)}%`} hint="Weight 30%" />
-        <Stat label="Pass rate" value={`${(run.metric.passRate * 100).toFixed(1)}%`} hint="Meaningful passes only" />
+        <Stat label="Coverage" value={ratio(metric?.coverage)} hint="Weight 50%" />
+        <Stat label="Stability" value={ratio(metric?.stability)} hint="Weight 30%" />
+        <Stat label="Pass rate" value={ratio(metric?.passRate)} hint="Meaningful passes only" />
       </div>
 
       {run.verdict && (

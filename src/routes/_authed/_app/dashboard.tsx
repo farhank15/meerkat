@@ -2,6 +2,7 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 
 import { PageHeader } from '@/components/ui/layout'
 import { Badge, Button, Card, CardContent, CardHeader, EmptyState, Stat, StatusBadge } from '@/components/ui/primitives'
+import { Sparkline } from '@/components/ui/sparkline'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table'
 import { ActivityIcon, ArrowRightIcon, PlusIcon } from '@/components/ui/icons'
 import { getOverviewFn, listRunsFn } from '@/server/runs'
@@ -13,36 +14,6 @@ export const Route = createFileRoute('/_authed/_app/dashboard')({
   },
   component: Dashboard,
 })
-
-function Sparkline({ points }: { points: Array<{ at: string; tsi: number | null }> }) {
-  const scored = points.filter((point): point is { at: string; tsi: number } => typeof point.tsi === 'number')
-  if (scored.length < 2) return null
-
-  const values = scored.map((point) => point.tsi)
-  const min = Math.min(...values)
-  const max = Math.max(...values)
-  const span = max - min || 1
-  const coords = values
-    .map((value, index) => {
-      const x = (index / (values.length - 1)) * 100
-      const y = 30 - ((value - min) / span) * 24
-      return `${x.toFixed(2)},${y.toFixed(2)}`
-    })
-    .join(' ')
-
-  return (
-    <svg viewBox="0 0 100 32" preserveAspectRatio="none" className="h-16 w-full" aria-hidden>
-      <polyline
-        points={coords}
-        fill="none"
-        stroke="var(--color-accent)"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-        vectorEffect="non-scaling-stroke"
-      />
-    </svg>
-  )
-}
 
 function Dashboard() {
   const { overview, recent } = Route.useLoaderData()
@@ -110,7 +81,7 @@ function Dashboard() {
                 />
                 <CardContent>
                   {overview.trend.length >= 2 ? (
-                    <Sparkline points={overview.trend} />
+                    <Sparkline points={overview.trend} className="h-16 w-full" showArea />
                   ) : (
                     <p className="py-6 text-center text-xs text-ink-subtle">
                       Two scored runs are needed to draw a trend.

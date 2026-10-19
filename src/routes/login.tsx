@@ -6,6 +6,11 @@ import { Field, Input } from '@/components/ui/form'
 import { GithubIcon } from '@/components/ui/icons'
 
 export const Route = createFileRoute('/login')({
+  // Marketing CTAs point at /login?mode=register so "Start free" opens the
+  // account form instead of asking a first-time visitor to sign in.
+  validateSearch: (search: Record<string, unknown>): { mode?: 'register' } => ({
+    mode: search.mode === 'register' ? 'register' : undefined,
+  }),
   component: Login,
 })
 
@@ -13,10 +18,10 @@ type Mode = 'signin' | 'register'
 
 function Login() {
   const navigate = useNavigate()
-  const [mode, setMode] = useState<Mode>('signin')
+  const { mode: requestedMode } = Route.useSearch()
+  const [mode, setMode] = useState<Mode>(requestedMode ?? 'signin')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [checking, setChecking] = useState(true)
 
   useEffect(() => {
     let alive = true
@@ -26,12 +31,10 @@ function Login() {
         if (!alive) return
         if (body.authed === true) {
           navigate({ to: body.workspace?.onboarded ? '/dashboard' : '/onboarding', replace: true })
-        } else {
-          setChecking(false)
         }
       })
       .catch(() => {
-        if (alive) setChecking(false)
+        // A failed probe only means "not signed in" — the form stays usable.
       })
     return () => {
       alive = false
@@ -77,8 +80,6 @@ function Login() {
       String(form.get('password') ?? ''),
     )
   }
-
-  if (checking) return <div className="min-h-screen bg-canvas" />
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">

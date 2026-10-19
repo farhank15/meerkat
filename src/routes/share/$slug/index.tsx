@@ -1,9 +1,12 @@
 // Public, unauthenticated scorecard. Slug validity and the public flag are
-// enforced by the parent route's beforeLoad.
+// enforced by the parent route's beforeLoad. Everything here is aggregate
+// evidence: the score, the three signals behind it, and the run history.
 
 import { Link, createFileRoute } from '@tanstack/react-router'
 
 import { Badge, Card, CardContent, CardHeader, EmptyState, Stat, StatusBadge } from '@/components/ui/primitives'
+import { Sparkline, trendDelta } from '@/components/ui/sparkline'
+import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table'
 import { ArrowRightIcon } from '@/components/ui/icons'
 
 export const Route = createFileRoute('/share/$slug/')({
@@ -17,28 +20,61 @@ function shortWhen(iso: string | null): string {
   return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+function percent(value: number | null): string {
+  if (value === null) return '—'
+  return `${Math.round(value * 100)}%`
+}
+
+function Signal({
+  label,
+  value,
+  detail,
+}: {
+  label: string
+  value: number | null
+  detail: string
+}) {
+  const pct = value === null ? 0 : Math.max(0, Math.min(1, value))
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-xs text-ink-muted">{label}</span>
+        <span className="mono-nums text-xs text-ink">{percent(value)}</span>
+      </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-hover">
+        {value !== null && <div className="h-full rounded-full bg-accent" style={{ width: `${pct * 100}%` }} />}
+      </div>
+      <p className="mt-1.5 text-2xs text-ink-subtle">{detail}</p>
+    </div>
+  )
+}
+
 function SharePage() {
   const { project } = Route.useRouteContext()
   const latest = project.latest
+  const delta = trendDelta(project.trend)
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-12">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="text-2xs font-medium uppercase tracking-wider text-accent">Scorecard</div>
+          <div className="text-2xs font-medium uppercase tracking-wider text-accent">Public scorecard</div>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink">{project.name}</h1>
           <p className="mt-1 font-mono text-2xs text-ink-subtle">{project.slug}</p>
         </div>
-        {project.repoUrl && (
-          <a
-            href={project.repoUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="text-2xs font-medium text-ink-muted hover:text-ink"
-          >
-            Repository ↗
-          </a>
-        )}
+        <div className="flex items-center gap-3">
+          {project.repoUrl && (
+            <a
+              href={project.repoUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-2xs font-medium text-ink-muted hover:text-ink"
+            >
+              Repository ↗
+            </a>
+          )}
+          <Badge tone="neutral">Read-only</Badge>
+        </div>
       </div>
 
       {!latest ? (
@@ -54,7 +90,11 @@ function SharePage() {
             <Stat
               label="Test Strength Index"
               value={latest.tsi ?? '—'}
-              hint={latest.tsi === null ? 'Verdict withheld' : 'Latest complete run'}
+              hint={
+                delta === null
+                  ? 'Latest run'
+                  : `${delta > 0 ? '+' : ''}${delta} vs previous run`
+              }
               tone={
                 latest.tsi == null
                   ? 'neutral'
@@ -65,59 +105,133 @@ function SharePage() {
                       : 'danger'
               }
             />
-            <Stat label="Runs" value={project.runCount} hint="Ingested waves" />
-            <Stat label="Last run" value={shortWhen(latest.startedAt)} hint="UTC" />
             <Stat
-              label="Status"
-              value={<StatusBadge status={latest.status} />}
-              hint={latest.pr ? `PR #${latest.pr}` : 'No PR linked'}
+              label="Coverage"
+              value={latest.coverage ? `${latest.coverage.covered}/${latest.coverage.total}` : '—'}
+              hint={latest.coverage ? 'Contract scenarios exercised' : 'Not reported by this run'}
             />
+            <Stat
+              label="Failing tests"
+              value={latest.failing}
+              hint={latest.total > 0 ? `of ${latest.total} testcases` : 'No testcase data'}
+              tone={latest.failing > 0 ? 'danger' : 'neutral'}
+            />
+            <Stat label="Runs" value={project.runCount} hint="Ingested waves" />
           </div>
 
-          <Card className="mt-4">
-            <CardHeader
-              title="Latest run"
-              description="Every number traces back to the JUnit artifact and the spec contract."
-              action={
+          <div className="mt-4 grid gap-3 lg:grid-cols-3">
+            <Card className="lg:col-span-2">
+              <CardHeader
+                title="Signals behind the score"
+                description="Fixed weights: coverage 50%, stability 30%, meaningful pass rate 20%."
+                action={<StatusBadge status={latest.status} />}
+              />
+              <CardContent className="grid gap-4 sm:grid-cols-3">
+                <Signal
+                  label="Coverage"
+                  value={latest.coverage ? latest.coverage.covered / latest.coverage.total : null}
+                  detail="SPEC.md scenarios a test exercises"
+                />
+                <Signal
+                  label="Stability"
+                  value={latest.stability}
+                  detail="Agreement across reruns of one commit"
+                />
+                <Signal
+                  label="Pass rate"
+                  value={latest.passRate}
+                  detail="Passes that assert something"
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader title="Latest run" />
+              <CardContent className="space-y-2.5 text-2xs">
+                <div className="flex justify-between gap-3">
+                  <span className="text-ink-subtle">Commit</span>
+                  <span className="font-mono text-ink-muted">{latest.sha?.slice(0, 8) ?? '—'}</span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-ink-subtle">Pull request</span>
+                  <span className="text-ink-muted">{latest.pr ? `#${latest.pr}` : '—'}</span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-ink-subtle">Verdict</span>
+                  <span className="text-ink-muted">{latest.verdict ?? '—'}</span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-ink-subtle">Started</span>
+                  <span className="text-ink-muted">{shortWhen(latest.startedAt)}</span>
+                </div>
                 <Link
                   to="/share/$slug/run/$id"
                   params={{ slug: project.slug, id: latest.id }}
-                  className="inline-flex items-center gap-1.5 text-2xs font-medium text-accent hover:text-accent-strong"
+                  className="inline-flex items-center gap-1.5 pt-1 text-2xs font-medium text-accent hover:text-accent-strong"
                 >
-                  Open run <ArrowRightIcon width={12} height={12} />
+                  Open the full run <ArrowRightIcon width={12} height={12} />
                 </Link>
-              }
-            />
-            <CardContent className="grid gap-3 text-2xs sm:grid-cols-3">
-              <div className="flex justify-between gap-3">
-                <span className="text-ink-subtle">Commit</span>
-                <span className="font-mono text-ink-muted">{latest.sha?.slice(0, 8) ?? '—'}</span>
-              </div>
-              <div className="flex justify-between gap-3">
-                <span className="text-ink-subtle">PR</span>
-                <span className="text-ink-muted">{latest.pr ? `#${latest.pr}` : '—'}</span>
-              </div>
-              <div className="flex justify-between gap-3">
-                <span className="text-ink-subtle">TSI</span>
-                <span className="mono-nums text-ink-muted">{latest.tsi ?? '—'}</span>
-              </div>
-            </CardContent>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="mt-4">
+            <CardHeader title="Run history" description="Most recent first. Each row opens its evidence." />
+            <Table caption="Recent runs">
+              <THead>
+                <TR>
+                  <TH>Run</TH>
+                  <TH>Commit</TH>
+                  <TH>PR</TH>
+                  <TH>Coverage</TH>
+                  <TH align="right">TSI</TH>
+                  <TH>Status</TH>
+                  <TH>When</TH>
+                </TR>
+              </THead>
+              <TBody>
+                {project.recent.map((run) => (
+                  <TR key={run.id}>
+                    <TD>
+                      <Link
+                        to="/share/$slug/run/$id"
+                        params={{ slug: project.slug, id: run.id }}
+                        className="font-mono text-xs text-accent hover:text-accent-strong"
+                      >
+                        {run.id.slice(0, 8)}
+                      </Link>
+                    </TD>
+                    <TD className="font-mono text-2xs">{run.sha?.slice(0, 8) ?? '—'}</TD>
+                    <TD className="text-2xs">{run.pr ? `#${run.pr}` : '—'}</TD>
+                    <TD className="text-2xs">
+                      {run.coverage ? `${run.coverage.covered}/${run.coverage.total}` : '—'}
+                    </TD>
+                    <TD align="right" className="mono-nums text-ink">
+                      {run.tsi ?? '—'}
+                    </TD>
+                    <TD>
+                      <StatusBadge status={run.status} />
+                    </TD>
+                    <TD className="text-2xs">{shortWhen(run.startedAt)}</TD>
+                  </TR>
+                ))}
+              </TBody>
+            </Table>
           </Card>
 
           {project.trend.length >= 2 && (
             <Card className="mt-4">
               <CardHeader title="Index trend" description="Chronological, unsmoothed." />
               <CardContent>
-                <Sparkline points={project.trend} />
+                <Sparkline points={project.trend} className="h-24 w-full" showArea />
               </CardContent>
             </Card>
           )}
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Badge tone="neutral">Read-only</Badge>
             <span className="text-2xs text-ink-subtle">
               Want this for your repository?{' '}
-              <Link to="/login" className="text-accent hover:text-accent-strong">
+              <Link to="/login" search={{ mode: 'register' }} className="text-accent hover:text-accent-strong">
                 Create a workspace
               </Link>
               .
@@ -126,35 +240,5 @@ function SharePage() {
         </>
       )}
     </div>
-  )
-}
-
-function Sparkline({ points }: { points: Array<{ at: string; tsi: number | null }> }) {
-  const scored = points.filter((point): point is { at: string; tsi: number } => typeof point.tsi === 'number')
-  if (scored.length < 2) return null
-
-  const values = scored.map((point) => point.tsi)
-  const min = Math.min(...values)
-  const max = Math.max(...values)
-  const span = max - min || 1
-  const coords = values
-    .map((value, index) => {
-      const x = (index / (values.length - 1)) * 100
-      const y = 40 - ((value - min) / span) * 32
-      return `${x.toFixed(2)},${y.toFixed(2)}`
-    })
-    .join(' ')
-
-  return (
-    <svg viewBox="0 0 100 44" preserveAspectRatio="none" className="h-24 w-full" aria-hidden>
-      <polyline
-        points={coords}
-        fill="none"
-        stroke="var(--color-accent)"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-        vectorEffect="non-scaling-stroke"
-      />
-    </svg>
   )
 }

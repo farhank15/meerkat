@@ -47,7 +47,9 @@ export const listProjectsFn = createServerFn({ method: 'GET' }).handler(
         badgeEnabled: projects.badgeEnabled,
         createdAt: projects.createdAt,
         runCount: sql<number>`count(${runs.id})::int`,
-        latestTsi: sql<number | null>`max(${runs.tsi})`,
+        // The score of the most recent run, not the best score ever seen —
+        // `max(tsi)` would quietly hide a regression on this page.
+        latestTsi: sql<number | null>`(array_agg(${runs.tsi} order by ${runs.createdAt} desc))[1]`,
         latestAt: sql<Date | null>`max(${runs.createdAt})`,
       })
       .from(projects)
@@ -79,10 +81,15 @@ export const createProjectFn = createServerFn({ method: 'POST' })
 
     const base = slugify(data.name) || 'project'
     let slug = base
-    for (let attempt = 0; attempt < 20; attempt += 1) {
+    let suffix = 1
+    // Slugs are the public URL, so they are globally unique. Twenty numbered
+    // attempts cover realistic collisions; past that, a random tail avoids a
+    // unique-violation crash on a legitimate create.
+    while (suffix <= 20) {
       const [taken] = await db.select({ id: projects.id }).from(projects).where(eq(projects.slug, slug)).limit(1)
       if (!taken) break
-      slug = `${base}-${attempt + 2}`
+      suffix += 1
+      slug = suffix > 20 ? `${base}-${Math.random().toString(36).slice(2, 8)}` : `${base}-${suffix}`
     }
 
     const [created] = await db

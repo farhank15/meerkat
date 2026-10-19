@@ -177,6 +177,12 @@ export const getOverviewFn = createServerFn({ method: 'GET' }).handler(async ():
     .from(projects)
     .where(eq(projects.workspaceId, session.workspace.id))
 
+  const [{ count: runCount }] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(runs)
+    .innerJoin(projects, eq(runs.projectId, projects.id))
+    .where(eq(projects.workspaceId, session.workspace.id))
+
   const rows = await db
     .select({ ...selection, data: runs.data })
     .from(runs)
@@ -186,7 +192,7 @@ export const getOverviewFn = createServerFn({ method: 'GET' }).handler(async ():
     .limit(20)
 
   if (rows.length === 0) {
-    return { ...empty, projectCount }
+    return { ...empty, projectCount, runCount }
   }
 
   const latest = rows[0]
@@ -195,7 +201,7 @@ export const getOverviewFn = createServerFn({ method: 'GET' }).handler(async ():
 
   return {
     projectCount,
-    runCount: rows.length,
+    runCount,
     latest: toRow(latest),
     previous: rows[1] ? toRow(rows[1]) : null,
     trend: scored

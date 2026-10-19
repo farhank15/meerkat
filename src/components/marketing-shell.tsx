@@ -66,7 +66,7 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
             <Link to="/login" className="text-xs font-medium text-ink-muted transition-colors hover:text-ink">
               Sign in
             </Link>
-            <Link to="/login">
+            <Link to="/login" search={{ mode: 'register' }}>
               <Button variant="primary" size="sm">
                 Start free
               </Button>
