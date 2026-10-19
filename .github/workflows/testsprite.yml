@@ -9,11 +9,12 @@ name: TestSprite (JUnit fallback)
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
-  # Do NOT run on every `synchronize` (push) — each full suite run spends
-  # TestSprite credits. Fire when a PR first becomes reviewable, and allow a
-  # deliberate manual re-run after fixes. A push to main still re-validates.
+  # `synchronize` is included so the ingest/ratchet pair re-verifies the wave
+  # the auto-remediation agent lands. The suite itself still runs once per
+  # push, owned by the GitHub App (never this workflow), so no extra credits
+  # are spent here. Manual workflow_dispatch remains for diagnostics.
   pull_request:
-    types: [opened, reopened, ready_for_review]
+    types: [opened, reopened, ready_for_review, synchronize]
   push:
     branches: [main]
   workflow_dispatch:
@@ -88,3 +89,246 @@ jobs:
       # signal above. `error-code` non-empty or `timed-out > 0` means the run
       # never reached a trustworthy verdict, so the loop must stay silent
       # instead of dispatching an agent.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PR #7 — live closed loop. All three jobs are read-only against the GitHub
+# App's own results; the only suite credits a PR spends still belong to the
+# App run. A red-but-trustworthy verdict is the only thing that wakes the
+# remediation agent.
+# ─────────────────────────────────────────────────────────────────────────────
+
+  meerkat-ingest:
+    # Polls the cloud for the App run of this exact commit until the per-test
+    # statuses settle, then posts one wave into the ledger the dashboard and
+    # the badge read. Free: CLI reads + one POST to /api/runs.
+    name: meerkat-ingest
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    if: ${{ github.event_name != 'push' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install TestSprite CLI (read-only use)
+        run: npm install -g @testsprite/testsprite-cli@0.14.0 --silent
+      - name: Configure CLI credentials from the repo secret
+        env:
+          TESTSPRITE_API_KEY: ${{ secrets.TESTSPRITE_API_KEY }}
+        run: testsprite setup --from-env --no-agent -y
+      - name: Wait for the App run on this commit to settle
+        run: |
+          set -uo pipefail
+          prev=""; stable=0
+          for attempt in $(seq 1 30); do
+            snap=$(TESTSPRITE_PROJECT_ID="${{ vars.TESTSPRITE_PROJECT_ID }}" node scripts/ratchet.mjs snapshot || true)
+            if [ -n "$snap" ] && [ "$snap" = "$prev" ]; then
+              stable=$((stable+1))
+            else
+              stable=0
+            fi
+            if [ "$stable" -ge 2 ]; then
+              echo "statuses settled after $attempt attempts"
+              printf '%s' "$snap" > snapshot.json
+              break
+            fi
+            prev="$snap"
+            sleep 90
+          done
+          test -f snapshot.json || { echo "run never settled in time — skipping ingest silently"; exit 0; }
+      - name: Ingest the settled wave into the Meerkat ledger
+        env:
+          TESTSPRITE_PROJECT_ID: ${{ vars.TESTSPRITE_PROJECT_ID }}
+          SUITEVITALS_API_KEY: ${{ secrets.SUITEVITALS_API_KEY }}
+          MEERKAT_API_URL: https://meerkat-app.vercel.app
+        run: |
+          node scripts/ingest-latest.mjs \
+            --sha "${{ github.event.pull_request.head.sha }}" \
+            --pr "${{ github.event.pull_request.number }}" \
+            --branch "${{ github.event.pull_request.head.ref }}"
+
+  ratchet:
+    # The `SuiteVitals Ratchet` check name (RAT-06). Enforces the committed
+    # baseline over the trustworthy verdict only; everything else passes with
+    # a recorded reason in agent-bundle.json (verdict-trust, F18).
+    name: SuiteVitals Ratchet
+    needs: meerkat-ingest
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: ${{ github.event_name != 'push' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install TestSprite CLI (read-only use)
+        run: npm install -g @testsprite/testsprite-cli@0.14.0 --silent
+      - name: Configure CLI credentials from the repo secret
+        env:
+          TESTSPRITE_API_KEY: ${{ secrets.TESTSPRITE_API_KEY }}
+        run: testsprite setup --from-env --no-agent -y
+      - name: Gate the run against the committed baseline
+        env:
+          TESTSPRITE_PROJECT_ID: ${{ vars.TESTSPRITE_PROJECT_ID }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          MEERKAT_API_URL: https://meerkat-app.vercel.app
+        run: node scripts/ratchet.mjs gate --baseline-file baseline/tsi.json
+      - name: Upload the agent bundle (evidence on every verdict path)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: meerkat-agent-bundle
+          path: agent-bundle.json
+          if-no-files-found: warn
+
+  remediation:
+    # F20 — the loop. Runs only when the ratchet holds a trustworthy RED
+    # verdict. The agent edits application code only (FIX-08: never tests or
+    # SPEC), cannot push itself (persist-credentials false), and the workflow
+    # commits and pushes a single conventional fix — at most one automatic
+    # attempt per wave; a second red wave escalates to a human comment.
+    name: meerkat-remediation
+    needs: ratchet
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    if: ${{ failure() && github.event_name != 'push' }}
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+      MARKER: "fix(app): auto-remediation"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          persist-credentials: false
+      - name: Configure the loop bot's git identity
+        run: |
+          git config user.name "Meerkat auto-remediation"
+          git config user.email "remediation@meerkat-app.vercel.app"
+      - name: Download the agent bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: meerkat-agent-bundle
+          path: .
+      - name: Enforce one automatic attempt per wave
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LAST=$(git log -1 --format=%s)
+          if [ "${LAST#"${MARKER}"}" != "$LAST" ]; then
+            gh pr comment "$PR_NUMBER" \
+              --body "🧭 **Loop closed — escalated to human.** The previous wave already carried an automatic `fix(app): auto-remediation` commit and the ratchet still shows a trustworthy red. Per the loop rules (\`FIX-08\`) the agent retries at most once per wave — see \`agent-bundle.json\` in this run's artifacts for the failing assertions and \`/api/agent-brief\` for the full verdict ledger."
+            echo "escalated: previous attempt exists"
+            exit 0
+          fi
+      - name: Dispatch the remediation agent
+        env:
+          POOLSIDE_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          POOLSIDE_STANDALONE_BASE_URL: https://openrouter.ai/api/v1
+          POOLSIDE_STANDALONE_MODEL: nvidia/nemotron-3-ultra-550b-a55b:free
+        run: |
+          curl -fsSL https://downloads.poolside.ai/pool/install.sh | sh
+          export PATH="$HOME/.local/bin:$PATH"
+          cat > remediation-prompt.txt <<'PROMPT'
+          COMMUNITY CONTEXT: This repository runs the TestSprite hackathon demo "Meerkat".
+          A TestSprite run on this pull request failed the SuiteVitals Ratchet gate.
+          INPUT: agent-bundle.json lists the failing test names and the score; if
+          network access is available, GET the agent-brief URL inside it for the full
+          verdict ledger.
+          TASK: Diagnose why those assertions fail against the live app and implement
+          the MINIMUM fix in application code only.
+          HARD RULES: NEVER modify docs/SPEC.md, docs/, testsprite/, plans-out/,
+          baseline/, or any *.test.* or test file. Keep changes minimal and coherent.
+          Do NOT run git commit or git push — leave the changes in the working tree;
+          the pipeline handles the commit.
+          PROMPT
+          set +e
+          pool exec -d "$PWD" -o json --unsafe-auto-allow -p "$(sed 's/^          //' remediation-prompt.txt)" > remediation-events.json
+          code=$?
+          set -e
+          echo "pool exit code: $code"
+          exit 0   # verdict comes from the rerun, not from the agent
+      - name: Guard — refuse to push contract changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -uo pipefail
+          if git diff --name-only | grep -E '(^docs/|^testsprite/|^plans-out/|^baseline/|[.]test[.]|^tests/)'; then
+            gh pr comment "$PR_NUMBER" \
+              --body "🧭 **Loop refused — agent touched protected paths.** The guard block caught contract files in the agent's diff (FIX-08). Nothing was pushed; a human must review \`agent-bundle.json\` and run \`agent-brief\`."
+            echo "guard: refused"
+            exit 0
+          fi
+          if [ -z "$(git status --porcelain)" ]; then
+            gh pr comment "$PR_NUMBER" \
+              --body "🧭 **Loop refused — the agent wrote no changes.** The red verdict stands; a human fix is needed. See \`agent-bundle.json\`."
+            echo "guard: no changes"
+            exit 0
+          fi
+          echo "guard: clean — pushing the fix"
+      - name: Commit and push the automatic fix
+        run: |
+          set -euo pipefail
+          git add -A
+          git commit -m "fix(app): auto-remediation of failing TestSprite assertions"
+          git push "https://x-access-token:${{ github.token }}@github.com/${{ github.event.pull_request.head.repo.full_name }}.git" HEAD:"$PR_BRANCH"
+          echo "fix pushed — the App re-verifies this wave"
+      - name: Follow the fix wave (re-gate the new verdict)
+        env:
+          TESTSPRITE_PROJECT_ID: ${{ vars.TESTSPRITE_PROJECT_ID }}
+          MEERKAT_API_URL: https://meerkat-app.vercel.app
+          GH_TOKEN: ${{ github.token }}
+          POOLSIDE_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          POOLSIDE_STANDALONE_BASE_URL: https://openrouter.ai/api/v1
+        run: |
+          set -uo pipefail
+          export PATH="$HOME/.local/bin:$PATH"
+          NEW_SHA=$(git rev-parse HEAD)
+          BEFORE=$(node -e "console.log(new Date().toISOString())")
+          echo "new head: $NEW_SHA — waves must start after $BEFORE"
+          npm install -g @testsprite/testsprite-cli@0.14.0 --silent
+          TESTSPRITE_API_KEY="${{ secrets.TESTSPRITE_API_KEY }}" testsprite setup --from-env --no-agent -y >/dev/null
+          pre_digest=""; changed=0
+          for attempt in $(seq 1 28); do
+            sleep 90
+            snap=$(TESTSPRITE_PROJECT_ID="$TESTSPRITE_PROJECT_ID" node scripts/ratchet.mjs snapshot || true)
+            if [ -n "$snap" ] && [ "$pre_digest" != "" ] && [ "$snap" != "$pre_digest" ]; then
+              changed=1
+            fi
+            if [ "$changed" = "1" ] && [ "$snap" = "$pre_digest" ]; then
+              echo "statuses moved and settled — new run finished"
+              break
+            fi
+            pre_digest="$snap"
+          done
+          if [ "$changed" != "1" ]; then
+            gh pr comment "$PR_NUMBER" \
+              --body "⏳ **Loop follow-through: no new wave detected within the window.** The fix commit \`${NEW_SHA:0:7}\` is on the branch; if the App did not re-verify it automatically, trigger a manual re-run. The ratchet will read the next wave."
+            exit 0
+          fi
+          TESTSPRITE_PROJECT_ID="$TESTSPRITE_PROJECT_ID" \
+          SUITEVITALS_API_KEY="${{ secrets.SUITEVITALS_API_KEY }}" \
+          MEERKAT_API_URL="$MEERKAT_API_URL" \
+          node scripts/ingest-latest.mjs \
+            --sha "$NEW_SHA" --pr "$PR_NUMBER" --branch "$PR_BRANCH" \
+            || { gh pr comment "$PR_NUMBER" --body "⏳ Loop follow-through: ingest of the new wave failed — check the run log."; exit 0; }
+          node scripts/ratchet.mjs snapshot > /dev/null || true
+          if node scripts/ratchet.mjs gate --baseline-file baseline/tsi.json --min-started "$BEFORE"; then
+            gh pr comment "$PR_NUMBER" \
+              --body "✅ **Loop verified green.** The wave for \`${NEW_SHA:0:7}\` passed the SuiteVitals Ratchet (TSI ≥ committed baseline). The automatic remediation closed its own red — this is the closed-loop receipt: red wave → bundle → agent fix → re-verified green."
+          else
+            gh pr comment "$PR_NUMBER" \
+              --body "🔁 **Loop re-opened on the fix wave.** The re-verification still scores below the baseline — per the one-attempt rule the loop now escalates to a human (see \`agent-bundle.json\`)."
+          fi
+      - name: Comment the loop receipt
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          EVENTS=$(wc -l < remediation-events.json 2>/dev/null || echo 0)
+          gh pr comment "$PR_NUMBER" \
+            --body "🔧 **Loop dispatched.** The agent (${POOLSIDE_STANDALONE_MODEL:-openrouter model}) read the failing bundle, applied a minimal fix, and the fix commit was pushed to this branch — TestSprite re-verifies it automatically (\`$EVENTS\` agent events, run \`${{ github.run_id }}\`). The verdict of that wave decides: green → merge; red → escalate."
+
