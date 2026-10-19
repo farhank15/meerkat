@@ -1,0 +1,15 @@
+{
+  "projectId": "938f6b63-63d6-4bcd-bff4-13e3f035868c",
+  "name": "SV-RAT-06 `SV-RAT-06` The two checks are separate PR Checks tab shows both `testsprite-dev",
+  "priority": "high",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Open the Meerkat surface that realizes spec scenario SV-RAT-06: `SV-RAT-06` The two checks are separate PR Checks tab shows both `testsprite-dev` and `SuiteVitals Ratchet`"
+    },
+    {
+      "type": "assertion",
+      "description": "Assert the observable outcome described by SV-RAT-06, anchored on visible page evidence (SPEC.md line 99)."
+    }
+  ]
+}

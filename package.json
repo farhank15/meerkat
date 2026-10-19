@@ -7,6 +7,8 @@
   },
   "scripts": {
     "ingest": "node scripts/ingest-latest.mjs",
+    "ingest:backfill": "node scripts/ingest-backfill.mjs",
+    "gap:plans": "node scripts/gap-to-plans.mjs",
     "mcp:smoke": "node scripts/mcp-smoke.mjs",
     "dev": "vite dev --port 3000",
     "generate-routes": "tsr generate",

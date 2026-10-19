@@ -193,6 +193,26 @@ and the tool contract, click-to-copy.
 `npm run ingest` rebuilds the ledger from the latest TestSprite run (read-only
 CLI reads) and `npm run mcp:smoke` proves the tool contract end-to-end.
 
+## Roadmap v2 — from verdict ledger to quality governance
+
+The hackathon version ships the core loop. What follows is the product path
+already hinted at by the shipped pieces — each v2 feature has a working seed
+in this repo, not just a bullet:
+
+| Seed shipped (works today) | v2 horizon |
+|---|---|
+| Failure bundles — failed rows coalesced by shared cause | Local LLM root-cause clustering over full failure bundles, proposed fixes as ready PRs |
+| `gap-to-plans` — SPEC gaps emitted as ready-to-file test plans | Closed reverse loop: gaps auto-create TestSprite plans, runs auto-fill them |
+| TSI trend across real PR waves | Time-series quality line per branch, "coverage grows, TSI must not go down" gates |
+| ID-in-name contract matching | Semantic contract matching: tests matched to SPEC **intent** when naming conventions drift |
+| Stability from same-SHA reruns | Flakiness risk scoring before a test even runs (async/time-dependent patterns) |
+| Verdict-trust gate (green ≠ meaningful) | Mutation-testing score: inject bugs, measures whether the suite would actually catch them |
+| Single-repo ledger, project-scoped keys | Per-repo workspaces: multi-tenant management UI, per-user API keys, role-based access |
+
+Guiding principle stays the same: Meerkat is a consumer of TestSprite's
+results, not a replacement for them — the governance layer one level above the
+pipeline.
+
 ## Built with
 
 | Layer | Choice |

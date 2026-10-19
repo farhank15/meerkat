@@ -14,6 +14,35 @@ import type { Run, TestCaseRow } from './store'
 
 export type TrustState = 'trusted' | 'caution' | 'suspect'
 
+export interface FailureCluster {
+  /** Shared surface, taken from the failure's kind prefix. */
+  label: string
+  count: number
+  /** The testcase names bundled under this cause. */
+  names: string[]
+}
+
+/**
+ * Contextual failure bundling: coalesce failed rows by their shared failure
+ * kind so N raw rows read as one root cause. Messages arrive as
+ * "<kind>: <hypothesis>"; rows without a kind stay honest and unreported.
+ * Pure and deterministic — same rows in, same clusters out.
+ */
+export function clusterFailures(rows: TestCaseRow[]): FailureCluster[] {
+  const groups = new Map<string, FailureCluster>()
+  for (const row of rows) {
+    if (row.status !== 'failed') continue
+    const message = row.message ?? ''
+    const colon = message.indexOf(':')
+    const label = (colon > 0 ? message.slice(0, colon) : message || 'unreported').slice(0, 80)
+    const bundle = groups.get(label) ?? { label, count: 0, names: [] }
+    bundle.count += 1
+    bundle.names.push(row.name)
+    groups.set(label, bundle)
+  }
+  return [...groups.values()].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+}
+
 export interface Finding {
   /** Stable topic key used by the UI for grouping. */
   kind: 'vacuous' | 'orphan' | 'conflict' | 'gap'

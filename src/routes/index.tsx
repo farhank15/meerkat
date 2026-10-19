@@ -1,7 +1,15 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { DEMO_RUN } from '@/lib/store'
-import { Container, Section, ScoreCard } from '@/components/site'
-import { DotPattern, Marquee, ShinyText } from '@/components/magicui'
+import {
+  Container,
+  Section,
+  ScoreCard,
+  Eyebrow,
+  Card,
+  btnPrimary,
+  btnSecondary,
+} from '@/components/site'
+import { DotPattern, Marquee, ShinyText, BorderBeam } from '@/components/magicui'
 import meerkatLogo from '@/assets/meerkat.png'
 
 export const Route = createFileRoute('/')({
@@ -12,7 +20,7 @@ function Home() {
   const { tsi, coverage, stability, passRate } = DEMO_RUN.metric
   return (
     <>
-      {/* Hero */}
+      {/* 1 · Hero — anchors byte-identical */}
       <section className="relative overflow-hidden">
         <div
           aria-hidden
@@ -47,16 +55,10 @@ function Home() {
               passing checkmark.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link
-                to="/runs"
-                className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-medium text-neutral-950 transition-colors hover:bg-emerald-500"
-              >
+              <Link to="/runs" className={btnPrimary}>
                 View the demo scorecard
               </Link>
-              <Link
-                to="/login"
-                className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-neutral-200 transition-colors hover:bg-white/10"
-              >
+              <Link to="/login" className={btnSecondary}>
                 Sign in
               </Link>
             </div>
@@ -93,8 +95,7 @@ function Home() {
         </Container>
       </section>
 
-      {/* Evidence strip — what a bare pass/fail verdict cannot tell you (additive,
-          non-asserted section; copy is decorative, anchors unchanged). */}
+      {/* 2 · Evidence strip — decorative facts, anchors unchanged */}
       <div aria-hidden className="border-y border-white/5 bg-white/[0.02]">
         <Marquee className="py-3.5">
           {[
@@ -104,6 +105,8 @@ function Home() {
             'estimated stability — one run only',
             'n/a is not zero — a withheld verdict is honest',
             'coverage is a contract trace, not a percentage vibe',
+            'live CI ledger — ten real PR waves ingested',
+            'every score traceable to a commit SHA',
           ].map((t) => (
             <span key={t} className="font-mono text-[11px] text-neutral-600">
               <span className="mr-8 text-emerald-500/60">◆</span>
@@ -113,8 +116,58 @@ function Home() {
         </Marquee>
       </div>
 
-      {/* How it works */}
-      <Section id="how" className="border-t border-white/5">
+      {/* 3 · The honest problem — what a bare checkmark hides */}
+      <Section id="problem" className="border-t border-white/5">
+        <SectionHeading
+          eyebrow="The honest problem"
+          title="What a passing suite can hide"
+          sub="Three failure modes survive a green build. TestSprite finds them; Meerkat makes them the headline instead of a footnote."
+        />
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <ProblemCard
+            title="The hollow pass"
+            body="A testcase can click nothing and assert nothing, yet still report green. On this ledger a pass without evidence is flagged, not celebrated."
+            icon={
+              <path
+                d="M12 8v5m0 3.5h.01M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+              />
+            }
+          />
+          <ProblemCard
+            title="The silent gap"
+            body="Part of your SPEC.md was never exercised by any testcase. The suite stays green while a contracted scenario goes untested."
+            icon={
+              <path
+                d="M4 18v-8m6 8V6m6 12v-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+              />
+            }
+          />
+          <ProblemCard
+            title="Estimated stability"
+            body="One run of one commit says little. Without a second look the same green could be luck — so the ledger shows what the score can and cannot claim."
+            icon={
+              <path
+                d="M3 12h4l2-6 4 12 2-6h6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+              />
+            }
+          />
+        </div>
+      </Section>
+
+      {/* 4 · How it works — anchors byte-identical */}
+      <Section id="how" className="border-t border-white/5 bg-neutral-900/30">
         <SectionHeading
           eyebrow="How it works"
           title="Three steps from a pull request to a verdict you trust"
@@ -167,8 +220,8 @@ function Home() {
         </div>
       </Section>
 
-      {/* The TSI */}
-      <Section id="tsi" className="border-t border-white/5 bg-neutral-900/30">
+      {/* 5 · The TSI — anchors byte-identical */}
+      <Section id="tsi" className="border-t border-white/5">
         <SectionHeading
           eyebrow="The TSI"
           title="One number, built from three honest signals"
@@ -196,7 +249,27 @@ function Home() {
         </div>
       </Section>
 
-      {/* The Loop */}
+      {/* 6 · Live evidence band — published real facts only, no fetch */}
+      <div id="evidence" className="border-y border-white/5 bg-neutral-950/60">
+        <Container className="grid gap-8 py-14 sm:grid-cols-3 sm:text-center">
+          {[
+            ['10', 'real pull-request waves recorded in the live ledger, red flags included'],
+            ['41', 'automated testcases in the current suite, exercising every core surface'],
+            ['93 → 50', 'the honest gap between one contract-bound baseline and unbound CI flows'],
+          ].map(([v, l]) => (
+            <div key={l}>
+              <div className="text-4xl font-bold tabular-nums tracking-tight text-neutral-50">
+                {v}
+              </div>
+              <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-neutral-500">
+                {l}
+              </p>
+            </div>
+          ))}
+        </Container>
+      </div>
+
+      {/* 7 · The Loop — anchors byte-identical */}
       <Section id="loop" className="border-t border-white/5">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <div>
@@ -223,7 +296,7 @@ function Home() {
               ))}
             </ul>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-neutral-900/60 p-6">
+          <Card className="p-6">
             <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-neutral-500">
               Loop · demo run
             </div>
@@ -241,11 +314,137 @@ function Home() {
             >
               Open the demo run →
             </Link>
+          </Card>
+        </div>
+      </Section>
+
+      {/* 8 · Agent-ready — machine channel of the same ledger */}
+      <Section id="agents" className="border-t border-white/5 bg-neutral-900/30">
+        <div className="grid items-center gap-12 lg:grid-cols-2">
+          <div>
+            <SectionHeading
+              eyebrow="Agent-ready"
+              title="The ledger your coding agent reads"
+              sub="Same evidence trail, machine channel — no key, no login wall, no scraping. Human dashboard and AI agent see one truth."
+            />
+            <ul className="mt-8 space-y-4 text-sm">
+              {[
+                ['Public JSON ledger', 'One keyless endpoint returns the project brief: score, verdict state, coverage gaps.'],
+                ['MCP on stdio', 'Four read-only tools ship in-repo: brief, gaps, run lookup, raw run data.'],
+                ['Deterministic trace', 'Every number links back to a run id, a SPEC scenario, and a commit SHA.'],
+              ].map(([t, d]) => (
+                <li key={t} className="flex gap-3">
+                  <span aria-hidden className="mt-1 h-1.5 w-1.5 flex-none rounded-full bg-emerald-400" />
+                  <div>
+                    <span className="font-medium text-neutral-100">{t}</span>
+                    <span className="text-neutral-500"> — {d}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <Link
+              to="/agent"
+              className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-emerald-400 transition-colors hover:text-emerald-300"
+            >
+              Read the agent guide →
+            </Link>
+          </div>
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-neutral-950/70 p-6">
+            <BorderBeam />
+            <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-neutral-500">
+              Machine peek
+            </div>
+            <pre className="mt-4 overflow-x-auto font-mono text-[11px] leading-relaxed text-neutral-400">
+              <code>{`$ curl meerkat-app.vercel.app/api/agent-brief
+
+{
+  "source": "live-ingested-run",
+  "runId": "16bc32c1-…",
+  "sha": "bb1fa9c7…",
+  "tsi": 50,
+  "coverage": { "covered": 0, "total": 33 },
+  "verdictState": "green",
+  "coverageGaps": [ { "id": "SV-TSI-01", … }, … ]
+}
+
+# MCP config for your coding agent
+{
+  "mcpServers": {
+    "meerkat": { "command": "node", "args": ["mcp/server.mjs"] }
+  }
+}`}</code>
+            </pre>
           </div>
         </div>
       </Section>
 
-      {/* CTA */}
+      {/* 9 · Comparison — bare checkmark vs the ledger */}
+      <Section id="compare" className="border-t border-white/5">
+        <SectionHeading
+          eyebrow="Side by side"
+          title="The checkmark you get vs. the ledger you can defend"
+          sub="Both views exist today. Only one of them holds up in front of a skeptical reviewer."
+        />
+        <Card className="mt-10 overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-neutral-500">
+                <th className="px-5 py-3.5 font-medium">What the bare checkmark shows</th>
+                <th className="px-5 py-3.5 font-medium text-emerald-400/90">
+                  What the Meerkat ledger shows
+                </th>
+              </tr>
+            </thead>
+            <tbody className="text-neutral-400">
+              {[
+                ['Pass/fail per testcase', 'Every pass audited: does it actually assert anything?'],
+                ['Failures as loose lines', 'Failures bundled by shared root cause, with the rows named'],
+                ['No contract view', 'SPEC.md scenario coverage with named gaps and line anchors'],
+                ['Score disconnected from code', 'Each index pinned to one commit SHA, traceable both ways'],
+                ['Green = ship', 'Green, incomplete, or refused — each verdict told apart honestly'],
+              ].map(([bare, ledger]) => (
+                <tr key={bare} className="border-b border-white/5 last:border-0">
+                  <td className="px-5 py-3.5">{bare}</td>
+                  <td className="px-5 py-3.5 font-medium text-neutral-200">{ledger}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      </Section>
+
+      {/* 10 · FAQ — native details, zero deps */}
+      <Section id="faq" className="border-t border-white/5 bg-neutral-900/30">
+        <SectionHeading
+          eyebrow="Straight answers"
+          title="The questions a careful reviewer actually asks"
+          sub="Short, specific, and verifiable on the pages behind each link."
+        />
+        <div className="mx-auto mt-10 max-w-3xl space-y-3">
+          <Faq q="Why is a missing score shown as a dash, never a zero?">
+            A run that did not finish is missing evidence, not a failing suite.
+            Publishing zero would be a fabricated number, so the ledger explicitly
+            shows withholding with the reason spelled out on the run page.
+          </Faq>
+          <Faq q="Where does the data come from?">
+            From runs TestSprite itself produces on every pull request, persisted
+            through a key-gated ingest endpoint into the project's Neon datastore,
+            with the committed artifacts kept as a separate baseline board.
+          </Faq>
+          <Faq q="What happens when a testcase fails?">
+            The verdict layer classifies it, and if a failure bundle exists the
+            remediation flow proposes a fix, applies it, then re-runs to confirm
+            the recovery — see the loop page for the working trail.
+          </Faq>
+          <Faq q="Can my coding agent read this without scraping the UI?">
+            Yes — one keyless JSON endpoint plus four read-only MCP tools cover
+            briefs, gaps, and run lookups. The full contract lives on the agent
+            guide, click-to-copy.
+          </Faq>
+        </div>
+      </Section>
+
+      {/* 11 · CTA — anchors byte-identical */}
       <section className="border-t border-white/5 bg-linear-to-b from-neutral-900/40 to-neutral-950">
         <Container className="flex flex-col items-center gap-6 py-20 text-center">
           <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl">
@@ -256,22 +455,10 @@ function Home() {
             dashboard.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <Link
-              to="/runs"
-              className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-medium text-neutral-950 transition-colors hover:bg-emerald-500"
-            >
+            <Link to="/runs" className={btnPrimary}>
               View the demo scorecard
             </Link>
-            <Link
-              to="/score"
-              className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-neutral-200 transition-colors hover:bg-white/10"
-            >
-              How scoring works
-            </Link>
-            <Link
-              to="/login"
-              className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-neutral-200 transition-colors hover:bg-white/10"
-            >
+            <Link to="/login" className={btnSecondary}>
               Sign in
             </Link>
           </div>
@@ -280,6 +467,8 @@ function Home() {
     </>
   )
 }
+
+// ——— Landing primitives ———————————————————————————————————————————————
 
 function SectionHeading({
   eyebrow,
@@ -292,9 +481,7 @@ function SectionHeading({
 }) {
   return (
     <div className="max-w-2xl">
-      <div className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-400">
-        {eyebrow}
-      </div>
+      <Eyebrow accent>{eyebrow}</Eyebrow>
       <h2 className="mt-3 text-2xl font-bold tracking-tight text-neutral-50 sm:text-3xl">
         {title}
       </h2>
@@ -315,7 +502,7 @@ function Step({
   icon: React.ReactNode
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-neutral-900/50 p-6">
+    <Card className="p-6">
       <div className="flex items-center gap-3">
         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-400/20">
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none">
@@ -326,7 +513,7 @@ function Step({
       </div>
       <h3 className="mt-4 text-lg font-semibold text-neutral-100">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-neutral-500">{body}</p>
-    </div>
+    </Card>
   )
 }
 
@@ -342,7 +529,7 @@ function Feature({
   icon: React.ReactNode
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-neutral-900/50 p-6">
+    <Card className="p-6">
       <div className="flex items-center justify-between">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-400/20">
           {icon}
@@ -353,7 +540,29 @@ function Feature({
       </div>
       <h3 className="mt-5 text-lg font-semibold text-neutral-100">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-neutral-500">{body}</p>
-    </div>
+    </Card>
+  )
+}
+
+function ProblemCard({
+  title,
+  body,
+  icon,
+}: {
+  title: string
+  body: string
+  icon: React.ReactNode
+}) {
+  return (
+    <Card className="p-6">
+      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10 text-rose-400 ring-1 ring-rose-400/20">
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none">
+          {icon}
+        </svg>
+      </span>
+      <h3 className="mt-5 text-lg font-semibold text-neutral-100">{title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-neutral-500">{body}</p>
+    </Card>
   )
 }
 
@@ -365,6 +574,27 @@ function Row({ k, v, accent }: { k: string; v: string; accent?: boolean }) {
         {v}
       </span>
     </div>
+  )
+}
+
+function Faq({ q, children }: { q: string; children: React.ReactNode }) {
+  return (
+    <details className="group rounded-2xl border border-white/10 bg-neutral-900/50 px-5 transition-colors open:border-emerald-500/20 open:bg-neutral-900/70">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-[15px] font-medium text-neutral-100 [&::-webkit-details-marker]:hidden">
+        {q}
+        <svg
+          viewBox="0 0 12 12"
+          className="h-3 w-3 flex-none text-neutral-500 transition-transform group-open:rotate-180"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          aria-hidden
+        >
+          <path d="M2 4l4 4 4-4" strokeLinecap="round" />
+        </svg>
+      </summary>
+      <p className="pb-5 text-sm leading-relaxed text-neutral-400">{children}</p>
+    </details>
   )
 }
 

@@ -4,6 +4,7 @@
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { getProject, type Run } from '@/lib/store'
+import { clusterFailures } from '@/lib/auditor'
 import type { JUnitStatus } from '@/lib/junit'
 import { Container, ScoreCard } from '@/components/site'
 import { BorderBeam } from '@/components/magicui'
@@ -20,6 +21,7 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
   const repoUrl = getProject(run.projectId)?.repoUrl
   const runCommit = commitUrl(repoUrl, run.sha)
   const scored = run.status === 'complete'
+  const failureClusters = clusterFailures(run.testCases)
   const [copied, setCopied] = useState(false)
 
   const onCopy = async () => {
@@ -245,6 +247,27 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
               </tbody>
             </table>
           </div>
+
+          {/* Failure bundles — failed rows coalesced by shared cause so N raw
+              rows read as one root cause. Quick fixes render nothing. */}
+          {failureClusters.length > 0 && (
+            <div className="mt-3 rounded-xl border border-white/10 bg-neutral-900/50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                Failure bundles ({failureClusters.length})
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {failureClusters.map((c) => (
+                  <span
+                    key={c.label}
+                    title={c.names.join(' · ')}
+                    className="rounded-full border border-rose-500/20 bg-rose-500/10 px-2.5 py-1 text-xs text-rose-200"
+                  >
+                    {c.label} × {c.count}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Coverage traceability — every SPEC.md scenario ID. */}
           <div className="mb-3 mt-10 flex items-center justify-between">

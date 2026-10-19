@@ -7,7 +7,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { DEMO_PROJECT, DEMO_RUN, DEMO_RUN_2, getLoop } from '@/lib/store'
 import { AuthGate } from '@/components/AuthGate'
 import { BorderBeam } from '@/components/magicui'
-import { Container } from '@/components/site'
+import { Container, PageHeader } from '@/components/site'
 
 export const Route = createFileRoute('/loop')({
   component: LoopPage,
@@ -28,11 +28,10 @@ function LoopContent() {
 
   return (
     <Container className="py-12">
-      <h1 className="text-2xl font-bold tracking-tight text-neutral-50">The Loop</h1>
-      <p className="mt-2 max-w-2xl text-sm text-neutral-400">
-        Every red run is classified before anything is touched. The classification decides
-        what gets changed — and a refusal never counts as a failure.
-      </p>
+      <PageHeader
+        title="The Loop"
+        sub="Every red run is classified before anything is touched. The classification decides what gets changed — and a refusal never counts as a failure."
+      />
 
       {/* Trust summary: what the loop has been asked to handle. */}
       <section id="trust" className="mt-8 scroll-mt-24">

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export const Route = createFileRoute('/login')({
   component: Login,
@@ -12,6 +12,26 @@ function Login() {
   const [mode, setMode] = useState<Mode>('signin')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  /** While the session check runs we render nothing — an authed visitor never
+   * sees the form, it simply lands on the dashboard. */
+  const [checking, setChecking] = useState(true)
+
+  useEffect(() => {
+    let alive = true
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((body: { authed?: boolean }) => {
+        if (!alive) return
+        if (body.authed === true) navigate({ to: '/runs', replace: true })
+        else setChecking(false)
+      })
+      .catch(() => {
+        if (alive) setChecking(false)
+      })
+    return () => {
+      alive = false
+    }
+  }, [navigate])
 
   async function submit(
     endpoint: '/api/auth/login' | '/api/auth/register',
@@ -43,6 +63,10 @@ function Login() {
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
     void submit(mode === 'signin' ? '/api/auth/login' : '/api/auth/register', String(fd.get('email') ?? ''), String(fd.get('password') ?? ''))
+  }
+
+  if (checking) {
+    return <div className="min-h-[calc(100vh-4rem)]" />
   }
 
   return (

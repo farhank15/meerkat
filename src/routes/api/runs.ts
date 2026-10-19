@@ -3,7 +3,7 @@
 // GET /api/runs — latest persisted runs (read-only, public).
 
 import { createFileRoute } from '@tanstack/react-router'
-import { desc, eq } from 'drizzle-orm'
+import { desc, eq, sql } from 'drizzle-orm'
 
 import { getDb } from '@/db'
 import { projects, runs } from '@/db/schema'
@@ -37,6 +37,8 @@ export const Route = createFileRoute('/api/runs')({
               sha: runs.sha,
               tsi: runs.tsi,
               createdAt: runs.createdAt,
+              /** Wave timestamp from the stored payload — true chronological axis. */
+              startedAt: sql<string | null>`${runs.data} ->> 'startedAt'`,
             })
             .from(runs)
             .innerJoin(projects, eq(runs.projectId, projects.id))

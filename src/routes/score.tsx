@@ -9,7 +9,7 @@ import { tsiFromCounts } from '@/lib/tsi'
 import { scoreFromArtifacts } from '@/lib/scoreCmd'
 import { auditRun } from '@/lib/auditor'
 import type { RunCounts } from '@/lib/types'
-import { Section } from '@/components/site'
+import { Section, PageHeader } from '@/components/site'
 import demoJUnit from '@/lib/fixtures/testsprite-junit.xml?raw'
 import specMarkdown from '../../SPEC.md?raw'
 
@@ -35,17 +35,11 @@ function Score() {
     <>
       <Section id="score">
         <div className="max-w-2xl">
-          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-400">
-            Scoring engine
-          </div>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-neutral-50">
-            One number for how much your green suite actually proves
-          </h1>
-          <p className="mt-4 text-neutral-400">
-            The Test Strength Index is a pure, deterministic function of three
-            components. The same module powers the dashboard, the CLI, and the bot
-            comment — so all three always agree byte-for-byte.
-          </p>
+          <PageHeader
+            eyebrow="Scoring engine"
+            title="One number for how much your green suite actually proves"
+            sub="The Test Strength Index is a pure, deterministic function of three components. The same module powers the dashboard, the CLI, and the bot comment — so all three always agree byte-for-byte."
+          />
         </div>
 
         <div className="mt-10 grid gap-4 sm:grid-cols-3">

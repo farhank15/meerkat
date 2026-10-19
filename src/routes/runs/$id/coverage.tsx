@@ -2,17 +2,19 @@
 // own URL so a gap can be linked directly from a PR comment or a review.
 
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { getRun } from '@/lib/store'
+import { getRun, type Run } from '@/lib/store'
+import { loadLiveRun } from '@/lib/live-run'
 import { Container, ScoreCard } from '@/components/site'
 import { slugifyTestName, GapList, OrphanTable, SpecTable, TraceabilitySummary } from '@/components/CoverageTrace'
 
 export const Route = createFileRoute('/runs/$id/coverage')({
+  // Same resolution as the run detail: fixture first, then the CI ledger.
+  loader: async ({ params }) => getRun(params.id) ?? (await loadLiveRun({ data: params.id })),
   component: CoveragePage,
 })
 
 function CoveragePage() {
-  const { id } = Route.useParams()
-  const run = getRun(id)
+  const run = Route.useLoaderData() as Run | undefined
 
   if (!run) {
     return <Container className="py-16 text-center text-neutral-400">Run not found.</Container>

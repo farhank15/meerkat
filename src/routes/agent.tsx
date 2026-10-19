@@ -3,7 +3,7 @@
 // key-gated POST /api/runs ingest, which agents never touch.
 
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Container } from '@/components/site'
+import { Container, PageHeader } from '@/components/site'
 import { MagicCard, ShinyText } from '@/components/magicui'
 
 export const Route = createFileRoute('/agent')({
@@ -36,13 +36,17 @@ function AgentPage() {
     <Container className="py-12">
       <div className="rounded-3xl border border-white/5 bg-neutral-950/40 px-6 py-10 sm:px-10">
         <div className="relative">
-          <h1 className="text-2xl font-bold tracking-tight text-neutral-50">For agents</h1>
-          <p className="mt-2 max-w-2xl text-sm text-neutral-400">
-            Meerkat is a <ShinyText className="font-medium">verdict ledger</ShinyText> your
-            coding agent can read before acting: a strength score, an evidence trail, and an
-            interpretation for every TestSprite run — not a replacement for TestSprite, a
-            consumer of its results.
-          </p>
+          <PageHeader
+            title="For agents"
+            sub={
+              <>
+                Meerkat is a <ShinyText className="font-medium">verdict ledger</ShinyText> your
+                coding agent can read before acting: a strength score, an evidence trail, and an
+                interpretation for every TestSprite run — not a replacement for TestSprite, a
+                consumer of its results.
+              </>
+            }
+          />
           <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-neutral-500">
             <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-emerald-300">
               read-only by construction

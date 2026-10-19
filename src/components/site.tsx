@@ -32,6 +32,68 @@ export function Section({
   )
 }
 
+// ——— Design-system primitives: one visual grammar for every page. ———
+// Type scale: display text-4xl→5xl/1.08 · h2 2xl→3xl · h3 lg · body sm/base
+// leading-relaxed · micro-label [11px] uppercase [0.18em]. Density: px-5/4,
+// py-3/2.5 for table rows. NEW copy must always be uniquely worded.
+
+export function Eyebrow({
+  children,
+  accent = false,
+}: {
+  children: React.ReactNode
+  accent?: boolean
+}) {
+  return (
+    <span
+      className={`text-xs font-semibold uppercase tracking-[0.18em] ${
+        accent ? 'text-emerald-400' : 'text-neutral-500'
+      }`}
+    >
+      {children}
+    </span>
+  )
+}
+
+export function PageHeader({
+  eyebrow,
+  title,
+  sub,
+}: {
+  eyebrow?: string
+  title: string
+  sub?: React.ReactNode
+}) {
+  return (
+    <div className="mb-8">
+      {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
+      <h1 className="mt-2 text-3xl font-bold tracking-tight text-neutral-50">{title}</h1>
+      {sub && <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-400">{sub}</p>}
+    </div>
+  )
+}
+
+export function Card({
+  children,
+  className = '',
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <div
+      className={`rounded-2xl border border-white/10 bg-neutral-900/50 ${className}`}
+    >
+      {children}
+    </div>
+  )
+}
+
+export const btnPrimary =
+  'rounded-xl bg-emerald-600 px-5 py-3 text-sm font-medium text-neutral-950 transition-colors hover:bg-emerald-500'
+export const btnSecondary =
+  'rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-neutral-200 transition-colors hover:bg-white/10'
+
 function Wordmark() {
   return (
     <Link to="/" className="group flex items-center gap-2.5">
@@ -56,11 +118,11 @@ function Wordmark() {
   )
 }
 
-/** Reads client auth state after mount and re-checks on every navigation. SSR and
- * the first client render stay on the default (signed-out) UI so there is no
- * hydration mismatch; the effect then reflects the cookie. Re-running on pathname
- * change is what makes the header update right after login (SPA nav does not
- * remount the Nav). */
+/** Reads client auth state and re-checks on every navigation. SSR and the
+ * first client render always agree on the signed-out chrome, so hydration and
+ * markup stay in sync; in-app navigation never reloads the document (all
+ * internal links are SPA Links), so the header only re-asks after a real
+ * navigation event (covers login redirect) rather than flickering. */
 function useAuth() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const [mounted, setMounted] = useState(false)
@@ -68,9 +130,11 @@ function useAuth() {
   /** Real account email now lives server-side (HttpOnly session) — surfaced via /api/auth/me. */
   const [email, setEmail] = useState<string | null>(null)
   useEffect(() => {
+    let alive = true
     fetch('/api/auth/me')
       .then((r) => r.json())
       .then((body: { authed?: boolean; email?: string | null }) => {
+        if (!alive) return
         const confirmed = body.authed === true
         // Fallback to the legacy client cookie while that session expires.
         setAuthed(confirmed || isAuthed())
@@ -78,9 +142,13 @@ function useAuth() {
         setMounted(true)
       })
       .catch(() => {
+        if (!alive) return
         setAuthed(isAuthed())
         setMounted(true)
       })
+    return () => {
+      alive = false
+    }
   }, [pathname])
   return { mounted, authed, email }
 }
@@ -95,18 +163,18 @@ export function Nav() {
       <Container className="flex h-16 items-center justify-between">
         <Wordmark />
         <nav className="hidden items-center gap-8 text-sm text-neutral-400 md:flex">
-          <a href="/#how" className="transition-colors hover:text-neutral-100">
+          <Link to="/" hash="how" className="transition-colors hover:text-neutral-100">
             How it works
-          </a>
-          <a href="/#tsi" className="transition-colors hover:text-neutral-100">
+          </Link>
+          <Link to="/" hash="tsi" className="transition-colors hover:text-neutral-100">
             The TSI
-          </a>
-          <a href="/loop" className="transition-colors hover:text-neutral-100">
+          </Link>
+          <Link to="/loop" className="transition-colors hover:text-neutral-100">
             The Loop
-          </a>
-          <a href="/agent" className="transition-colors hover:text-neutral-100">
+          </Link>
+          <Link to="/agent" className="transition-colors hover:text-neutral-100">
             For agents
-          </a>
+          </Link>
         </nav>
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Default (SSR + pre-mount) renders the signed-out affordance so the
@@ -223,14 +291,14 @@ function MenuItem({
   onClick: () => void
 }) {
   return (
-    <a
-      href={href}
+    <Link
+      to={href}
       role="menuitem"
       onClick={onClick}
       className="block rounded-lg px-3 py-2 text-neutral-300 transition-colors hover:bg-white/5 hover:text-neutral-100"
     >
       {children}
-    </a>
+    </Link>
   )
 }
 
@@ -293,16 +361,38 @@ function FooterCol({
         {title}
       </div>
       <ul className="space-y-2.5 text-sm">
-        {links.map((l) => (
-          <li key={l.label}>
-            <a
-              href={l.href}
-              className="text-neutral-400 transition-colors hover:text-neutral-100"
-            >
-              {l.label}
-            </a>
-          </li>
-        ))}
+        {links.map((l) => {
+          if (l.href.startsWith('http')) {
+            return (
+              <li key={l.label}>
+                <a href={l.href} className="text-neutral-400 transition-colors hover:text-neutral-100">
+                  {l.label}
+                </a>
+              </li>
+            )
+          }
+          const hashIndex = l.href.indexOf('#')
+          return (
+            <li key={l.label}>
+              {hashIndex === -1 ? (
+                <Link
+                  to={l.href}
+                  className="text-neutral-400 transition-colors hover:text-neutral-100"
+                >
+                  {l.label}
+                </Link>
+              ) : (
+                <Link
+                  to="/"
+                  hash={l.href.slice(hashIndex + 1)}
+                  className="text-neutral-400 transition-colors hover:text-neutral-100"
+                >
+                  {l.label}
+                </Link>
+              )}
+            </li>
+          )
+        })}
       </ul>
     </div>
   )

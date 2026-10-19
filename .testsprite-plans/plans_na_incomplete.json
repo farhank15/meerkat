@@ -1,0 +1,10 @@
+{
+  "projectId": "938f6b63-63d6-4bcd-bff4-13e3f035868c",
+  "type": "frontend",
+  "name": "Show an n/a TSI on the incomplete rerun run",
+  "planSteps": [
+    { "type": "action", "description": "Sign in with demo@suitevitals.dev / demo-password-1 and open the runs list at /runs" },
+    { "type": "action", "description": "Open the incomplete run 'run-demo-2' from the baseline board" },
+    { "type": "assertion", "description": "The TSI value on this run detail page shows 'n/a' instead of a number" }
+  ]
+}

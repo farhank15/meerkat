@@ -6,7 +6,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { DEMO_RUN } from '@/lib/store'
 import { auditRun } from '@/lib/auditor'
 import type { TrustState } from '@/lib/auditor'
-import { Section } from '@/components/site'
+import { Section, PageHeader } from '@/components/site'
 import { BorderBeam } from '@/components/magicui'
 
 export const Route = createFileRoute('/auditor')({
@@ -33,18 +33,11 @@ function Auditor() {
     <>
       <Section id="auditor">
         <div className="max-w-2xl">
-          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-400">
-            Vacuous Auditor
-          </div>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-neutral-50">
-            Do those green checks actually assert anything?
-          </h1>
-          <p className="mt-4 text-neutral-400">
-            A 100% pass rate is easy to fake — by flaky luck, by checks that only
-            look at pixels, or by tests that regressed into no-ops. The auditor
-            classifies every testcase in the run and asks one question:{' '}
-            <span className="text-neutral-200">would this suite still be green if nothing was really verified?</span>
-          </p>
+          <PageHeader
+            eyebrow="Vacuous Auditor"
+            title="Do those green checks actually assert anything?"
+            sub="A 100% pass rate is easy to fake — by flaky luck, by checks that only look at pixels, or by tests that regressed into no-ops. The auditor classifies every testcase in the run and asks one question: would this suite still be green if nothing was really verified?"
+          />
         </div>
 
         {/* Trust verdict */}
