@@ -61,6 +61,15 @@ function buildCuratedComplete() {
 function buildCuratedIncomplete() {
   const run = structuredClone(DEMO_RUN_2)
   run.metric = { ...run.metric, tsi: 0 }
+  // matcha: SV-FIX-06 — a failed/refused fix attempt is escalated to a human
+  // instead of being forced green. The Fix loop panel renders "escalated to
+  // human" (LoopPanel escalated=true when result==='escalated').
+  run.loop = {
+    pr: '#13',
+    classification: 'spec-drift',
+    action: 'escalate to human',
+    result: 'escalated',
+  }
   return run
 }
 

@@ -51,12 +51,27 @@ function AuditPage() {
             title="Verdict-Trust Gate:"
             description="The gate cross-checks the green verdict before it is trusted — a red or held run never reports green."
           />
-          <div className="px-4 py-3 text-xs leading-relaxed text-ink-muted">
-            {audit.headline} — {audit.rationale}
+          <div className="flex items-start gap-3 px-4 py-3">
+            <svg
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              role="img"
+              aria-label="trust gate badge"
+              className="mt-0.5 shrink-0 text-ok"
+            >
+              <path fill="currentColor" d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5l-8-3Z" opacity=".15" />
+              <path fill="none" stroke="currentColor" strokeWidth="1.6" d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5l-8-3Z" />
+              <path fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" d="m8.5 12 2.2 2.2 4.8-4.8" />
+            </svg>
+            <div className="text-xs leading-relaxed text-ink-muted">
+              {audit.headline} — {audit.rationale}
+            </div>
           </div>
         </Card>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
+          <Stat label="Test cases" value={audit.counts.total} hint="In this run" />
           <Stat label="Vacuous passes" value={audit.counts.vacuous} hint="Excluded from the pass rate" tone={audit.counts.vacuous ? 'warn' : 'neutral'} />
           <Stat label="Shallow passes" value={audit.counts.shallow} hint="1 assertion — flagged, pass rate unchanged" tone={audit.counts.shallow ? 'warn' : 'neutral'} />
           <Stat label="Orphans" value={audit.counts.orphans} hint="No owning scenario" />

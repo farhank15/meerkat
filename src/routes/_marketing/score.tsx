@@ -81,6 +81,34 @@ function ScorePage() {
         </p>
       </Card>
 
+      <Card className="mt-4">
+        <CardHeader
+          title="Verdict-Trust Gate"
+          description="Every green verdict is cross-checked before it is trusted — a red or held run never reports green."
+        />
+        <div className="flex items-center gap-3 px-4 py-3">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            role="img"
+            aria-label="trust gate badge"
+            className="shrink-0 text-ok"
+          >
+            <path fill="currentColor" d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5l-8-3Z" opacity=".15" />
+            <path fill="none" stroke="currentColor" strokeWidth="1.6" d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5l-8-3Z" />
+            <path fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" d="m8.5 12 2.2 2.2 4.8-4.8" />
+          </svg>
+          <div className="text-xs leading-relaxed text-ink-muted">
+            <p className="font-medium text-ink">Verdict: green (cross-checked)</p>
+            <p>
+              A failed fix attempt is escalated to a human instead of being forced green. The gate
+              reports failures as-is — it never manufactures a passing score.
+            </p>
+          </div>
+        </div>
+      </Card>
+
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <Link to="/docs">
           <Button variant="primary" size="sm">

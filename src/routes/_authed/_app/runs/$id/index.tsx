@@ -171,6 +171,29 @@ function RunOverview() {
           </Alert>
         )}
 
+        {run.verdict && (
+          <Card>
+            <CardHeader
+              title="Verdict-Trust Gate"
+              description="Every green verdict is cross-checked before it is trusted — a red or held run never reports green."
+              action={
+                <Link
+                  to="/runs/$id/audit"
+                  params={{ id }}
+                  className="text-2xs font-medium text-accent hover:text-accent-strong"
+                >
+                  Open the full audit
+                </Link>
+              }
+            />
+            <div className="px-4 py-3 text-xs leading-relaxed text-ink-muted">
+              {run.verdict.state === 'green'
+                ? 'Trusted — every pass asserts a contracted scenario, no vacuous checks.'
+                : 'The gate withholds or challenges the verdict rather than forcing a green.'}
+            </div>
+          </Card>
+        )}
+
         {failing.length > 0 && (
           <Card>
             <CardHeader
