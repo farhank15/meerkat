@@ -64,6 +64,9 @@ function Auditor() {
             <span>
               orphans <span className={audit.counts.orphans > 0 ? 'text-amber-400' : 'text-neutral-200'}>{audit.counts.orphans}</span>
             </span>
+            <span title="Passes with exactly one assertion step — a signal to the reader, not a penalty: the pass rate keeps counting them.">
+              shallow (1 assertion) <span className="text-neutral-200">{audit.counts.shallow}</span>
+            </span>
             <span>
               conflicted <span className={audit.counts.conflicted > 0 ? 'text-amber-400' : 'text-neutral-200'}>{audit.counts.conflicted}</span>
             </span>

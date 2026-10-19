@@ -224,6 +224,19 @@ function LoopContent() {
             {incomplete?.completed}/{incomplete?.requested} completed, {incomplete?.refused}{' '}
             refused · check neutral · TSI n/a
           </p>
+          <div className="mt-4 rounded-xl border border-amber-500/15 bg-amber-500/5 p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-400/90">
+              Escalation policy
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-neutral-400">
+              One automatic fix attempt per wave. If the rerun is still red, the loop stops and
+              the wave is labelled{' '}
+              <span className="rounded border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 font-mono text-amber-300">
+                escalated to human
+              </span>{' '}
+              — it never retries a second time, and a refusal never counts as a failure.
+            </p>
+          </div>
         </div>
       </section>
     </Container>
