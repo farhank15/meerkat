@@ -115,9 +115,14 @@ it reports `1.0`, labelled *estimated*. Coverage is ID-based — it matches `SPE
 scenario IDs against test names, so it stays a testable contract instead of depending
 on how any generator happened to name its files.
 
-The demo runs on a **seeded in-memory fixture** (no live database required to run or
-test the app). A Neon/Drizzle persistence layer is a planned follow-up; the scoring
-engine is already pure and database-independent.
+The dashboard evidence ships as a **seeded demo fixture** (derived from committed
+artifacts — `SPEC.md` and `testsprite-junit.xml`), and the **persistence layer is
+real**: accounts live in Neon (Postgres) via Drizzle, CI reports runs through the
+key-gated `POST /api/runs` endpoint, and the public TSI badge is served from the
+database with a fixture fallback. Sign-in supports password accounts and GitHub
+OAuth; the scoring engine itself stays pure and database-independent.
+
+![Test Strength Index](https://meerkat-app.vercel.app/api/badge/tsi.svg)
 
 What is **proven** and what is still a **hypothesis** is tracked in
 [`VALIDATION.md`](VALIDATION.md) — including the experiment that could falsify the

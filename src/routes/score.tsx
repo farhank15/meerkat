@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { DEMO_RUN } from '@/lib/store'
 import { tsiFromCounts } from '@/lib/tsi'
 import { scoreFromArtifacts } from '@/lib/scoreCmd'
+import { auditRun } from '@/lib/auditor'
 import type { RunCounts } from '@/lib/types'
 import { Section } from '@/components/site'
 import demoJUnit from '@/lib/fixtures/testsprite-junit.xml?raw'
@@ -128,6 +129,25 @@ function Score() {
         <ScorePlayground />
       </Section>
 
+      <Section id="trust-gate" className="border-t border-white/5 pt-16">
+        <div className="max-w-2xl">
+          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-400">
+            Verdict-Trust Gate
+          </div>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-neutral-50">
+            A green verdict is a claim — this gate audits it
+          </h2>
+          <p className="mt-3 text-neutral-400">
+            TestSprite reports pass/fail. The Trust Gate asks the next question:
+            is that green <em>earned</em>? It cross-checks the verdict against
+            everything the run itself knows — vacuous passes, orphans, conflicts,
+            incomplete executions — and refuses to celebrate green that asserts
+            nothing.
+          </p>
+        </div>
+        <TrustGateCard />
+      </Section>
+
       <Section id="cli-contract" className="border-t border-white/5 pt-16">
         <div className="max-w-2xl">
           <h2 className="text-2xl font-bold tracking-tight text-neutral-50">
@@ -184,6 +204,52 @@ function Score() {
 type PlaygroundOutput =
   | { ok: true; json: string }
   | { ok: false; error: string }
+
+function TrustGateCard() {
+  const audit = auditRun(DEMO_RUN)
+  const stateStyle = {
+    trusted: 'text-emerald-300',
+    caution: 'text-amber-300',
+    suspect: 'text-rose-300',
+  }[audit.state]
+  const dotStyle = {
+    trusted: 'bg-emerald-500',
+    caution: 'bg-amber-500',
+    suspect: 'bg-rose-500',
+  }[audit.state]
+
+  return (
+    <div className="mt-6 rounded-2xl border border-white/10 bg-neutral-900/60 p-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className={`inline-flex h-2.5 w-2.5 rounded-full ${dotStyle}`} />
+          <p className={`font-semibold ${stateStyle}`}>{audit.headline}</p>
+        </div>
+        <Link
+          to="/auditor"
+          className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-white/10"
+        >
+          Open the full audit
+        </Link>
+      </div>
+      <p className="mt-3 text-sm leading-relaxed text-neutral-400">{audit.rationale}</p>
+      <ul className="mt-4 grid gap-2 border-t border-white/5 pt-4 text-xs text-neutral-500 sm:grid-cols-2">
+        <li>
+          gate input · vacuous passes <span className="text-neutral-200">{audit.counts.vacuous}</span> (excluded from TSI)
+        </li>
+        <li>
+          gate input · orphans <span className="text-neutral-200">{audit.counts.orphans}</span> · conflicts <span className="text-neutral-200">{audit.counts.conflicted}</span>
+        </li>
+        <li>
+          gate input · spec gaps <span className="text-neutral-200">{audit.counts.gaps}</span>
+        </li>
+        <li>
+          outcome · pass rate counts <span className="text-neutral-200">meaningful passes only</span>
+        </li>
+      </ul>
+    </div>
+  )
+}
 
 function ScorePlayground() {
   const [xml, setXml] = useState(demoJUnit)
