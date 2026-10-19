@@ -207,7 +207,7 @@ function ScorePlayground() {
         ) : (
           <div
             id="score-error"
-            className="mt-2 rounded-xl border border-rose-500/20 bg-rose-500/[0.03] p-4 text-sm text-rose-300"
+            className="mt-2 rounded-xl border border-rose-500/20 bg-rose-500/3 p-4 text-sm text-rose-300"
           >
             Parse error: {output.error}
             <p className="mt-1 text-xs text-neutral-500">

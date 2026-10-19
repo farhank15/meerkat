@@ -119,7 +119,7 @@ function LoopContent() {
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500">
           Failed verdict — before remediation
         </h2>
-        <div className="rounded-2xl border border-rose-500/20 bg-rose-500/[0.03] p-5">
+        <div className="rounded-2xl border border-rose-500/20 bg-rose-500/3 p-5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <p className="text-sm font-medium text-rose-300">
               {DEMO_RUN.verdict?.label}
@@ -187,7 +187,7 @@ function LoopContent() {
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500">
           Incomplete rerun — verdict handling
         </h2>
-        <div className="rounded-2xl border border-amber-500/20 bg-amber-500/[0.03] p-5">
+        <div className="rounded-2xl border border-amber-500/20 bg-amber-500/3 p-5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <p className="text-sm font-medium text-amber-300">{incomplete?.label}</p>
             <Link

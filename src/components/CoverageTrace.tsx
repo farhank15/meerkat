@@ -126,7 +126,7 @@ export function GapList({ run }: { run: Run }) {
   return (
     <div
       id="coverage-gaps"
-      className="overflow-hidden rounded-2xl border border-amber-500/20 bg-amber-500/[0.03]"
+      className="overflow-hidden rounded-2xl border border-amber-500/20 bg-amber-500/3"
     >
       <div className="border-b border-white/5 px-5 py-3">
         <h3 className="text-sm font-semibold text-amber-300">
