@@ -25,8 +25,9 @@ A passing check tells you a test ran. It doesn't tell you whether that test cove
 the requirement you just changed, or whether it passed because the app works — or
 because the assertion was too weak to ever fail.
 
-Meerkat stands watch over every pull request and asks the question green checkmarks
-never ask: **does this green suite actually catch anything?**
+Meerkat is a quality lens on top of an automated test run — it adds the
+interpretation layer a green checkmark can't provide on its own: **does this
+passing suite actually match the requirements it was written against?**
 
 ## What Meerkat does
 
@@ -35,6 +36,13 @@ never ask: **does this green suite actually catch anything?**
 - **Traces every number.** Run detail shows the coverage table (every `SPEC.md`
   scenario ID with `covered` / `gap`), the TSI source breakdown, the audit trail,
   and commit traceability. Nothing is unexplained.
+- **Interprets passing results against the contract.** The Verdict-Trust Gate and
+  the Vacuous Auditor classify how each pass is anchored to the contract, and
+  surface results that deserve a closer look (for example, checks that no longer
+  assert meaningful behaviour) — before a team or an agent acts on them.
+- **Keeps a live record of runs.** A key-gated ingest endpoint receives each
+  CI-reported run into a Postgres datastore; the dashboard and a public TSI badge
+  read directly from it.
 - **Shares publicly.** Any project can be published to a public, unauthenticated
   scorecard link — unknown slugs return a clean not-found, never a login wall.
 - **Runs from your own artifacts.** The companion `suitevitals score` CLI scores a
@@ -54,19 +62,24 @@ Every formula is deterministic — **the same run data always produces the same 
 byte for byte.** No timestamps, no randomness inside the score. The seeded demo run
 (`SV-TSI-01`: coverage 30/33, stability 65/67, pass 63/67) scores **93**.
 
-## Built on TestSprite
+## How Meerkat and TestSprite fit together
 
-Meerkat is wired into TestSprite two ways:
+Meerkat is a **consumer of TestSprite's results, not a replacement for them** —
+one layer higher in the pipeline:
 
-1. **GitHub Action check on every PR.** The `TestSprite/testsprite-action` runs on
-   each pull request and reports a `testsprite-junit` check — the Free-plan-friendly
-   path that needs no Starter upgrade.
-2. **Portal exploratory run.** TestSprite's portal explores and exercises the live
-   UI (sign-in, run detail, coverage traceability, public share) and reports what
-   passes, fails, or is blocked.
+- **TestSprite creates and runs the tests** — the GitHub App check runs the suite
+  against each PR's preview deployment and reports the required `TestSprite V3`
+  check; branch protection on `main` keeps every merge gated on that green result.
+  This is the primary path and needs no Starter upgrade.
+- **Meerkat interprets and records the runs** — after each App run, free
+  read-only CLI calls (`test list`, `test result --history`,
+  `test failure summary`) let Meerkat retrieve per-test verdicts, step-level facts,
+  and failure bundles, reporting the run into its Neon datastore via the key-gated
+  `POST /api/runs` — the same source the public TSI badge live-reads.
 
-Two lenses, one goal: **TestSprite decides whether the app works. Meerkat decides
-whether that verdict is worth acting on.**
+One pipeline, two roles: **TestSprite proves the product. Meerkat gives every run
+a strength score, an evidence trail, and an interpretation the whole team — and
+any code-facing agent — can act on.**
 
 <sub>Integration verified against TestSprite's documentation —
 [GitHub Integration](https://docs.testsprite.com/web-portal/integrations/github-integration) ·
@@ -89,8 +102,9 @@ traceability — every coverage number Meerkat reports traces back to a line in 
 
 ## What the TestSprite suite covers
 
-The 37-scenario suite (generated in the TestSprite 3.0 portal from `SPEC.md`) runs
-against each PR's preview deployment and reports back as a check on the pull request:
+The 39-scenario suite (generated in the TestSprite 3.0 portal from `SPEC.md` +
+per-feature plans) runs against each PR's preview deployment and reports back as
+a check on the pull request:
 
 - **Entry & auth** — landing → sign in with the demo account (`demo@suitevitals.dev`
   / `demo-password-1`), session persistence, dashboard access.
@@ -123,6 +137,8 @@ database with a fixture fallback. Sign-in supports password accounts and GitHub
 OAuth; the scoring engine itself stays pure and database-independent.
 
 ![Test Strength Index](https://meerkat-app.vercel.app/api/badge/tsi.svg)
+<sub>The badge is served from the live datastore and falls back to the committed
+baseline evidence until the first live run is ingested.</sub>
 
 What is **proven** and what is still a **hypothesis** is tracked in
 [`VALIDATION.md`](VALIDATION.md) — including the experiment that could falsify the
@@ -146,7 +162,7 @@ npm test
 | Hosting | Vercel, with per-PR preview deployments |
 | Styling | Tailwind CSS |
 | Engine tests | Vitest + fast-check (property-based) |
-| Test ingestion | TestSprite (GitHub Action check + portal exploratory run) |
+| Test ingestion | TestSprite (GitHub App PR check + read-only CLI reads) |
 
 ## License
 
