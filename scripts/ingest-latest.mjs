@@ -34,14 +34,16 @@ const arg = (name, fallback = null) => {
 const sha = arg('sha', process.env.GITHUB_SHA ?? null)
 const pr = arg('pr', process.env.GITHUB_PR ?? null)
 const branch = arg('branch', process.env.GITHUB_BRANCH ?? null)
-const projectSlug = arg('project', 'meerkat-demo')
+const projectSlug = arg('project', process.env.MEERKAT_PROJECT_SLUG ?? 'meerkat-demo')
 const base = arg(
   'api-url',
   process.env.MEERKAT_API_URL ?? 'https://meerkat-app.vercel.app',
 )
-const key = process.env.SUITEVITALS_API_KEY
+// MEERKAT_API_KEY is the workspace-scoped key generated in the dashboard.
+// SUITEVITALS_API_KEY remains as the legacy bootstrap key for one release.
+const key = process.env.MEERKAT_API_KEY ?? process.env.SUITEVITALS_API_KEY
 if (!key) {
-  console.error('SUITEVITALS_API_KEY is required (set it locally or as a secret)')
+  console.error('MEERKAT_API_KEY is required (create one in Settings → API keys)')
   process.exit(2)
 }
 
@@ -59,6 +61,8 @@ const tests = (list.items ?? []).map((t) => ({ id: t.id, name: t.name }))
 
 const testCases = []
 const refusedIds = []
+/** Earliest timestamp observed in this wave — the chronological axis for runs. */
+let waveStartedAt = null
 
 const TERMINAL_STATUSES = new Set(['passed', 'failed', 'blocked', 'cancelled'])
 const nonTerminalIds = []
@@ -71,6 +75,8 @@ for (const t of tests) {
     const runs = hist.runs ?? []
     if (runs.length > 0) {
       status = runs[0].status ?? 'unknown'
+      const stamp = runs[0].startedAt ?? runs[0].createdAt
+      if (stamp && (!waveStartedAt || stamp < waveStartedAt)) waveStartedAt = stamp
       if (status === 'failed') {
         try {
           const sum = cli(['test', 'failure', 'summary', t.id])
@@ -156,6 +162,8 @@ const verdictLabel = verdictState === 'green'
     : 'Verdict: incomplete run reported'
 
 // ── 4. POST the payload ─────────────────────────────────────────────────────
+// `startedAt` is the wave's real start; `dedupeKey` makes re-ingesting the same
+// commit idempotent instead of inflating the ledger.
 const payload = {
   projectSlug,
   source: 'github_action',
@@ -164,6 +172,8 @@ const payload = {
   branch,
   status: isIncomplete ? 'incomplete' : 'complete',
   tsi: isIncomplete ? null : tsi,
+  startedAt: waveStartedAt ?? new Date().toISOString(),
+  dedupeKey: sha ? `${sha}:${waveStartedAt ?? 'unknown'}` : null,
   data: {
     metric: { tsi: isIncomplete ? 0 : tsi, coverage, stability, passRate },
     status: isIncomplete ? 'incomplete' : 'complete',
@@ -191,7 +201,10 @@ const payload = {
 
 const res = await fetch(`${base}/api/runs`, {
   method: 'POST',
-  headers: { 'content-type': 'application/json', 'x-suitevitals-key': key },
+  headers: {
+    'content-type': 'application/json',
+    authorization: `Bearer ${key}`,
+  },
   body: JSON.stringify(payload),
 })
 const body = await res.json().catch(() => ({}))

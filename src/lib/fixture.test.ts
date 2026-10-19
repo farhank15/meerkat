@@ -3,7 +3,7 @@ import { parseJUnit } from './junit'
 import junitXml from './fixtures/testsprite-junit.xml?raw'
 import specMarkdown from '../../SPEC.md?raw'
 import { DEMO_RUN } from './store'
-import { slugifyTestName } from '@/components/CoverageTrace'
+import { slugifyTestName } from './slug'
 
 describe('demo JUnit artifact', () => {
   const parsed = parseJUnit(junitXml)

@@ -3,7 +3,6 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
 import appCss from '../styles.css?url'
-import { Nav, Footer } from '../components/site'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -24,20 +23,18 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <HeadContent />
       </head>
-      <body className="min-h-screen bg-neutral-950 text-neutral-100 antialiased">
-        <div className="flex min-h-screen flex-col">
-          <Nav />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </div>
-        <TanStackDevtools
-          config={{ position: 'bottom-right' }}
-          plugins={[{ name: 'Tanstack Router', render: <TanStackRouterDevtoolsPanel /> }]}
-        />
+      <body className="min-h-screen bg-canvas text-ink antialiased">
+        {children}
+        {import.meta.env.DEV && (
+          <TanStackDevtools
+            config={{ position: 'bottom-right' }}
+            plugins={[{ name: 'Tanstack Router', render: <TanStackRouterDevtoolsPanel /> }]}
+          />
+        )}
         <Scripts />
       </body>
     </html>

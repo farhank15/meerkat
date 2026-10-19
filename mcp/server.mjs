@@ -21,13 +21,18 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 
 const BASE = (process.env.MEERKAT_API_URL ?? 'https://meerkat-app.vercel.app').replace(/\/$/, '')
+/** Which project the tools read. Defaults to the public showcase project. */
+const PROJECT = process.env.MEERKAT_PROJECT_SLUG ?? 'meerkat-demo'
 
 async function brief() {
   const headers = {}
-  if (process.env.MEERKAT_READ_TOKEN) {
-    headers.authorization = `Bearer ${process.env.MEERKAT_READ_TOKEN}`
-  }
-  const res = await fetch(`${BASE}/api/agent-brief`, { headers })
+  // MEERKAT_API_KEY is the workspace key; MEERKAT_READ_TOKEN is the legacy name.
+  const token = process.env.MEERKAT_API_KEY ?? process.env.MEERKAT_READ_TOKEN
+  if (token) headers.authorization = `Bearer ${token}`
+
+  const res = await fetch(`${BASE}/api/agent-brief?project=${encodeURIComponent(PROJECT)}`, {
+    headers,
+  })
   if (!res.ok) throw new Error(`agent-brief ${res.status}`)
   return res.json()
 }

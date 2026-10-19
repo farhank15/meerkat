@@ -1,147 +1,160 @@
-// Public, unauthenticated scorecard for a shared project. Slug validity is
+// Public, unauthenticated scorecard. Slug validity and the public flag are
 // enforced by the parent route's beforeLoad.
 
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { DEMO_RUN, getProjectBySlug } from '@/lib/store'
-import { Container, ScoreCard } from '@/components/site'
-import { ShareNotFound } from '@/components/ShareNotFound'
-import { slugifyTestName } from '@/components/CoverageTrace'
-import { BorderBeam } from '@/components/magicui'
+import { Link, createFileRoute } from '@tanstack/react-router'
+
+import { Badge, Card, CardContent, CardHeader, EmptyState, Stat, StatusBadge } from '@/components/ui/primitives'
+import { ArrowRightIcon } from '@/components/ui/icons'
 
 export const Route = createFileRoute('/share/$slug/')({
   component: SharePage,
 })
 
-function SharePage() {
-  const { slug } = Route.useParams()
-  const project = getProjectBySlug(slug)
-  if (!project) return <ShareNotFound />
+function shortWhen(iso: string | null): string {
+  if (!iso) return '—'
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return '—'
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+}
 
-  const { tsi, coverage, stability, passRate } = DEMO_RUN.metric
+function SharePage() {
+  const { project } = Route.useRouteContext()
+  const latest = project.latest
 
   return (
-    <Container className="py-12">
-      {/* Hero header — the public, read-only face of the scorecard. */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/5 bg-neutral-950/40 px-6 py-10 sm:px-10">
-        <div className="relative flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-300">
-              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Public share · {project.name}
-            </div>
-            <h1 className="mt-4 text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl">
-              Test Strength Index
-            </h1>
-            <p className="mt-2 max-w-md text-sm text-neutral-400">
-              A read-only view of the latest run. No login required to inspect the
-              score, the coverage trace, and the commit it was pinned to.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <a
-              href={project.repoUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="group inline-flex items-center gap-1.5 rounded-xl border border-white/10 px-4 py-2 text-sm font-medium text-neutral-300 transition-colors hover:border-white/20 hover:text-neutral-100"
-            >
-              Repository ↗
-            </a>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-neutral-400">
-              shared link · {slug}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Score + coverage, side by side on wide screens. */}
-      <div className="mt-10 grid gap-8 lg:grid-cols-[22rem_1fr]">
-        <div className="relative overflow-hidden rounded-2xl">
-          <BorderBeam />
-          <ScoreCard
-            tsi={tsi}
-            coverage={coverage}
-            stability={stability}
-            passRate={passRate}
-          />
-        </div>
-
+    <div className="mx-auto w-full max-w-5xl px-5 py-12">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-500">
-              Coverage traceability ({DEMO_RUN.coverageIdsCovered}/
-              {DEMO_RUN.coverageIdsTotal})
-            </h2>
-            <Link
-              to="/share/$slug/run/$id"
-              params={{ slug, id: DEMO_RUN.id }}
-              className="text-sm font-medium text-emerald-400 transition-colors hover:text-emerald-300"
-            >
-              Open run {DEMO_RUN.id} →
-            </Link>
-          </div>
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/50">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-neutral-500">
-                  <th className="px-5 py-3 font-medium">ID</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-5 py-3 font-medium">Test</th>
-                </tr>
-              </thead>
-              <tbody>
-                {DEMO_RUN.specEntries.map((s) => (
-                  <tr
-                    key={s.id}
-                    className="border-b border-white/5 transition-colors last:border-0 hover:bg-white/[0.03]"
-                  >
-                    <td className="px-5 py-2.5 font-mono text-xs text-neutral-300">
-                      {s.id}
-                    </td>
-                    <td className="px-5 py-2.5">
-                      {s.covered ? (
-                        <span className="inline-flex items-center gap-1.5 text-emerald-400">
-                          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                          covered
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 text-amber-400">
-                          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-                          gap
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-5 py-2.5 text-neutral-500">
-                      {s.testName ? (
-                        <a
-                          href={`/share/${slug}/run/${DEMO_RUN.id}#testcase-${slugifyTestName(s.testName)}`}
-                          className="text-emerald-400 underline-offset-2 transition-colors hover:text-emerald-300 hover:underline"
-                        >
-                          {s.testName}
-                        </a>
-                      ) : (
-                        <span className="text-neutral-600">no test</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="text-2xs font-medium uppercase tracking-wider text-accent">Scorecard</div>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink">{project.name}</h1>
+          <p className="mt-1 font-mono text-2xs text-ink-subtle">{project.slug}</p>
+        </div>
+        {project.repoUrl && (
+          <a
+            href={project.repoUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-2xs font-medium text-ink-muted hover:text-ink"
+          >
+            Repository ↗
+          </a>
+        )}
+      </div>
+
+      {!latest ? (
+        <Card className="mt-8">
+          <EmptyState
+            title="No scored run yet"
+            description="This project is public but has not ingested a run. A dash is not a zero — there is simply no evidence to show."
+          />
+        </Card>
+      ) : (
+        <>
+          <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <Stat
+              label="Test Strength Index"
+              value={latest.tsi ?? '—'}
+              hint={latest.tsi === null ? 'Verdict withheld' : 'Latest complete run'}
+              tone={
+                latest.tsi == null
+                  ? 'neutral'
+                  : latest.tsi >= 80
+                    ? 'ok'
+                    : latest.tsi >= 50
+                      ? 'warn'
+                      : 'danger'
+              }
+            />
+            <Stat label="Runs" value={project.runCount} hint="Ingested waves" />
+            <Stat label="Last run" value={shortWhen(latest.startedAt)} hint="UTC" />
+            <Stat
+              label="Status"
+              value={<StatusBadge status={latest.status} />}
+              hint={latest.pr ? `PR #${latest.pr}` : 'No PR linked'}
+            />
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/5 bg-neutral-900/40 px-5 py-4">
-            <p className="text-sm text-neutral-500">
-              Want the full audit trail and commit traceability?{' '}
-              <Link to="/login" className="text-emerald-400 hover:text-emerald-300">
-                Sign in with the demo account
-              </Link>{' '}
-              to open the run detail.
-            </p>
-            <span className="text-[11px] uppercase tracking-wider text-neutral-600">
-              read-only · public view
+          <Card className="mt-4">
+            <CardHeader
+              title="Latest run"
+              description="Every number traces back to the JUnit artifact and the spec contract."
+              action={
+                <Link
+                  to="/share/$slug/run/$id"
+                  params={{ slug: project.slug, id: latest.id }}
+                  className="inline-flex items-center gap-1.5 text-2xs font-medium text-accent hover:text-accent-strong"
+                >
+                  Open run <ArrowRightIcon width={12} height={12} />
+                </Link>
+              }
+            />
+            <CardContent className="grid gap-3 text-2xs sm:grid-cols-3">
+              <div className="flex justify-between gap-3">
+                <span className="text-ink-subtle">Commit</span>
+                <span className="font-mono text-ink-muted">{latest.sha?.slice(0, 8) ?? '—'}</span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span className="text-ink-subtle">PR</span>
+                <span className="text-ink-muted">{latest.pr ? `#${latest.pr}` : '—'}</span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span className="text-ink-subtle">TSI</span>
+                <span className="mono-nums text-ink-muted">{latest.tsi ?? '—'}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {project.trend.length >= 2 && (
+            <Card className="mt-4">
+              <CardHeader title="Index trend" description="Chronological, unsmoothed." />
+              <CardContent>
+                <Sparkline points={project.trend} />
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <Badge tone="neutral">Read-only</Badge>
+            <span className="text-2xs text-ink-subtle">
+              Want this for your repository?{' '}
+              <Link to="/login" className="text-accent hover:text-accent-strong">
+                Create a workspace
+              </Link>
+              .
             </span>
           </div>
-        </div>
-      </div>
-    </Container>
+        </>
+      )}
+    </div>
+  )
+}
+
+function Sparkline({ points }: { points: Array<{ at: string; tsi: number | null }> }) {
+  const scored = points.filter((point): point is { at: string; tsi: number } => typeof point.tsi === 'number')
+  if (scored.length < 2) return null
+
+  const values = scored.map((point) => point.tsi)
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const span = max - min || 1
+  const coords = values
+    .map((value, index) => {
+      const x = (index / (values.length - 1)) * 100
+      const y = 40 - ((value - min) / span) * 32
+      return `${x.toFixed(2)},${y.toFixed(2)}`
+    })
+    .join(' ')
+
+  return (
+    <svg viewBox="0 0 100 44" preserveAspectRatio="none" className="h-24 w-full" aria-hidden>
+      <polyline
+        points={coords}
+        fill="none"
+        stroke="var(--color-accent)"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
   )
 }

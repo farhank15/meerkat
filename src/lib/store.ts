@@ -27,6 +27,8 @@ export interface SpecEntry {
   failureMessage?: string
   /** Passed without asserting anything — excluded from the pass rate. */
   vacuous?: boolean
+  /** Passed with exactly one assertion step — flagged, pass rate unchanged. */
+  shallow?: boolean
 }
 
 export interface RunMetric {

@@ -1,17 +1,110 @@
+@import 'tailwindcss';
 
-@import "tailwindcss";
+/* ─────────────────────────────────────────────────────────────────────────────
+   Design tokens — the only place raw colors are allowed.
 
-* {
-  box-sizing: border-box;
+   Every surface, border and text color in the product comes from this scale.
+   Tailwind v4 turns each token into a utility: bg-canvas, text-ink-muted,
+   border-line, etc. If a component needs a new shade, add a token here first.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+@theme {
+  --color-canvas: #08090b;
+  --color-surface: #0d0f12;
+  --color-surface-raised: #13161b;
+  --color-surface-hover: #191d23;
+
+  --color-line: #1d2127;
+  --color-line-strong: #2b313a;
+
+  --color-ink: #e8eaed;
+  --color-ink-muted: #9ba3ae;
+  --color-ink-subtle: #6c7480;
+
+  --color-accent: #4ade9b;
+  --color-accent-strong: #22c58a;
+  --color-accent-ink: #04120c;
+  --color-accent-soft: #10251c;
+
+  --color-danger: #f87171;
+  --color-danger-soft: #2a1416;
+  --color-ok: #4ade9b;
+  --color-ok-soft: #10251c;
+  --color-warn: #f5c451;
+  --color-warn-soft: #2a2110;
+  --color-info: #7aa2f7;
+  --color-info-soft: #141a2a;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --shadow-panel: 0 1px 0 0 rgb(255 255 255 / 0.03) inset;
+  --shadow-pop: 0 16px 48px -12px rgb(0 0 0 / 0.8);
 }
 
-html,
-body,
-#app {
-  min-height: 100%;
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    min-height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Keyboard focus is always visible; pointer focus is not. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--color-accent-soft);
+    color: var(--color-ink);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line-strong);
+    border-radius: 999px;
+    border: 2px solid var(--color-canvas);
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }
 
-body {
-  margin: 0;
-}
+@layer utilities {
+  /* One hairline surface used by cards, panels and the sidebar. */
+  .surface {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-line);
+  }
 
+  .mono-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+}

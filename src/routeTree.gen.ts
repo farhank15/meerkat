@@ -9,46 +9,52 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AgentRouteImport } from './routes/agent'
-import { Route as AuditorRouteImport } from './routes/auditor'
+import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
+import { Route as MarketingRouteRouteImport } from './routes/_marketing/route'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as LoopRouteImport } from './routes/loop'
-import { Route as RunsRouteImport } from './routes/runs'
-import { Route as ScoreRouteImport } from './routes/score'
+import { Route as AuthedAppRouteRouteImport } from './routes/_authed/_app/route'
+import { Route as AuthedOnboardingRouteRouteImport } from './routes/_authed/onboarding/route'
+import { Route as MarketingIndexRouteImport } from './routes/_marketing/index'
+import { Route as MarketingAgentRouteImport } from './routes/_marketing/agent'
+import { Route as MarketingAuditorRouteImport } from './routes/_marketing/auditor'
+import { Route as MarketingDocsRouteImport } from './routes/_marketing/docs'
+import { Route as MarketingHowItWorksRouteImport } from './routes/_marketing/how-it-works'
+import { Route as MarketingLoopRouteImport } from './routes/_marketing/loop'
+import { Route as MarketingScoreRouteImport } from './routes/_marketing/score'
 import { Route as ApiAgentBriefRouteImport } from './routes/api/agent-brief'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiRunsRouteImport } from './routes/api/runs'
 import { Route as AuthSigninRouteImport } from './routes/auth.signin'
-import { Route as RunsIndexRouteImport } from './routes/runs/index'
-import { Route as RunsIdRouteImport } from './routes/runs/$id'
+import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as ShareIndexRouteImport } from './routes/share/index'
 import { Route as ShareSlugRouteImport } from './routes/share/$slug'
+import { Route as AuthedAppApiKeysRouteImport } from './routes/_authed/_app/api-keys'
+import { Route as AuthedAppDashboardRouteImport } from './routes/_authed/_app/dashboard'
+import { Route as AuthedAppIntegrationsRouteImport } from './routes/_authed/_app/integrations'
+import { Route as AuthedAppMcpRouteImport } from './routes/_authed/_app/mcp'
+import { Route as AuthedAppSettingsRouteImport } from './routes/_authed/_app/settings'
+import { Route as AuthedOnboardingIndexRouteImport } from './routes/_authed/onboarding/index'
 import { Route as ApiAuthGithubRouteImport } from './routes/api/auth/github'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
 import { Route as ApiAuthRegisterRouteImport } from './routes/api/auth/register'
 import { Route as ApiBadgeTsiDotsvgRouteImport } from './routes/api/badge/tsi[.]svg'
-import { Route as RunsIdIndexRouteImport } from './routes/runs/$id/index'
-import { Route as RunsIdCoverageRouteImport } from './routes/runs/$id/coverage'
 import { Route as ShareSlugIndexRouteImport } from './routes/share/$slug/index'
+import { Route as AuthedAppProjectsIndexRouteImport } from './routes/_authed/_app/projects/index'
+import { Route as AuthedAppRunsIndexRouteImport } from './routes/_authed/_app/runs/index'
 import { Route as ApiAuthGithubCallbackRouteImport } from './routes/api/auth/github.callback'
 import { Route as ShareSlugRunIdRouteImport } from './routes/share/$slug/run/$id'
+import { Route as AuthedAppRunsIdIndexRouteImport } from './routes/_authed/_app/runs/$id/index'
+import { Route as AuthedAppRunsIdAuditRouteImport } from './routes/_authed/_app/runs/$id/audit'
+import { Route as AuthedAppRunsIdCoverageRouteImport } from './routes/_authed/_app/runs/$id/coverage'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthedRouteRoute = AuthedRouteRouteImport.update({
+  id: '/_authed',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AgentRoute = AgentRouteImport.update({
-  id: '/agent',
-  path: '/agent',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuditorRoute = AuditorRouteImport.update({
-  id: '/auditor',
-  path: '/auditor',
+const MarketingRouteRoute = MarketingRouteRouteImport.update({
+  id: '/_marketing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -56,20 +62,49 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LoopRoute = LoopRouteImport.update({
+const AuthedAppRouteRoute = AuthedAppRouteRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedOnboardingRouteRoute = AuthedOnboardingRouteRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const MarketingIndexRoute = MarketingIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MarketingRouteRoute,
+} as any)
+const MarketingAgentRoute = MarketingAgentRouteImport.update({
+  id: '/agent',
+  path: '/agent',
+  getParentRoute: () => MarketingRouteRoute,
+} as any)
+const MarketingAuditorRoute = MarketingAuditorRouteImport.update({
+  id: '/auditor',
+  path: '/auditor',
+  getParentRoute: () => MarketingRouteRoute,
+} as any)
+const MarketingDocsRoute = MarketingDocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => MarketingRouteRoute,
+} as any)
+const MarketingHowItWorksRoute = MarketingHowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
+  getParentRoute: () => MarketingRouteRoute,
+} as any)
+const MarketingLoopRoute = MarketingLoopRouteImport.update({
   id: '/loop',
   path: '/loop',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => MarketingRouteRoute,
 } as any)
-const RunsRoute = RunsRouteImport.update({
-  id: '/runs',
-  path: '/runs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ScoreRoute = ScoreRouteImport.update({
+const MarketingScoreRoute = MarketingScoreRouteImport.update({
   id: '/score',
   path: '/score',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => MarketingRouteRoute,
 } as any)
 const ApiAgentBriefRoute = ApiAgentBriefRouteImport.update({
   id: '/api/agent-brief',
@@ -91,15 +126,10 @@ const AuthSigninRoute = AuthSigninRouteImport.update({
   path: '/auth/signin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RunsIndexRoute = RunsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => RunsRoute,
-} as any)
-const RunsIdRoute = RunsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => RunsRoute,
+const SSlugRoute = SSlugRouteImport.update({
+  id: '/s/$slug',
+  path: '/s/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ShareIndexRoute = ShareIndexRouteImport.update({
   id: '/share/',
@@ -110,6 +140,36 @@ const ShareSlugRoute = ShareSlugRouteImport.update({
   id: '/share/$slug',
   path: '/share/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthedAppApiKeysRoute = AuthedAppApiKeysRouteImport.update({
+  id: '/api-keys',
+  path: '/api-keys',
+  getParentRoute: () => AuthedAppRouteRoute,
+} as any)
+const AuthedAppDashboardRoute = AuthedAppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthedAppRouteRoute,
+} as any)
+const AuthedAppIntegrationsRoute = AuthedAppIntegrationsRouteImport.update({
+  id: '/integrations',
+  path: '/integrations',
+  getParentRoute: () => AuthedAppRouteRoute,
+} as any)
+const AuthedAppMcpRoute = AuthedAppMcpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => AuthedAppRouteRoute,
+} as any)
+const AuthedAppSettingsRoute = AuthedAppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthedAppRouteRoute,
+} as any)
+const AuthedOnboardingIndexRoute = AuthedOnboardingIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthedOnboardingRouteRoute,
 } as any)
 const ApiAuthGithubRoute = ApiAuthGithubRouteImport.update({
   id: '/api/auth/github',
@@ -141,20 +201,20 @@ const ApiBadgeTsiDotsvgRoute = ApiBadgeTsiDotsvgRouteImport.update({
   path: '/api/badge/tsi.svg',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RunsIdIndexRoute = RunsIdIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => RunsIdRoute,
-} as any)
-const RunsIdCoverageRoute = RunsIdCoverageRouteImport.update({
-  id: '/coverage',
-  path: '/coverage',
-  getParentRoute: () => RunsIdRoute,
-} as any)
 const ShareSlugIndexRoute = ShareSlugIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ShareSlugRoute,
+} as any)
+const AuthedAppProjectsIndexRoute = AuthedAppProjectsIndexRouteImport.update({
+  id: '/projects/',
+  path: '/projects/',
+  getParentRoute: () => AuthedAppRouteRoute,
+} as any)
+const AuthedAppRunsIndexRoute = AuthedAppRunsIndexRouteImport.update({
+  id: '/runs/',
+  path: '/runs/',
+  getParentRoute: () => AuthedAppRouteRoute,
 } as any)
 const ApiAuthGithubCallbackRoute = ApiAuthGithubCallbackRouteImport.update({
   id: '/callback',
@@ -166,185 +226,265 @@ const ShareSlugRunIdRoute = ShareSlugRunIdRouteImport.update({
   path: '/run/$id',
   getParentRoute: () => ShareSlugRoute,
 } as any)
+const AuthedAppRunsIdIndexRoute = AuthedAppRunsIdIndexRouteImport.update({
+  id: '/runs/$id/',
+  path: '/runs/$id/',
+  getParentRoute: () => AuthedAppRouteRoute,
+} as any)
+const AuthedAppRunsIdAuditRoute = AuthedAppRunsIdAuditRouteImport.update({
+  id: '/runs/$id/audit',
+  path: '/runs/$id/audit',
+  getParentRoute: () => AuthedAppRouteRoute,
+} as any)
+const AuthedAppRunsIdCoverageRoute = AuthedAppRunsIdCoverageRouteImport.update({
+  id: '/runs/$id/coverage',
+  path: '/runs/$id/coverage',
+  getParentRoute: () => AuthedAppRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/agent': typeof AgentRoute
-  '/auditor': typeof AuditorRoute
+  '/': typeof MarketingIndexRoute
   '/login': typeof LoginRoute
-  '/loop': typeof LoopRoute
-  '/runs': typeof RunsRouteWithChildren
-  '/score': typeof ScoreRoute
+  '/onboarding': typeof AuthedOnboardingRouteRouteWithChildren
+  '/agent': typeof MarketingAgentRoute
+  '/auditor': typeof MarketingAuditorRoute
+  '/docs': typeof MarketingDocsRoute
+  '/how-it-works': typeof MarketingHowItWorksRoute
+  '/loop': typeof MarketingLoopRoute
+  '/score': typeof MarketingScoreRoute
   '/api/agent-brief': typeof ApiAgentBriefRoute
   '/api/health': typeof ApiHealthRoute
   '/api/runs': typeof ApiRunsRoute
   '/auth/signin': typeof AuthSigninRoute
-  '/runs/$id': typeof RunsIdRouteWithChildren
+  '/s/$slug': typeof SSlugRoute
   '/share/$slug': typeof ShareSlugRouteWithChildren
-  '/runs/': typeof RunsIndexRoute
   '/share/': typeof ShareIndexRoute
+  '/api-keys': typeof AuthedAppApiKeysRoute
+  '/dashboard': typeof AuthedAppDashboardRoute
+  '/integrations': typeof AuthedAppIntegrationsRoute
+  '/mcp': typeof AuthedAppMcpRoute
+  '/settings': typeof AuthedAppSettingsRoute
   '/api/auth/github': typeof ApiAuthGithubRouteWithChildren
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/register': typeof ApiAuthRegisterRoute
   '/api/badge/tsi.svg': typeof ApiBadgeTsiDotsvgRoute
-  '/runs/$id/coverage': typeof RunsIdCoverageRoute
-  '/runs/$id/': typeof RunsIdIndexRoute
+  '/onboarding/': typeof AuthedOnboardingIndexRoute
   '/share/$slug/': typeof ShareSlugIndexRoute
   '/api/auth/github/callback': typeof ApiAuthGithubCallbackRoute
   '/share/$slug/run/$id': typeof ShareSlugRunIdRoute
+  '/projects/': typeof AuthedAppProjectsIndexRoute
+  '/runs/': typeof AuthedAppRunsIndexRoute
+  '/runs/$id/audit': typeof AuthedAppRunsIdAuditRoute
+  '/runs/$id/coverage': typeof AuthedAppRunsIdCoverageRoute
+  '/runs/$id/': typeof AuthedAppRunsIdIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/agent': typeof AgentRoute
-  '/auditor': typeof AuditorRoute
+  '/': typeof MarketingIndexRoute
   '/login': typeof LoginRoute
-  '/loop': typeof LoopRoute
-  '/score': typeof ScoreRoute
+  '/agent': typeof MarketingAgentRoute
+  '/auditor': typeof MarketingAuditorRoute
+  '/docs': typeof MarketingDocsRoute
+  '/how-it-works': typeof MarketingHowItWorksRoute
+  '/loop': typeof MarketingLoopRoute
+  '/score': typeof MarketingScoreRoute
   '/api/agent-brief': typeof ApiAgentBriefRoute
   '/api/health': typeof ApiHealthRoute
   '/api/runs': typeof ApiRunsRoute
   '/auth/signin': typeof AuthSigninRoute
-  '/runs': typeof RunsIndexRoute
+  '/s/$slug': typeof SSlugRoute
   '/share': typeof ShareIndexRoute
+  '/api-keys': typeof AuthedAppApiKeysRoute
+  '/dashboard': typeof AuthedAppDashboardRoute
+  '/integrations': typeof AuthedAppIntegrationsRoute
+  '/mcp': typeof AuthedAppMcpRoute
+  '/settings': typeof AuthedAppSettingsRoute
   '/api/auth/github': typeof ApiAuthGithubRouteWithChildren
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/register': typeof ApiAuthRegisterRoute
   '/api/badge/tsi.svg': typeof ApiBadgeTsiDotsvgRoute
-  '/runs/$id/coverage': typeof RunsIdCoverageRoute
-  '/runs/$id': typeof RunsIdIndexRoute
+  '/onboarding': typeof AuthedOnboardingIndexRoute
   '/share/$slug': typeof ShareSlugIndexRoute
   '/api/auth/github/callback': typeof ApiAuthGithubCallbackRoute
   '/share/$slug/run/$id': typeof ShareSlugRunIdRoute
+  '/projects': typeof AuthedAppProjectsIndexRoute
+  '/runs': typeof AuthedAppRunsIndexRoute
+  '/runs/$id/audit': typeof AuthedAppRunsIdAuditRoute
+  '/runs/$id/coverage': typeof AuthedAppRunsIdCoverageRoute
+  '/runs/$id': typeof AuthedAppRunsIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/agent': typeof AgentRoute
-  '/auditor': typeof AuditorRoute
+  '/_authed': typeof AuthedRouteRouteWithChildren
+  '/_marketing': typeof MarketingRouteRouteWithChildren
   '/login': typeof LoginRoute
-  '/loop': typeof LoopRoute
-  '/runs': typeof RunsRouteWithChildren
-  '/score': typeof ScoreRoute
+  '/_authed/_app': typeof AuthedAppRouteRouteWithChildren
+  '/_authed/onboarding': typeof AuthedOnboardingRouteRouteWithChildren
+  '/_marketing/agent': typeof MarketingAgentRoute
+  '/_marketing/auditor': typeof MarketingAuditorRoute
+  '/_marketing/docs': typeof MarketingDocsRoute
+  '/_marketing/how-it-works': typeof MarketingHowItWorksRoute
+  '/_marketing/loop': typeof MarketingLoopRoute
+  '/_marketing/score': typeof MarketingScoreRoute
   '/api/agent-brief': typeof ApiAgentBriefRoute
   '/api/health': typeof ApiHealthRoute
   '/api/runs': typeof ApiRunsRoute
   '/auth/signin': typeof AuthSigninRoute
-  '/runs/$id': typeof RunsIdRouteWithChildren
+  '/s/$slug': typeof SSlugRoute
   '/share/$slug': typeof ShareSlugRouteWithChildren
-  '/runs/': typeof RunsIndexRoute
+  '/_marketing/': typeof MarketingIndexRoute
   '/share/': typeof ShareIndexRoute
+  '/_authed/_app/api-keys': typeof AuthedAppApiKeysRoute
+  '/_authed/_app/dashboard': typeof AuthedAppDashboardRoute
+  '/_authed/_app/integrations': typeof AuthedAppIntegrationsRoute
+  '/_authed/_app/mcp': typeof AuthedAppMcpRoute
+  '/_authed/_app/settings': typeof AuthedAppSettingsRoute
   '/api/auth/github': typeof ApiAuthGithubRouteWithChildren
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/register': typeof ApiAuthRegisterRoute
   '/api/badge/tsi.svg': typeof ApiBadgeTsiDotsvgRoute
-  '/runs/$id/coverage': typeof RunsIdCoverageRoute
-  '/runs/$id/': typeof RunsIdIndexRoute
+  '/_authed/onboarding/': typeof AuthedOnboardingIndexRoute
   '/share/$slug/': typeof ShareSlugIndexRoute
   '/api/auth/github/callback': typeof ApiAuthGithubCallbackRoute
   '/share/$slug/run/$id': typeof ShareSlugRunIdRoute
+  '/_authed/_app/projects/': typeof AuthedAppProjectsIndexRoute
+  '/_authed/_app/runs/': typeof AuthedAppRunsIndexRoute
+  '/_authed/_app/runs/$id/audit': typeof AuthedAppRunsIdAuditRoute
+  '/_authed/_app/runs/$id/coverage': typeof AuthedAppRunsIdCoverageRoute
+  '/_authed/_app/runs/$id/': typeof AuthedAppRunsIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/login'
+    | '/onboarding'
     | '/agent'
     | '/auditor'
-    | '/login'
+    | '/docs'
+    | '/how-it-works'
     | '/loop'
-    | '/runs'
     | '/score'
     | '/api/agent-brief'
     | '/api/health'
     | '/api/runs'
     | '/auth/signin'
-    | '/runs/$id'
+    | '/s/$slug'
     | '/share/$slug'
-    | '/runs/'
     | '/share/'
+    | '/api-keys'
+    | '/dashboard'
+    | '/integrations'
+    | '/mcp'
+    | '/settings'
     | '/api/auth/github'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/auth/register'
     | '/api/badge/tsi.svg'
-    | '/runs/$id/coverage'
-    | '/runs/$id/'
+    | '/onboarding/'
     | '/share/$slug/'
     | '/api/auth/github/callback'
     | '/share/$slug/run/$id'
+    | '/projects/'
+    | '/runs/'
+    | '/runs/$id/audit'
+    | '/runs/$id/coverage'
+    | '/runs/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/login'
     | '/agent'
     | '/auditor'
-    | '/login'
+    | '/docs'
+    | '/how-it-works'
     | '/loop'
     | '/score'
     | '/api/agent-brief'
     | '/api/health'
     | '/api/runs'
     | '/auth/signin'
-    | '/runs'
+    | '/s/$slug'
     | '/share'
+    | '/api-keys'
+    | '/dashboard'
+    | '/integrations'
+    | '/mcp'
+    | '/settings'
     | '/api/auth/github'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/auth/register'
     | '/api/badge/tsi.svg'
-    | '/runs/$id/coverage'
-    | '/runs/$id'
+    | '/onboarding'
     | '/share/$slug'
     | '/api/auth/github/callback'
     | '/share/$slug/run/$id'
+    | '/projects'
+    | '/runs'
+    | '/runs/$id/audit'
+    | '/runs/$id/coverage'
+    | '/runs/$id'
   id:
     | '__root__'
-    | '/'
-    | '/agent'
-    | '/auditor'
+    | '/_authed'
+    | '/_marketing'
     | '/login'
-    | '/loop'
-    | '/runs'
-    | '/score'
+    | '/_authed/_app'
+    | '/_authed/onboarding'
+    | '/_marketing/agent'
+    | '/_marketing/auditor'
+    | '/_marketing/docs'
+    | '/_marketing/how-it-works'
+    | '/_marketing/loop'
+    | '/_marketing/score'
     | '/api/agent-brief'
     | '/api/health'
     | '/api/runs'
     | '/auth/signin'
-    | '/runs/$id'
+    | '/s/$slug'
     | '/share/$slug'
-    | '/runs/'
+    | '/_marketing/'
     | '/share/'
+    | '/_authed/_app/api-keys'
+    | '/_authed/_app/dashboard'
+    | '/_authed/_app/integrations'
+    | '/_authed/_app/mcp'
+    | '/_authed/_app/settings'
     | '/api/auth/github'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/auth/register'
     | '/api/badge/tsi.svg'
-    | '/runs/$id/coverage'
-    | '/runs/$id/'
+    | '/_authed/onboarding/'
     | '/share/$slug/'
     | '/api/auth/github/callback'
     | '/share/$slug/run/$id'
+    | '/_authed/_app/projects/'
+    | '/_authed/_app/runs/'
+    | '/_authed/_app/runs/$id/audit'
+    | '/_authed/_app/runs/$id/coverage'
+    | '/_authed/_app/runs/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AgentRoute: typeof AgentRoute
-  AuditorRoute: typeof AuditorRoute
+  AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
+  MarketingRouteRoute: typeof MarketingRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
-  LoopRoute: typeof LoopRoute
-  RunsRoute: typeof RunsRouteWithChildren
-  ScoreRoute: typeof ScoreRoute
   ApiAgentBriefRoute: typeof ApiAgentBriefRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiRunsRoute: typeof ApiRunsRoute
   AuthSigninRoute: typeof AuthSigninRoute
+  SSlugRoute: typeof SSlugRoute
   ShareSlugRoute: typeof ShareSlugRouteWithChildren
   ShareIndexRoute: typeof ShareIndexRoute
   ApiAuthGithubRoute: typeof ApiAuthGithubRouteWithChildren
@@ -357,25 +497,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
+    '/_authed': {
+      id: '/_authed'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AuthedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/agent': {
-      id: '/agent'
-      path: '/agent'
-      fullPath: '/agent'
-      preLoaderRoute: typeof AgentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auditor': {
-      id: '/auditor'
-      path: '/auditor'
-      fullPath: '/auditor'
-      preLoaderRoute: typeof AuditorRouteImport
+    '/_marketing': {
+      id: '/_marketing'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof MarketingRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -385,26 +518,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/loop': {
-      id: '/loop'
+    '/_authed/_app': {
+      id: '/_authed/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthedAppRouteRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/onboarding': {
+      id: '/_authed/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof AuthedOnboardingRouteRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_marketing/': {
+      id: '/_marketing/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof MarketingIndexRouteImport
+      parentRoute: typeof MarketingRouteRoute
+    }
+    '/_marketing/agent': {
+      id: '/_marketing/agent'
+      path: '/agent'
+      fullPath: '/agent'
+      preLoaderRoute: typeof MarketingAgentRouteImport
+      parentRoute: typeof MarketingRouteRoute
+    }
+    '/_marketing/auditor': {
+      id: '/_marketing/auditor'
+      path: '/auditor'
+      fullPath: '/auditor'
+      preLoaderRoute: typeof MarketingAuditorRouteImport
+      parentRoute: typeof MarketingRouteRoute
+    }
+    '/_marketing/docs': {
+      id: '/_marketing/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof MarketingDocsRouteImport
+      parentRoute: typeof MarketingRouteRoute
+    }
+    '/_marketing/how-it-works': {
+      id: '/_marketing/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof MarketingHowItWorksRouteImport
+      parentRoute: typeof MarketingRouteRoute
+    }
+    '/_marketing/loop': {
+      id: '/_marketing/loop'
       path: '/loop'
       fullPath: '/loop'
-      preLoaderRoute: typeof LoopRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof MarketingLoopRouteImport
+      parentRoute: typeof MarketingRouteRoute
     }
-    '/runs': {
-      id: '/runs'
-      path: '/runs'
-      fullPath: '/runs'
-      preLoaderRoute: typeof RunsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/score': {
-      id: '/score'
+    '/_marketing/score': {
+      id: '/_marketing/score'
       path: '/score'
       fullPath: '/score'
-      preLoaderRoute: typeof ScoreRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof MarketingScoreRouteImport
+      parentRoute: typeof MarketingRouteRoute
     }
     '/api/agent-brief': {
       id: '/api/agent-brief'
@@ -434,19 +609,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSigninRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/runs/': {
-      id: '/runs/'
-      path: '/'
-      fullPath: '/runs/'
-      preLoaderRoute: typeof RunsIndexRouteImport
-      parentRoute: typeof RunsRoute
-    }
-    '/runs/$id': {
-      id: '/runs/$id'
-      path: '/$id'
-      fullPath: '/runs/$id'
-      preLoaderRoute: typeof RunsIdRouteImport
-      parentRoute: typeof RunsRoute
+    '/s/$slug': {
+      id: '/s/$slug'
+      path: '/s/$slug'
+      fullPath: '/s/$slug'
+      preLoaderRoute: typeof SSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/share/': {
       id: '/share/'
@@ -461,6 +629,48 @@ declare module '@tanstack/react-router' {
       fullPath: '/share/$slug'
       preLoaderRoute: typeof ShareSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authed/_app/api-keys': {
+      id: '/_authed/_app/api-keys'
+      path: '/api-keys'
+      fullPath: '/api-keys'
+      preLoaderRoute: typeof AuthedAppApiKeysRouteImport
+      parentRoute: typeof AuthedAppRouteRoute
+    }
+    '/_authed/_app/dashboard': {
+      id: '/_authed/_app/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthedAppDashboardRouteImport
+      parentRoute: typeof AuthedAppRouteRoute
+    }
+    '/_authed/_app/integrations': {
+      id: '/_authed/_app/integrations'
+      path: '/integrations'
+      fullPath: '/integrations'
+      preLoaderRoute: typeof AuthedAppIntegrationsRouteImport
+      parentRoute: typeof AuthedAppRouteRoute
+    }
+    '/_authed/_app/mcp': {
+      id: '/_authed/_app/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof AuthedAppMcpRouteImport
+      parentRoute: typeof AuthedAppRouteRoute
+    }
+    '/_authed/_app/settings': {
+      id: '/_authed/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthedAppSettingsRouteImport
+      parentRoute: typeof AuthedAppRouteRoute
+    }
+    '/_authed/onboarding/': {
+      id: '/_authed/onboarding/'
+      path: '/'
+      fullPath: '/onboarding/'
+      preLoaderRoute: typeof AuthedOnboardingIndexRouteImport
+      parentRoute: typeof AuthedOnboardingRouteRoute
     }
     '/api/auth/github': {
       id: '/api/auth/github'
@@ -504,26 +714,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBadgeTsiDotsvgRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/runs/$id/': {
-      id: '/runs/$id/'
-      path: '/'
-      fullPath: '/runs/$id/'
-      preLoaderRoute: typeof RunsIdIndexRouteImport
-      parentRoute: typeof RunsIdRoute
-    }
-    '/runs/$id/coverage': {
-      id: '/runs/$id/coverage'
-      path: '/coverage'
-      fullPath: '/runs/$id/coverage'
-      preLoaderRoute: typeof RunsIdCoverageRouteImport
-      parentRoute: typeof RunsIdRoute
-    }
     '/share/$slug/': {
       id: '/share/$slug/'
       path: '/'
       fullPath: '/share/$slug/'
       preLoaderRoute: typeof ShareSlugIndexRouteImport
       parentRoute: typeof ShareSlugRoute
+    }
+    '/_authed/_app/projects/': {
+      id: '/_authed/_app/projects/'
+      path: '/projects'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof AuthedAppProjectsIndexRouteImport
+      parentRoute: typeof AuthedAppRouteRoute
+    }
+    '/_authed/_app/runs/': {
+      id: '/_authed/_app/runs/'
+      path: '/runs'
+      fullPath: '/runs/'
+      preLoaderRoute: typeof AuthedAppRunsIndexRouteImport
+      parentRoute: typeof AuthedAppRouteRoute
     }
     '/api/auth/github/callback': {
       id: '/api/auth/github/callback'
@@ -539,33 +749,110 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShareSlugRunIdRouteImport
       parentRoute: typeof ShareSlugRoute
     }
+    '/_authed/_app/runs/$id/': {
+      id: '/_authed/_app/runs/$id/'
+      path: '/runs/$id'
+      fullPath: '/runs/$id/'
+      preLoaderRoute: typeof AuthedAppRunsIdIndexRouteImport
+      parentRoute: typeof AuthedAppRouteRoute
+    }
+    '/_authed/_app/runs/$id/audit': {
+      id: '/_authed/_app/runs/$id/audit'
+      path: '/runs/$id/audit'
+      fullPath: '/runs/$id/audit'
+      preLoaderRoute: typeof AuthedAppRunsIdAuditRouteImport
+      parentRoute: typeof AuthedAppRouteRoute
+    }
+    '/_authed/_app/runs/$id/coverage': {
+      id: '/_authed/_app/runs/$id/coverage'
+      path: '/runs/$id/coverage'
+      fullPath: '/runs/$id/coverage'
+      preLoaderRoute: typeof AuthedAppRunsIdCoverageRouteImport
+      parentRoute: typeof AuthedAppRouteRoute
+    }
   }
 }
 
-interface RunsIdRouteChildren {
-  RunsIdCoverageRoute: typeof RunsIdCoverageRoute
-  RunsIdIndexRoute: typeof RunsIdIndexRoute
+interface AuthedAppRouteRouteChildren {
+  AuthedAppApiKeysRoute: typeof AuthedAppApiKeysRoute
+  AuthedAppDashboardRoute: typeof AuthedAppDashboardRoute
+  AuthedAppIntegrationsRoute: typeof AuthedAppIntegrationsRoute
+  AuthedAppMcpRoute: typeof AuthedAppMcpRoute
+  AuthedAppSettingsRoute: typeof AuthedAppSettingsRoute
+  AuthedAppProjectsIndexRoute: typeof AuthedAppProjectsIndexRoute
+  AuthedAppRunsIndexRoute: typeof AuthedAppRunsIndexRoute
+  AuthedAppRunsIdAuditRoute: typeof AuthedAppRunsIdAuditRoute
+  AuthedAppRunsIdCoverageRoute: typeof AuthedAppRunsIdCoverageRoute
+  AuthedAppRunsIdIndexRoute: typeof AuthedAppRunsIdIndexRoute
 }
 
-const RunsIdRouteChildren: RunsIdRouteChildren = {
-  RunsIdCoverageRoute: RunsIdCoverageRoute,
-  RunsIdIndexRoute: RunsIdIndexRoute,
+const AuthedAppRouteRouteChildren: AuthedAppRouteRouteChildren = {
+  AuthedAppApiKeysRoute: AuthedAppApiKeysRoute,
+  AuthedAppDashboardRoute: AuthedAppDashboardRoute,
+  AuthedAppIntegrationsRoute: AuthedAppIntegrationsRoute,
+  AuthedAppMcpRoute: AuthedAppMcpRoute,
+  AuthedAppSettingsRoute: AuthedAppSettingsRoute,
+  AuthedAppProjectsIndexRoute: AuthedAppProjectsIndexRoute,
+  AuthedAppRunsIndexRoute: AuthedAppRunsIndexRoute,
+  AuthedAppRunsIdAuditRoute: AuthedAppRunsIdAuditRoute,
+  AuthedAppRunsIdCoverageRoute: AuthedAppRunsIdCoverageRoute,
+  AuthedAppRunsIdIndexRoute: AuthedAppRunsIdIndexRoute,
 }
 
-const RunsIdRouteWithChildren =
-  RunsIdRoute._addFileChildren(RunsIdRouteChildren)
+const AuthedAppRouteRouteWithChildren = AuthedAppRouteRoute._addFileChildren(
+  AuthedAppRouteRouteChildren,
+)
 
-interface RunsRouteChildren {
-  RunsIdRoute: typeof RunsIdRouteWithChildren
-  RunsIndexRoute: typeof RunsIndexRoute
+interface AuthedOnboardingRouteRouteChildren {
+  AuthedOnboardingIndexRoute: typeof AuthedOnboardingIndexRoute
 }
 
-const RunsRouteChildren: RunsRouteChildren = {
-  RunsIdRoute: RunsIdRouteWithChildren,
-  RunsIndexRoute: RunsIndexRoute,
+const AuthedOnboardingRouteRouteChildren: AuthedOnboardingRouteRouteChildren = {
+  AuthedOnboardingIndexRoute: AuthedOnboardingIndexRoute,
 }
 
-const RunsRouteWithChildren = RunsRoute._addFileChildren(RunsRouteChildren)
+const AuthedOnboardingRouteRouteWithChildren =
+  AuthedOnboardingRouteRoute._addFileChildren(
+    AuthedOnboardingRouteRouteChildren,
+  )
+
+interface AuthedRouteRouteChildren {
+  AuthedAppRouteRoute: typeof AuthedAppRouteRouteWithChildren
+  AuthedOnboardingRouteRoute: typeof AuthedOnboardingRouteRouteWithChildren
+}
+
+const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
+  AuthedAppRouteRoute: AuthedAppRouteRouteWithChildren,
+  AuthedOnboardingRouteRoute: AuthedOnboardingRouteRouteWithChildren,
+}
+
+const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
+  AuthedRouteRouteChildren,
+)
+
+interface MarketingRouteRouteChildren {
+  MarketingAgentRoute: typeof MarketingAgentRoute
+  MarketingAuditorRoute: typeof MarketingAuditorRoute
+  MarketingDocsRoute: typeof MarketingDocsRoute
+  MarketingHowItWorksRoute: typeof MarketingHowItWorksRoute
+  MarketingLoopRoute: typeof MarketingLoopRoute
+  MarketingScoreRoute: typeof MarketingScoreRoute
+  MarketingIndexRoute: typeof MarketingIndexRoute
+}
+
+const MarketingRouteRouteChildren: MarketingRouteRouteChildren = {
+  MarketingAgentRoute: MarketingAgentRoute,
+  MarketingAuditorRoute: MarketingAuditorRoute,
+  MarketingDocsRoute: MarketingDocsRoute,
+  MarketingHowItWorksRoute: MarketingHowItWorksRoute,
+  MarketingLoopRoute: MarketingLoopRoute,
+  MarketingScoreRoute: MarketingScoreRoute,
+  MarketingIndexRoute: MarketingIndexRoute,
+}
+
+const MarketingRouteRouteWithChildren = MarketingRouteRoute._addFileChildren(
+  MarketingRouteRouteChildren,
+)
 
 interface ShareSlugRouteChildren {
   ShareSlugIndexRoute: typeof ShareSlugIndexRoute
@@ -594,17 +881,14 @@ const ApiAuthGithubRouteWithChildren = ApiAuthGithubRoute._addFileChildren(
 )
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AgentRoute: AgentRoute,
-  AuditorRoute: AuditorRoute,
+  AuthedRouteRoute: AuthedRouteRouteWithChildren,
+  MarketingRouteRoute: MarketingRouteRouteWithChildren,
   LoginRoute: LoginRoute,
-  LoopRoute: LoopRoute,
-  RunsRoute: RunsRouteWithChildren,
-  ScoreRoute: ScoreRoute,
   ApiAgentBriefRoute: ApiAgentBriefRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiRunsRoute: ApiRunsRoute,
   AuthSigninRoute: AuthSigninRoute,
+  SSlugRoute: SSlugRoute,
   ShareSlugRoute: ShareSlugRouteWithChildren,
   ShareIndexRoute: ShareIndexRoute,
   ApiAuthGithubRoute: ApiAuthGithubRouteWithChildren,
