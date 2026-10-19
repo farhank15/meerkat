@@ -1,19 +1,11 @@
 name: TestSprite (JUnit fallback)
 
 # ─────────────────────────────────────────────────────────────────────────────
-# STATUS: fallback path. Disabled until TESTSPRITE_PROJECT_ID is set.
-#
-# Season 4's primary path is the TestSprite **GitHub App** — it needs no repo
-# changes and posts its own `testsprite-dev` comment on every pull request. The
-# App does not document a JUnit report or any downloadable artifact, so
-# Meerkat's preferred ingest is the TestSprite CLI reading the App's runs
-# (`test list`, `test result --history --source github_action`, `test steps`),
-# which keeps the suite at one run per PR.
-#
-# This workflow is the fallback: it runs the suite a second time purely to
-# obtain `testsprite-junit.xml` for the offline/deterministic ingest path.
-# Running both paths doubles TestSprite credit spend per PR, so enable it only
-# if the CLI turns out not to see App-triggered runs for this project.
+# STATUS: orchestration active (PR #7). The expensive JUnit fallback job is
+# manual-only (workflow_dispatch); pull-request verification is owned by the
+# TestSprite GitHub App, and the free read-only jobs below ingest what the App
+# already ran, score it (SuiteVitals Ratchet), and — only when the verdict is
+# trustworthy and red — dispatch the remediation agent (F20).
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
@@ -40,12 +32,19 @@ jobs:
     # Named `testsprite-junit` so it is never confused with the GitHub App's own
     # `testsprite-dev` PR comment. This check exists only to produce the JUnit
     # artifact for Meerkat in the fallback path.
+    #
+    # Manual-only by design: the GitHub App already runs the full suite on every
+    # pull request. Firing this too would double the credit spend per PR, so the
+    # JUnit fallback runs only on an explicit `gh workflow run testsprite.yml`
+    # (day-of demo replay or diagnostics). The orchestration jobs below
+    # (meerkat-ingest / SuiteVitals Ratchet / meerkat-remediation, landed with
+    # PR #7) are read-only against the App's results and cost no suite credits.
     name: testsprite-junit
     runs-on: ubuntu-latest
     # Runs once the TestSprite project is wired up (set the repository variable
     # TESTSPRITE_PROJECT_ID). Fork PRs never receive secrets, so they are skipped
     # rather than failed — this is the guard recommended by testsprite-action.
-    if: ${{ vars.TESTSPRITE_PROJECT_ID != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ github.event_name == 'workflow_dispatch' && vars.TESTSPRITE_PROJECT_ID != '' }}
     steps:
       - uses: actions/checkout@v4
 
