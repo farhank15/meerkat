@@ -131,6 +131,7 @@ function Delta({ value }: { value: number | null }) {
 
 function Landing() {
   const project = Route.useLoaderData()
+  const { session } = Route.useRouteContext()
   const tsi = project?.latest?.tsi ?? null
   const delta = project ? trendDelta(project.trend) : null
 
@@ -154,11 +155,19 @@ function Landing() {
               produced it.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
-              <Link to="/login" search={{ mode: 'register' }}>
-                <Button variant="primary">
-                  Start free <ArrowRightIcon width={14} height={14} />
-                </Button>
-              </Link>
+              {session ? (
+                <Link to="/dashboard">
+                  <Button variant="primary">
+                    Open console <ArrowRightIcon width={14} height={14} />
+                  </Button>
+                </Link>
+              ) : (
+                <Link to="/login" search={{ mode: 'register' }}>
+                  <Button variant="primary">
+                    Start free <ArrowRightIcon width={14} height={14} />
+                  </Button>
+                </Link>
+              )}
               <Link to="/how-it-works">
                 <Button variant="secondary">How it works</Button>
               </Link>
@@ -477,11 +486,19 @@ function Landing() {
             <Link to="/docs">
               <Button variant="secondary">Read the guide</Button>
             </Link>
-            <Link to="/login" search={{ mode: 'register' }}>
-              <Button variant="primary">
-                Start free <ArrowRightIcon width={14} height={14} />
-              </Button>
-            </Link>
+            {session ? (
+              <Link to="/dashboard">
+                <Button variant="primary">
+                  Open console <ArrowRightIcon width={14} height={14} />
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/login" search={{ mode: 'register' }}>
+                <Button variant="primary">
+                  Start free <ArrowRightIcon width={14} height={14} />
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </section>

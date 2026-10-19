@@ -83,6 +83,8 @@ const REFUSALS = [
 ]
 
 function HowItWorks() {
+  const { session } = Route.useRouteContext()
+
   return (
     <div className="mx-auto w-full max-w-4xl px-5 py-16">
       <div className="text-2xs font-medium uppercase tracking-wider text-accent">How it works</div>
@@ -193,11 +195,19 @@ function HowItWorks() {
       </ul>
 
       <div className="mt-12 flex flex-wrap items-center gap-4">
-        <Link to="/login" search={{ mode: 'register' }}>
-          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:text-accent-strong">
-            Start scoring your suite <ArrowRightIcon width={14} height={14} />
-          </span>
-        </Link>
+        {session ? (
+          <Link to="/dashboard">
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:text-accent-strong">
+              Open the console <ArrowRightIcon width={14} height={14} />
+            </span>
+          </Link>
+        ) : (
+          <Link to="/login" search={{ mode: 'register' }}>
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:text-accent-strong">
+              Start scoring your suite <ArrowRightIcon width={14} height={14} />
+            </span>
+          </Link>
+        )}
         <Link to="/docs" className="text-sm font-medium text-ink-muted hover:text-ink">
           Read the setup guide
         </Link>

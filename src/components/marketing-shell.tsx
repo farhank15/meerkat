@@ -5,7 +5,9 @@ import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 
 import { cn } from '@/lib/cn'
+import type { AppSession } from '@/server/session'
 import { Button } from '@/components/ui/primitives'
+import { AccountMenu } from '@/components/account-menu'
 import { CloseIcon, GithubIcon, MenuIcon } from '@/components/ui/icons'
 
 const LINKS = [
@@ -30,7 +32,13 @@ function Wordmark() {
   )
 }
 
-export function MarketingShell({ children }: { children: React.ReactNode }) {
+export function MarketingShell({
+  session,
+  children,
+}: {
+  session: AppSession | null
+  children: React.ReactNode
+}) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -63,14 +71,20 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
             >
               <GithubIcon width={16} height={16} />
             </a>
-            <Link to="/login" className="text-xs font-medium text-ink-muted transition-colors hover:text-ink">
-              Sign in
-            </Link>
-            <Link to="/login" search={{ mode: 'register' }}>
-              <Button variant="primary" size="sm">
-                Start free
-              </Button>
-            </Link>
+            {session ? (
+              <AccountMenu session={session} />
+            ) : (
+              <>
+                <Link to="/login" className="text-xs font-medium text-ink-muted transition-colors hover:text-ink">
+                  Sign in
+                </Link>
+                <Link to="/login" search={{ mode: 'register' }}>
+                  <Button variant="primary" size="sm">
+                    Start free
+                  </Button>
+                </Link>
+              </>
+            )}
             <button
               type="button"
               className="ml-1 text-ink-muted md:hidden"

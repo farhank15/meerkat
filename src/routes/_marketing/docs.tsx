@@ -64,6 +64,8 @@ const TOOLS = [
 ]
 
 function Docs() {
+  const { session } = Route.useRouteContext()
+
   return (
     <div className="mx-auto w-full max-w-4xl px-5 py-16">
       <div className="text-2xs font-medium uppercase tracking-wider text-accent">Docs</div>
@@ -184,9 +186,19 @@ function Docs() {
       </div>
 
       <div className="mt-8 flex flex-wrap items-center gap-4 text-sm">
-        <Link to="/login" search={{ mode: 'register' }} className="font-medium text-accent hover:text-accent-strong">
-          Create a workspace
-        </Link>
+        {session ? (
+          <Link to="/dashboard" className="font-medium text-accent hover:text-accent-strong">
+            Open the console
+          </Link>
+        ) : (
+          <Link
+            to="/login"
+            search={{ mode: 'register' }}
+            className="font-medium text-accent hover:text-accent-strong"
+          >
+            Create a workspace
+          </Link>
+        )}
         <Link to="/how-it-works" className="font-medium text-ink-muted hover:text-ink">
           How the score works
         </Link>
