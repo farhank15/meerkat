@@ -27,21 +27,26 @@ export const Route = createFileRoute('/api/runs')({
       GET: async () => {
         const db = getDb()
         if (!db) return Response.json({ runs: [], note: 'database not configured' })
-        const rows = await db
-          .select({
-            id: runs.id,
-            slug: projects.slug,
-            source: runs.source,
-            status: runs.status,
-            sha: runs.sha,
-            tsi: runs.tsi,
-            createdAt: runs.createdAt,
-          })
-          .from(runs)
-          .innerJoin(projects, eq(runs.projectId, projects.id))
-          .orderBy(desc(runs.createdAt))
-          .limit(50)
-        return Response.json({ runs: rows })
+        try {
+          const rows = await db
+            .select({
+              id: runs.id,
+              slug: projects.slug,
+              source: runs.source,
+              status: runs.status,
+              sha: runs.sha,
+              tsi: runs.tsi,
+              createdAt: runs.createdAt,
+            })
+            .from(runs)
+            .innerJoin(projects, eq(runs.projectId, projects.id))
+            .orderBy(desc(runs.createdAt))
+            .limit(50)
+          return Response.json({ runs: rows })
+        } catch (err) {
+          console.error('[runs] GET failed:', (err as Error).message)
+          return Response.json({ runs: [], note: 'database unavailable' }, { status: 503 })
+        }
       },
       POST: async ({ request }) => {
         const expected = process.env.SUITEVITALS_API_KEY

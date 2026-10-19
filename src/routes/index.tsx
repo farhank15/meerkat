@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { DEMO_RUN } from '@/lib/store'
 import { Container, Section, ScoreCard } from '@/components/site'
+import { DotPattern, Marquee, ShinyText } from '@/components/magicui'
 import meerkatLogo from '@/assets/meerkat.png'
 
 export const Route = createFileRoute('/')({
@@ -17,6 +18,7 @@ function Home() {
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_0%,rgba(16,185,129,0.10),transparent_70%)]"
         />
+        <DotPattern className="opacity-30" />
         <Container className="relative grid gap-14 py-20 sm:py-28 lg:grid-cols-2 lg:items-center">
           <div>
             <img
@@ -34,9 +36,9 @@ function Home() {
               Your suite is green.
               <br />
               But is it{' '}
-              <span className="bg-linear-to-r from-emerald-400 to-emerald-300 bg-clip-text text-transparent">
+              <ShinyText className="font-bold">
                 meaningful?
-              </span>
+              </ShinyText>
             </h1>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-neutral-400">
               Meerkat turns every TestSprite run into a single{' '}
@@ -90,6 +92,26 @@ function Home() {
           </div>
         </Container>
       </section>
+
+      {/* Evidence strip — what a bare pass/fail verdict cannot tell you (additive,
+          non-asserted section; copy is decorative, anchors unchanged). */}
+      <div aria-hidden className="border-y border-white/5 bg-white/[0.02]">
+        <Marquee className="py-3.5">
+          {[
+            'vacuous pass — green without a real assertion',
+            'orphan test — gives no coverage',
+            'silent gap — contracted scenario untested',
+            'estimated stability — one run only',
+            'n/a is not zero — a withheld verdict is honest',
+            'coverage is a contract trace, not a percentage vibe',
+          ].map((t) => (
+            <span key={t} className="font-mono text-[11px] text-neutral-600">
+              <span className="mr-8 text-emerald-500/60">◆</span>
+              {t}
+            </span>
+          ))}
+        </Marquee>
+      </div>
 
       {/* How it works */}
       <Section id="how" className="border-t border-white/5">

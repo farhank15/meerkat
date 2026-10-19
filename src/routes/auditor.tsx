@@ -7,6 +7,7 @@ import { DEMO_RUN } from '@/lib/store'
 import { auditRun } from '@/lib/auditor'
 import type { TrustState } from '@/lib/auditor'
 import { Section } from '@/components/site'
+import { BorderBeam } from '@/components/magicui'
 
 export const Route = createFileRoute('/auditor')({
   component: Auditor,
@@ -47,7 +48,8 @@ function Auditor() {
         </div>
 
         {/* Trust verdict */}
-        <div className={`mt-8 rounded-2xl border ${s.ring} bg-neutral-900/60 p-6`}>
+        <div className={`relative mt-8 overflow-hidden rounded-2xl border ${s.ring} bg-neutral-900/60 p-6`}>
+          <BorderBeam />
           <div className="flex flex-wrap items-center gap-3">
             <span className={`inline-flex h-2.5 w-2.5 rounded-full ${s.badge}`} />
             <h2 className={`text-lg font-semibold ${s.text}`}>

@@ -10,11 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AgentRouteImport } from './routes/agent'
 import { Route as AuditorRouteImport } from './routes/auditor'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LoopRouteImport } from './routes/loop'
 import { Route as RunsRouteImport } from './routes/runs'
 import { Route as ScoreRouteImport } from './routes/score'
+import { Route as ApiAgentBriefRouteImport } from './routes/api/agent-brief'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiRunsRouteImport } from './routes/api/runs'
 import { Route as AuthSigninRouteImport } from './routes/auth.signin'
@@ -37,6 +39,11 @@ import { Route as ShareSlugRunIdRouteImport } from './routes/share/$slug/run/$id
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentRoute = AgentRouteImport.update({
+  id: '/agent',
+  path: '/agent',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuditorRoute = AuditorRouteImport.update({
@@ -62,6 +69,11 @@ const RunsRoute = RunsRouteImport.update({
 const ScoreRoute = ScoreRouteImport.update({
   id: '/score',
   path: '/score',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAgentBriefRoute = ApiAgentBriefRouteImport.update({
+  id: '/api/agent-brief',
+  path: '/api/agent-brief',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
@@ -157,11 +169,13 @@ const ShareSlugRunIdRoute = ShareSlugRunIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agent': typeof AgentRoute
   '/auditor': typeof AuditorRoute
   '/login': typeof LoginRoute
   '/loop': typeof LoopRoute
   '/runs': typeof RunsRouteWithChildren
   '/score': typeof ScoreRoute
+  '/api/agent-brief': typeof ApiAgentBriefRoute
   '/api/health': typeof ApiHealthRoute
   '/api/runs': typeof ApiRunsRoute
   '/auth/signin': typeof AuthSigninRoute
@@ -183,10 +197,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agent': typeof AgentRoute
   '/auditor': typeof AuditorRoute
   '/login': typeof LoginRoute
   '/loop': typeof LoopRoute
   '/score': typeof ScoreRoute
+  '/api/agent-brief': typeof ApiAgentBriefRoute
   '/api/health': typeof ApiHealthRoute
   '/api/runs': typeof ApiRunsRoute
   '/auth/signin': typeof AuthSigninRoute
@@ -207,11 +223,13 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/agent': typeof AgentRoute
   '/auditor': typeof AuditorRoute
   '/login': typeof LoginRoute
   '/loop': typeof LoopRoute
   '/runs': typeof RunsRouteWithChildren
   '/score': typeof ScoreRoute
+  '/api/agent-brief': typeof ApiAgentBriefRoute
   '/api/health': typeof ApiHealthRoute
   '/api/runs': typeof ApiRunsRoute
   '/auth/signin': typeof AuthSigninRoute
@@ -235,11 +253,13 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/agent'
     | '/auditor'
     | '/login'
     | '/loop'
     | '/runs'
     | '/score'
+    | '/api/agent-brief'
     | '/api/health'
     | '/api/runs'
     | '/auth/signin'
@@ -261,10 +281,12 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/agent'
     | '/auditor'
     | '/login'
     | '/loop'
     | '/score'
+    | '/api/agent-brief'
     | '/api/health'
     | '/api/runs'
     | '/auth/signin'
@@ -284,11 +306,13 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/agent'
     | '/auditor'
     | '/login'
     | '/loop'
     | '/runs'
     | '/score'
+    | '/api/agent-brief'
     | '/api/health'
     | '/api/runs'
     | '/auth/signin'
@@ -311,11 +335,13 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AgentRoute: typeof AgentRoute
   AuditorRoute: typeof AuditorRoute
   LoginRoute: typeof LoginRoute
   LoopRoute: typeof LoopRoute
   RunsRoute: typeof RunsRouteWithChildren
   ScoreRoute: typeof ScoreRoute
+  ApiAgentBriefRoute: typeof ApiAgentBriefRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiRunsRoute: typeof ApiRunsRoute
   AuthSigninRoute: typeof AuthSigninRoute
@@ -336,6 +362,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agent': {
+      id: '/agent'
+      path: '/agent'
+      fullPath: '/agent'
+      preLoaderRoute: typeof AgentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auditor': {
@@ -371,6 +404,13 @@ declare module '@tanstack/react-router' {
       path: '/score'
       fullPath: '/score'
       preLoaderRoute: typeof ScoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/agent-brief': {
+      id: '/api/agent-brief'
+      path: '/api/agent-brief'
+      fullPath: '/api/agent-brief'
+      preLoaderRoute: typeof ApiAgentBriefRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/health': {
@@ -555,11 +595,13 @@ const ApiAuthGithubRouteWithChildren = ApiAuthGithubRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AgentRoute: AgentRoute,
   AuditorRoute: AuditorRoute,
   LoginRoute: LoginRoute,
   LoopRoute: LoopRoute,
   RunsRoute: RunsRouteWithChildren,
   ScoreRoute: ScoreRoute,
+  ApiAgentBriefRoute: ApiAgentBriefRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiRunsRoute: ApiRunsRoute,
   AuthSigninRoute: AuthSigninRoute,

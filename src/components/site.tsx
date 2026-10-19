@@ -88,6 +88,7 @@ function useAuth() {
 export function Nav() {
   const { mounted, authed, email } = useAuth()
   const navigate = useNavigate()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/5 bg-neutral-950/70 backdrop-blur-xl">
@@ -103,27 +104,93 @@ export function Nav() {
           <a href="/loop" className="transition-colors hover:text-neutral-100">
             The Loop
           </a>
+          <a href="/agent" className="transition-colors hover:text-neutral-100">
+            For agents
+          </a>
         </nav>
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Default (SSR + pre-mount) renders the signed-out affordance so the
               server and client markup always match. */}
           {mounted && authed ? (
-            <>
-              <span className="hidden text-sm text-neutral-400 sm:inline">
-                {email ?? 'demo@suitevitals.dev'}
-              </span>
+            <span className="relative" data-testid="user-menu">
               <button
                 type="button"
-                onClick={async () => {
-                  // Server-side logout clears the HttpOnly session cookie.
-                  await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
-                  navigate({ to: '/' })
-                }}
-                className="rounded-lg border border-white/10 px-3.5 py-2 text-sm font-medium text-neutral-300 transition-colors hover:border-white/20 hover:text-neutral-100"
+                onClick={() => setMenuOpen((v) => !v)}
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                className="group flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 py-1.5 pl-1.5 pr-3 transition-colors hover:border-white/20"
               >
-                Sign out
+                {/* Avatar: deterministic initial from the email — no external image, SSR-safe. */}
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-semibold text-emerald-300 ring-1 ring-emerald-400/30">
+                  {(email ?? 'demo@suitevitals.dev').slice(0, 1).toUpperCase()}
+                </span>
+                <span className="hidden max-w-44 truncate text-sm text-neutral-300 sm:inline">
+                  {email ?? 'demo@suitevitals.dev'}
+                </span>
+                <svg
+                  viewBox="0 0 12 12"
+                  className="h-2.5 w-2.5 text-neutral-500"
+                  fill="currentColor"
+                  aria-hidden
+                >
+                  <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                </svg>
               </button>
-            </>
+
+              {menuOpen && (
+                <>
+                  {/* Backdrop click-outside closes without a portal. */}
+                  <button
+                    type="button"
+                    aria-label="Close menu"
+                    onClick={() => setMenuOpen(false)}
+                    className="fixed inset-0 z-40 cursor-default"
+                  />
+                  <div
+                    role="menu"
+                    className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 shadow-2xl shadow-black/50"
+                  >
+                    <div className="border-b border-white/5 px-4 py-3">
+                      <div className="text-[11px] uppercase tracking-wider text-neutral-500">
+                        Signed in
+                      </div>
+                      <div className="mt-0.5 truncate text-sm font-medium text-neutral-200">
+                        {email ?? 'demo@suitevitals.dev'}
+                      </div>
+                    </div>
+                    <nav className="p-1.5 text-sm">
+                      <MenuItem href="/runs" onClick={() => setMenuOpen(false)}>
+                        Runs
+                      </MenuItem>
+                      <MenuItem href="/auditor" onClick={() => setMenuOpen(false)}>
+                        Vacuous Auditor
+                      </MenuItem>
+                      <MenuItem href="/score" onClick={() => setMenuOpen(false)}>
+                        Scoring engine
+                      </MenuItem>
+                      <MenuItem href="/agent" onClick={() => setMenuOpen(false)}>
+                        For agents · MCP
+                      </MenuItem>
+                    </nav>
+                    <div className="border-t border-white/5 p-1.5">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={async () => {
+                          setMenuOpen(false)
+                          // Server-side logout clears the HttpOnly session cookie.
+                          await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
+                          navigate({ to: '/' })
+                        }}
+                        className="w-full rounded-lg px-3 py-2 text-left text-sm text-rose-300 transition-colors hover:bg-rose-500/10"
+                      >
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </span>
           ) : (
             <>
               <Link
@@ -146,6 +213,27 @@ export function Nav() {
   )
 }
 
+function MenuItem({
+  href,
+  children,
+  onClick,
+}: {
+  href: string
+  children: React.ReactNode
+  onClick: () => void
+}) {
+  return (
+    <a
+      href={href}
+      role="menuitem"
+      onClick={onClick}
+      className="block rounded-lg px-3 py-2 text-neutral-300 transition-colors hover:bg-white/5 hover:text-neutral-100"
+    >
+      {children}
+    </a>
+  )
+}
+
 export function Footer() {
   return (
     <footer className="border-t border-white/5 bg-neutral-950">
@@ -163,6 +251,7 @@ export function Footer() {
             { label: 'The TSI', href: '/#tsi' },
             { label: 'How it works', href: '/#how' },
             { label: 'The Loop', href: '/loop' },
+            { label: 'For agents', href: '/agent' },
             { label: 'Demo scorecard', href: '/runs' },
             { label: 'Public scorecard', href: '/share/meerkat-demo' },
           ]}
@@ -269,14 +358,16 @@ export function ScoreCard({
         <Metric label="Pass rate" value={passRate} hint="20%" />
       </div>
       {runId && (
-        <Link
-          to="/runs/$id"
-          params={{ id: runId }}
-          hash="tsi-breakdown"
-          className="mt-4 inline-block text-xs font-medium text-emerald-400 transition-colors hover:text-emerald-300"
-        >
-          View source breakdown →
-        </Link>
+        <div className="mt-5 border-t border-white/5 pt-4">
+          <Link
+            to="/runs/$id"
+            params={{ id: runId }}
+            hash="tsi-breakdown"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400 transition-colors hover:text-emerald-300"
+          >
+            View source breakdown →
+          </Link>
+        </div>
       )}
     </div>
   )

@@ -154,6 +154,45 @@ npm run score -- --junit testsprite-junit.xml --spec SPEC.md
 npm test
 ```
 
+## Put your agent on the verdict ledger
+
+Meerkat's verdict layer is agent-readable. Any coding agent can pull the latest
+run's verdict, coverage gaps and assertion-quality findings — before acting on
+the code:
+
+```bash
+# One-line read (no install)
+curl -s https://meerkat-app.vercel.app/api/agent-brief
+```
+
+Or connect it as MCP tools (Claude Code, Cursor, or any MCP host). The server is
+read-only — it talks to Meerkat's public HTTP API and holds no database access:
+
+```json
+{
+  "mcpServers": {
+    "meerkat-verdict": {
+      "command": "node",
+      "args": ["/absolute/path/to/meerkat/mcp/server.mjs"]
+    }
+  }
+}
+```
+
+| Tool | Answer |
+|---|---|
+| `get_run_verdict` | latest verdict: TSI, state (green / incomplete / refused-label), run SHA |
+| `get_coverage_gaps` | `SPEC.md` scenarios with no asserting test, each with its contract line |
+| `get_vacuous_findings` | assertion-quality state + vacuous/orphan/conflict counts |
+| `get_tsi_summary` | everything above in one call |
+
+Prefer a browser? The same guide ships in the app at
+[`/agent`](https://meerkat-app.vercel.app/agent) — curl one-liner, MCP config,
+and the tool contract, click-to-copy.
+
+`npm run ingest` rebuilds the ledger from the latest TestSprite run (read-only
+CLI reads) and `npm run mcp:smoke` proves the tool contract end-to-end.
+
 ## Built with
 
 | Layer | Choice |
