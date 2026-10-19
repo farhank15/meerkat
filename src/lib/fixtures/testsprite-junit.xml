@@ -6,12 +6,12 @@
     <testcase name="SV-CFG-01 Action defaults with no spec-path / junit-path set" classname="spec" time="2.60"/>
     <testcase name="SV-CFG-06 Draft PR still gets a check and a comment" classname="spec" time="3.00"/>
     <testcase name="SV-ING-01 Counts from the 67-testcase fixture" classname="spec" time="3.40"/>
-    <testcase name="SV-ING-02 Skipped testcases count toward the total" classname="spec" time="3.80"/>
+    <testcase name="SV-ING-02 Skipped testcases count toward the total" classname="spec" time="3.80">
+      <failure message="Expected pass_rate 0.60 for 6 passed + 2 skipped of 10, received 0.75">AssertionError: Expected pass_rate 0.60 for 6 passed + 2 skipped of 10, received 0.75</failure>
+    </testcase>
     <testcase name="SV-ING-04 Malformed JUnit XML" classname="spec" time="4.20"/>
     <testcase name="SV-TSI-01 Primary fixture" classname="spec" time="1.80"/>
-    <testcase name="SV-TSI-04 Rounding is half-up, not truncation" classname="spec" time="2.20">
-      <failure message="Expected 95.5 to round to 96, received 95">AssertionError: Expected 95.5 to round to 96, received 95</failure>
-    </testcase>
+    <testcase name="SV-TSI-04 Rounding is half-up, not truncation" classname="spec" time="2.20"/>
     <testcase name="SV-TSI-06 Determinism" classname="spec" time="2.60"/>
     <testcase name="SV-TSI-07 Delta against the previous run" classname="spec" time="3.00"/>
     <testcase name="SV-ADQ-01 Per-test depth is reported" classname="spec" time="3.40"/>

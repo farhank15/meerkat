@@ -4,7 +4,7 @@
 // score). Conflating them is how a red build gets "fixed" by deleting a test.
 
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { DEMO_RUN, DEMO_RUN_2, getLoop } from '@/lib/store'
+import { DEMO_PROJECT, DEMO_RUN, DEMO_RUN_2, getLoop } from '@/lib/store'
 import { AuthGate } from '@/components/AuthGate'
 import { Container } from '@/components/site'
 
@@ -165,6 +165,20 @@ function LoopContent() {
               the merge.
             </li>
           </ol>
+
+          {DEMO_RUN.loop?.fixCommit && (
+            <p className="mt-3 text-xs text-neutral-500">
+              Fix commit that closed the loop:{' '}
+              <a
+                href={`${DEMO_PROJECT.repoUrl}/commit/${DEMO_RUN.loop.fixCommit}`}
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono text-emerald-400 underline-offset-2 hover:text-emerald-300 hover:underline"
+              >
+                {DEMO_RUN.loop.fixCommit.slice(0, 7)} ↗
+              </a>
+            </p>
+          )}
         </div>
       </section>
 

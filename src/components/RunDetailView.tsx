@@ -17,7 +17,6 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
   const { tsi, coverage, stability, passRate } = run.metric
   const repoUrl = getProject(run.projectId)?.repoUrl
   const runCommit = commitUrl(repoUrl, run.sha)
-  const fixCommit = commitUrl(repoUrl, run.loop?.fixCommit)
   const scored = run.status === 'complete'
 
   return (
@@ -283,28 +282,15 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
                   <dt className="text-neutral-500">Result</dt>
                   <dd className="font-medium text-emerald-400">{run.loop.result}</dd>
                 </div>
-                {run.loop.fixCommit && (
-                  <div className="flex justify-between gap-3">
-                    <dt className="text-neutral-500">Commit traceability</dt>
-                    <dd className="text-right">
-                      {fixCommit ? (
-                        <a
-                          href={fixCommit}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="font-mono text-xs text-emerald-400 underline-offset-2 hover:text-emerald-300 hover:underline"
-                        >
-                          {run.loop.fixCommit?.slice(0, 7)}
-                        </a>
-                      ) : (
-                        <span className="font-mono text-xs text-neutral-500">
-                          {run.loop.fixCommit?.slice(0, 7)}
-                        </span>
-                      )}
-                    </dd>
-                  </div>
-                )}
               </dl>
+              <p className="mt-3 text-xs text-neutral-500">
+                This trail pins the score to the commit above. The fix commit that closed
+                the loop is listed on the{' '}
+                <Link to="/loop" className="text-emerald-400 hover:text-emerald-300">
+                  Loop page
+                </Link>
+                .
+              </p>
             </div>
           )}
 

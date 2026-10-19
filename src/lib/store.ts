@@ -278,7 +278,7 @@ function buildIncompleteRun(): Run {
   return {
     id: 'run-demo-2',
     projectId: DEMO_PROJECT.id,
-    sha: '532eeab3f7b0f2f4b0b0e4a1c9d2f3a4b5c6d7e8',
+    sha: 'dd3d4acc9267a607bf7a1dab3d24c404c41140aa',
     pr: '#13',
     branch: 'feat/phase2-mvp',
     environment: 'preview',
