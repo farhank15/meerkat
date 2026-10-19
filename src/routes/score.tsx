@@ -127,6 +127,56 @@ function Score() {
         </div>
         <ScorePlayground />
       </Section>
+
+      <Section id="cli-contract" className="border-t border-white/5 pt-16">
+        <div className="max-w-2xl">
+          <h2 className="text-2xl font-bold tracking-tight text-neutral-50">
+            The CLI contract, on one panel
+          </h2>
+          <p className="mt-3 text-neutral-400">
+            The scoring CLI is the offline twin of this page. Its contract is fixed and
+            deterministic — here is the whole surface:
+          </p>
+        </div>
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl border border-white/10 bg-neutral-900/60 p-5">
+            <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-neutral-500">
+              Command
+            </div>
+            <code className="mt-3 block overflow-x-auto rounded-lg bg-neutral-950/70 p-3 font-mono text-sm text-neutral-300">
+              npx suitevitals score --junit testsprite-junit.xml --spec SPEC.md
+            </code>
+            <p className="mt-3 text-xs text-neutral-500">
+              Prints JSON: <code>{'{ tsi, coverage, stability, pass_rate, gaps }'}</code>.
+              The demo fixture scores{' '}
+              <strong className="text-emerald-400">TSI 93</strong>.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-neutral-900/60 p-5">
+            <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-neutral-500">
+              Exit codes & behaviour
+            </div>
+            <ul className="mt-3 space-y-2 font-mono text-sm text-neutral-300">
+              <li>
+                <span className="text-emerald-400">exit 0</span> — scored; same input
+                twice is <strong className="text-neutral-100">byte-identical</strong>.
+              </li>
+              <li>
+                <span className="text-rose-400">exit 2</span> — missing argument
+                (<code>--junit</code> / <code>--spec</code> not supplied).
+              </li>
+              <li>
+                <span className="text-rose-400">exit 3</span> — missing JUnit file
+                (the file does not exist).
+              </li>
+              <li>
+                <span className="text-amber-400">parse-error</span> — malformed XML is
+                reported as parse-error; the run never crashes.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </Section>
     </>
   )
 }

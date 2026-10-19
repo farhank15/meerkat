@@ -133,22 +133,30 @@ export function GapList({ run }: { run: Run }) {
           Uncovered specification entries ({gaps.length})
         </h3>
         <p className="mt-1 text-xs text-neutral-500">
-          A gap is a scenario the contract promises and no testcase asserts. Each one
-          links to the line in SPEC.md that defines it.
+          A gap is a scenario the contract promises and no testcase asserts. Each entry
+          quotes the line&apos;s own text — the evidence that the line exists — and
+          links to it in the repo.
         </p>
       </div>
       <ul className="divide-y divide-white/5">
         {gaps.map((g) => (
-          <li key={g.id} className="flex items-center justify-between gap-4 px-5 py-2.5">
-            <span className="font-mono text-xs text-neutral-300">{g.id}</span>
-            <a
-              href={specLineHref(g.specLine)}
-              target="_blank"
-              rel="noreferrer"
-              className="font-mono text-xs text-amber-400 underline-offset-2 hover:text-amber-300 hover:underline"
-            >
-              SPEC.md:{g.specLine}
-            </a>
+          <li key={g.id} className="flex flex-col gap-1.5 px-5 py-3">
+            <div className="flex items-center justify-between gap-4">
+              <span className="font-mono text-xs text-neutral-300">{g.id}</span>
+              <a
+                href={specLineHref(g.specLine)}
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono text-xs text-amber-400 underline-offset-2 hover:text-amber-300 hover:underline"
+              >
+                SPEC.md:{g.specLine} ↗
+              </a>
+            </div>
+            {/* In-page proof: the row's own text, quoted from SPEC.md:line —
+                verification of the reference without leaving the run page. */}
+            <p className="font-mono text-[11px] italic leading-relaxed text-neutral-500">
+              &lt;{g.specLine}&gt; “{g.asserts}”
+            </p>
           </li>
         ))}
       </ul>

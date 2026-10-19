@@ -15,6 +15,8 @@ export interface SpecEntry {
   /** 1-based line in SPEC.md that defines this scenario — the gap trace target. */
   specLine: number
   covered: boolean
+  /** The scenario row's own text — the in-page proof that the line exists. */
+  asserts?: string
   /** Testcase that asserts this ID, or null when the ID is a gap. */
   testName: string | null
   /** Verdict of the testcase that covers this ID (absent for gaps). */
@@ -146,7 +148,7 @@ function specIdFor(testName: string): string | null {
 function buildSpecEntries(): SpecEntry[] {
   return SPEC.map((s) => {
     const tc = DEMO_JUNIT.cases.find((c) => c.name.includes(s.id))
-    if (!tc) return { id: s.id, specLine: s.line, covered: false, testName: null }
+    if (!tc) return { id: s.id, specLine: s.line, covered: false, testName: null, asserts: s.asserts }
     return {
       id: s.id,
       specLine: s.line,
@@ -155,6 +157,7 @@ function buildSpecEntries(): SpecEntry[] {
       status: tc.status,
       failureMessage: tc.message,
       vacuous: tc.name === VACUOUS_TEST,
+      asserts: s.asserts,
     }
   })
 }
@@ -222,7 +225,8 @@ function buildDemoRun(): Run {
       state: 'failed',
       label: 'failed — 3 testcases before remediation',
       detail:
-        'The run failed on the rounding rule, the coverage count and the gap trace. ' +
+        'The run failed on skip accounting (SV-ING-02), the coverage count (SV-COV-01) ' +
+        'and the gap trace (SV-AUD-02). ' +
         'No score is trusted until the failing testcases are fixed or shown to be drift.',
     },
     loop: {
