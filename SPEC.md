@@ -65,7 +65,7 @@ not a sufficient signal.
 
 | ID | Asserts | Exact value |
 |---|---|---|
-| `SV-TSI-01` | Primary fixture | coverage `60/67`, stability `66/67`, pass `63/67` (64 passed, **1 vacuous**) → `round(93.13) = 93` |
+| `SV-TSI-01` | Primary fixture | coverage `30/33`, stability `65/67`, pass `63/67` (64 passed, **1 vacuous**) → `round(93.37) = 93` |
 | `SV-TSI-04` | Rounding is half-up, not truncation | `95.4999 → 95`; `95.5 → 96` |
 | `SV-TSI-06` | Determinism | same input twice → byte-identical JSON (no timestamp inside the value) |
 | `SV-TSI-07` | Delta against the previous run | previous `96`, current `93` → `delta = -3` |
@@ -86,9 +86,9 @@ false-pass failure mode that a pass/fail count cannot see.
 
 | ID | Asserts | Exact value |
 |---|---|---|
-| `SV-COV-01` | Partial match | SPEC `67` IDs, JUnit has `60` → `coverage = 60/67 = 0.895522` |
+| `SV-COV-01` | Partial match | SPEC `33` IDs, JUnit covers `30` → `coverage = 30/33 = 0.909091` |
 | `SV-COV-04` | ID matching is case-sensitive | test named `sv-smk-01` does **not** match; recorded as an orphan test |
-| `SV-COV-09` | Coverage table on the run detail page | 67 rows (ID · status · test name); `SV-SMK-01` shows `covered` |
+| `SV-COV-09` | Coverage table on the run detail page | 33 rows (ID · status · test name); `SV-SMK-01` shows `covered`; the 37 tests with no SPEC ID are listed separately as orphans |
 
 ### Ratchet — 3
 
@@ -124,7 +124,7 @@ false-pass failure mode that a pass/fail count cannot see.
 | ID | Asserts | Exact value |
 |---|---|---|
 | `SV-AUD-01` | Trace the score to its JUnit source | clicking TSI `93` lists `testsprite-junit.xml` and the exact testcase rows behind each metric, including the `3` failing testcases |
-| `SV-AUD-02` | Trace a gap to its SPEC line | clicking gap `SV-RAT-05` shows `<spec-path>:<line>` where that line genuinely contains `SV-RAT-05` — for the seeded demo run the path is `fixtures/SPEC.md` |
+| `SV-AUD-02` | Trace a gap to its SPEC line | clicking gap `SV-ADQ-03` shows `<spec-path>:<line>` where that line genuinely contains `SV-ADQ-03` — for the seeded demo run the path is `SPEC.md` |
 | `SV-AUD-03` | Provenance is pinned to a commit | panel shows the commit `sha` and `run_id`; the link resolves to the public repo at that `sha` |
 
 ### Auto-remediation loop — 4

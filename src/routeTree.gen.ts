@@ -10,33 +10,194 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as LoopRouteImport } from './routes/loop'
+import { Route as RunsRouteImport } from './routes/runs'
+import { Route as ScoreRouteImport } from './routes/score'
+import { Route as AuthSigninRouteImport } from './routes/auth.signin'
+import { Route as RunsIndexRouteImport } from './routes/runs/index'
+import { Route as RunsIdRouteImport } from './routes/runs/$id'
+import { Route as ShareIndexRouteImport } from './routes/share/index'
+import { Route as ShareSlugRouteImport } from './routes/share/$slug'
+import { Route as RunsIdIndexRouteImport } from './routes/runs/$id/index'
+import { Route as RunsIdCoverageRouteImport } from './routes/runs/$id/coverage'
+import { Route as ShareSlugIndexRouteImport } from './routes/share/$slug/index'
+import { Route as ShareSlugRunIdRouteImport } from './routes/share/$slug/run/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoopRoute = LoopRouteImport.update({
+  id: '/loop',
+  path: '/loop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RunsRoute = RunsRouteImport.update({
+  id: '/runs',
+  path: '/runs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScoreRoute = ScoreRouteImport.update({
+  id: '/score',
+  path: '/score',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthSigninRoute = AuthSigninRouteImport.update({
+  id: '/auth/signin',
+  path: '/auth/signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RunsIndexRoute = RunsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RunsRoute,
+} as any)
+const RunsIdRoute = RunsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => RunsRoute,
+} as any)
+const ShareIndexRoute = ShareIndexRouteImport.update({
+  id: '/share/',
+  path: '/share/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShareSlugRoute = ShareSlugRouteImport.update({
+  id: '/share/$slug',
+  path: '/share/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RunsIdIndexRoute = RunsIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RunsIdRoute,
+} as any)
+const RunsIdCoverageRoute = RunsIdCoverageRouteImport.update({
+  id: '/coverage',
+  path: '/coverage',
+  getParentRoute: () => RunsIdRoute,
+} as any)
+const ShareSlugIndexRoute = ShareSlugIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ShareSlugRoute,
+} as any)
+const ShareSlugRunIdRoute = ShareSlugRunIdRouteImport.update({
+  id: '/run/$id',
+  path: '/run/$id',
+  getParentRoute: () => ShareSlugRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/loop': typeof LoopRoute
+  '/runs': typeof RunsRouteWithChildren
+  '/score': typeof ScoreRoute
+  '/auth/signin': typeof AuthSigninRoute
+  '/runs/$id': typeof RunsIdRouteWithChildren
+  '/share/$slug': typeof ShareSlugRouteWithChildren
+  '/runs/': typeof RunsIndexRoute
+  '/share/': typeof ShareIndexRoute
+  '/runs/$id/coverage': typeof RunsIdCoverageRoute
+  '/runs/$id/': typeof RunsIdIndexRoute
+  '/share/$slug/': typeof ShareSlugIndexRoute
+  '/share/$slug/run/$id': typeof ShareSlugRunIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/loop': typeof LoopRoute
+  '/score': typeof ScoreRoute
+  '/auth/signin': typeof AuthSigninRoute
+  '/runs': typeof RunsIndexRoute
+  '/share': typeof ShareIndexRoute
+  '/runs/$id/coverage': typeof RunsIdCoverageRoute
+  '/runs/$id': typeof RunsIdIndexRoute
+  '/share/$slug': typeof ShareSlugIndexRoute
+  '/share/$slug/run/$id': typeof ShareSlugRunIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/loop': typeof LoopRoute
+  '/runs': typeof RunsRouteWithChildren
+  '/score': typeof ScoreRoute
+  '/auth/signin': typeof AuthSigninRoute
+  '/runs/$id': typeof RunsIdRouteWithChildren
+  '/share/$slug': typeof ShareSlugRouteWithChildren
+  '/runs/': typeof RunsIndexRoute
+  '/share/': typeof ShareIndexRoute
+  '/runs/$id/coverage': typeof RunsIdCoverageRoute
+  '/runs/$id/': typeof RunsIdIndexRoute
+  '/share/$slug/': typeof ShareSlugIndexRoute
+  '/share/$slug/run/$id': typeof ShareSlugRunIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/loop'
+    | '/runs'
+    | '/score'
+    | '/auth/signin'
+    | '/runs/$id'
+    | '/share/$slug'
+    | '/runs/'
+    | '/share/'
+    | '/runs/$id/coverage'
+    | '/runs/$id/'
+    | '/share/$slug/'
+    | '/share/$slug/run/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/login'
+    | '/loop'
+    | '/score'
+    | '/auth/signin'
+    | '/runs'
+    | '/share'
+    | '/runs/$id/coverage'
+    | '/runs/$id'
+    | '/share/$slug'
+    | '/share/$slug/run/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/loop'
+    | '/runs'
+    | '/score'
+    | '/auth/signin'
+    | '/runs/$id'
+    | '/share/$slug'
+    | '/runs/'
+    | '/share/'
+    | '/runs/$id/coverage'
+    | '/runs/$id/'
+    | '/share/$slug/'
+    | '/share/$slug/run/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LoginRoute: typeof LoginRoute
+  LoopRoute: typeof LoopRoute
+  RunsRoute: typeof RunsRouteWithChildren
+  ScoreRoute: typeof ScoreRoute
+  AuthSigninRoute: typeof AuthSigninRoute
+  ShareSlugRoute: typeof ShareSlugRouteWithChildren
+  ShareIndexRoute: typeof ShareIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +209,148 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/loop': {
+      id: '/loop'
+      path: '/loop'
+      fullPath: '/loop'
+      preLoaderRoute: typeof LoopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/runs': {
+      id: '/runs'
+      path: '/runs'
+      fullPath: '/runs'
+      preLoaderRoute: typeof RunsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/score': {
+      id: '/score'
+      path: '/score'
+      fullPath: '/score'
+      preLoaderRoute: typeof ScoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/signin': {
+      id: '/auth/signin'
+      path: '/auth/signin'
+      fullPath: '/auth/signin'
+      preLoaderRoute: typeof AuthSigninRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/runs/': {
+      id: '/runs/'
+      path: '/'
+      fullPath: '/runs/'
+      preLoaderRoute: typeof RunsIndexRouteImport
+      parentRoute: typeof RunsRoute
+    }
+    '/runs/$id': {
+      id: '/runs/$id'
+      path: '/$id'
+      fullPath: '/runs/$id'
+      preLoaderRoute: typeof RunsIdRouteImport
+      parentRoute: typeof RunsRoute
+    }
+    '/share/': {
+      id: '/share/'
+      path: '/share'
+      fullPath: '/share/'
+      preLoaderRoute: typeof ShareIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/share/$slug': {
+      id: '/share/$slug'
+      path: '/share/$slug'
+      fullPath: '/share/$slug'
+      preLoaderRoute: typeof ShareSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/runs/$id/': {
+      id: '/runs/$id/'
+      path: '/'
+      fullPath: '/runs/$id/'
+      preLoaderRoute: typeof RunsIdIndexRouteImport
+      parentRoute: typeof RunsIdRoute
+    }
+    '/runs/$id/coverage': {
+      id: '/runs/$id/coverage'
+      path: '/coverage'
+      fullPath: '/runs/$id/coverage'
+      preLoaderRoute: typeof RunsIdCoverageRouteImport
+      parentRoute: typeof RunsIdRoute
+    }
+    '/share/$slug/': {
+      id: '/share/$slug/'
+      path: '/'
+      fullPath: '/share/$slug/'
+      preLoaderRoute: typeof ShareSlugIndexRouteImport
+      parentRoute: typeof ShareSlugRoute
+    }
+    '/share/$slug/run/$id': {
+      id: '/share/$slug/run/$id'
+      path: '/run/$id'
+      fullPath: '/share/$slug/run/$id'
+      preLoaderRoute: typeof ShareSlugRunIdRouteImport
+      parentRoute: typeof ShareSlugRoute
+    }
   }
 }
 
+interface RunsIdRouteChildren {
+  RunsIdCoverageRoute: typeof RunsIdCoverageRoute
+  RunsIdIndexRoute: typeof RunsIdIndexRoute
+}
+
+const RunsIdRouteChildren: RunsIdRouteChildren = {
+  RunsIdCoverageRoute: RunsIdCoverageRoute,
+  RunsIdIndexRoute: RunsIdIndexRoute,
+}
+
+const RunsIdRouteWithChildren =
+  RunsIdRoute._addFileChildren(RunsIdRouteChildren)
+
+interface RunsRouteChildren {
+  RunsIdRoute: typeof RunsIdRouteWithChildren
+  RunsIndexRoute: typeof RunsIndexRoute
+}
+
+const RunsRouteChildren: RunsRouteChildren = {
+  RunsIdRoute: RunsIdRouteWithChildren,
+  RunsIndexRoute: RunsIndexRoute,
+}
+
+const RunsRouteWithChildren = RunsRoute._addFileChildren(RunsRouteChildren)
+
+interface ShareSlugRouteChildren {
+  ShareSlugIndexRoute: typeof ShareSlugIndexRoute
+  ShareSlugRunIdRoute: typeof ShareSlugRunIdRoute
+}
+
+const ShareSlugRouteChildren: ShareSlugRouteChildren = {
+  ShareSlugIndexRoute: ShareSlugIndexRoute,
+  ShareSlugRunIdRoute: ShareSlugRunIdRoute,
+}
+
+const ShareSlugRouteWithChildren = ShareSlugRoute._addFileChildren(
+  ShareSlugRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LoginRoute: LoginRoute,
+  LoopRoute: LoopRoute,
+  RunsRoute: RunsRouteWithChildren,
+  ScoreRoute: ScoreRoute,
+  AuthSigninRoute: AuthSigninRoute,
+  ShareSlugRoute: ShareSlugRouteWithChildren,
+  ShareIndexRoute: ShareIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
