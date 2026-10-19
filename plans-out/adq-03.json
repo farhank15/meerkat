@@ -1,15 +1,16 @@
 {
   "projectId": "938f6b63-63d6-4bcd-bff4-13e3f035868c",
-  "name": "SV-ADQ-03 `SV-ADQ-03` A shallow pass is flagged, not penalised a passing test with exactly",
-  "priority": "high",
+  "name": "SV-ADQ-03 flag a shallow pass with a single assertion",
+  "priority": "p1",
   "planSteps": [
     {
       "type": "action",
-      "description": "Open the Meerkat surface that realizes spec scenario SV-ADQ-03: `SV-ADQ-03` A shallow pass is flagged, not penalised a passing test with exactly 1 `type: assertion` step → flagged `shallow (1 assertion)`; `pass_rate` unchanged"
+      "description": "Open the Meerkat surface that realizes spec scenario SV-ADQ-03: `SV-ADQ-03` A shallow pass is flagged, not penalised a passing test with exactly 1 `type: assertion` step \u2192 flagged `shallow (1 assertion)`; `pass_rate` unchanged"
     },
     {
       "type": "assertion",
       "description": "Assert the observable outcome described by SV-ADQ-03, anchored on visible page evidence (SPEC.md line 83)."
     }
-  ]
+  ],
+  "type": "frontend"
 }

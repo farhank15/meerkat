@@ -190,6 +190,11 @@ function Runs() {
           A dash for TSI means the verdict was withheld, not failed — open the row to
           see why. Rows made clickable carry the full run payload.
         </p>
+        <p className="mt-1 text-xs text-neutral-500">
+          This board is the public ledger of the Meerkat repo shown here.
+          Connected repositories get their own private workspace board —
+          planned for v2.
+        </p>
         {ingested === null ? (
           <p className="mt-4 text-sm text-neutral-600">Loading live runs…</p>
         ) : ingested.length === 0 ? (

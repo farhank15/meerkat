@@ -1,15 +1,16 @@
 {
   "projectId": "938f6b63-63d6-4bcd-bff4-13e3f035868c",
-  "name": "SV-FIX-06 `SV-FIX-06` A failed attempt escalates after 1 attempt the rerun is still red → ",
-  "priority": "high",
+  "name": "SV-FIX-06 escalate a failed fix attempt instead of forcing green",
+  "priority": "p1",
   "planSteps": [
     {
       "type": "action",
-      "description": "Open the Meerkat surface that realizes spec scenario SV-FIX-06: `SV-FIX-06` A failed attempt escalates after 1 attempt the rerun is still red → label `escalated to human`; never retries more than once"
+      "description": "Open the Meerkat surface that realizes spec scenario SV-FIX-06: `SV-FIX-06` A failed attempt escalates after 1 attempt the rerun is still red \u2192 label `escalated to human`; never retries more than once"
     },
     {
       "type": "assertion",
       "description": "Assert the observable outcome described by SV-FIX-06, anchored on visible page evidence (SPEC.md line 141)."
     }
-  ]
+  ],
+  "type": "frontend"
 }
