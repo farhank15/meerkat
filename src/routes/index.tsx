@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { DEMO_RUN } from '@/lib/store'
 import { Container, Section, ScoreCard } from '@/components/site'
+import meerkatLogo from '@/assets/meerkat.png'
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -18,7 +19,14 @@ function Home() {
         />
         <Container className="relative grid gap-14 py-20 sm:py-28 lg:grid-cols-2 lg:items-center">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-neutral-400">
+            <img
+              src={meerkatLogo}
+              alt="Meerkat — sentinel for your test suite"
+              width={72}
+              height={72}
+              className="h-18 w-18 rounded-2xl bg-neutral-950 object-contain shadow-[0_0_60px_-12px_rgba(16,185,129,0.45)] ring-1 ring-white/10"
+            />
+            <span className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-neutral-400">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
               Powered by TestSprite runs
             </span>

@@ -87,6 +87,27 @@ areas:
 The scenario contract lives in [`SPEC.md`](SPEC.md) and is the oracle for coverage
 traceability — every coverage number Meerkat reports traces back to a line in it.
 
+## What the TestSprite suite covers
+
+The 37-scenario suite (generated in the TestSprite 3.0 portal from `SPEC.md`) runs
+against each PR's preview deployment and reports back as a check on the pull request:
+
+- **Entry & auth** — landing → sign in with the demo account (`demo@suitevitals.dev`
+  / `demo-password-1`), session persistence, dashboard access.
+- **Runs & run detail** — runs list navigation, per-run metrics with the TSI source
+  breakdown, verdict labels (refused ≠ failure, incomplete rerun handled).
+- **Coverage traceability** — coverage table rows (ID · status · test name), covered
+  IDs, gaps traced to their `SPEC.md` line, orphan detection for tests that assert
+  no scenario.
+- **Audit trail** — clickability from TSI → JUnit testcase rows → `SPEC.md:<line>` →
+  commit SHA on the public repo (including from the Loop page).
+- **Public share** — `/s/{slug}` scorecard renders without login; unknown slug → 404;
+  the first run opens from the scorecard.
+- **Loop verdict trust** — verdict summary, spec-drift guidance on the Loop page.
+- **Scoring CLI** — score a JUnit file, expected-fixture value (`93`), rounding
+  (half-up), determinism (byte-identical re-run), missing-argument exit code,
+  malformed-XML handling without a crash.
+
 ## Honest by design
 
 Meerkat does not invent data. Stability needs two runs of the same SHA; with one run
