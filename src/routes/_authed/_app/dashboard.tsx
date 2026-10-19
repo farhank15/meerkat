@@ -167,7 +167,7 @@ function Dashboard() {
                         <TD className="font-mono text-2xs">{run.sha?.slice(0, 8) ?? '—'}</TD>
                         <TD className="text-2xs">{run.source}</TD>
                         <TD align="right" className="mono-nums text-ink">
-                          {run.tsi ?? '—'}
+                          {run.tsi == null ? <Badge tone="warn">withheld</Badge> : run.tsi}
                         </TD>
                         <TD>
                           <StatusBadge status={run.status} />

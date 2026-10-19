@@ -26,9 +26,20 @@ function commitUrl(repoUrl: string | null, sha: string | null): string | null {
 
 /** A shallow pass asserted exactly one step — flagged so the reader knows the
  * coverage is thin, not rich. It still counts toward the pass rate. */
-function LoopPanel({ loop }: { loop: LoopAction }) {
+function LoopPanel({
+  loop,
+  run,
+}: {
+  loop: LoopAction
+  run: {
+    status: string
+    metric?: { tsi?: number | null; coverage?: number; stability?: number; passRate?: number } | null
+  }
+}) {
   const escalated =
     loop.result === 'failed' || loop.result === 'escalated' || /escalat/i.test(loop.action)
+  const scored = run.status === 'complete'
+  const pct = (v?: number) => (typeof v === 'number' ? `${(v * 100).toFixed(0)}%` : '—')
   return (
     <Card>
       <CardHeader
@@ -55,6 +66,20 @@ function LoopPanel({ loop }: { loop: LoopAction }) {
           </div>
         ))}
       </dl>
+      <div className="border-t border-line px-4 py-2.5 text-2xs text-ink-muted">
+        <p className="font-medium text-ink">Score trace</p>
+        <p className="mt-0.5 font-mono">
+          TSI {scored ? (run.metric?.tsi ?? 'withheld') : 'withheld'} · Coverage {pct(run.metric?.coverage)} ·{' '}
+          Stability {pct(run.metric?.stability)} · Pass rate {pct(run.metric?.passRate)}
+        </p>
+        {loop.classification === 'spec-drift' && (
+          <p className="mt-1.5">
+            <span className="font-medium text-ink">Spec drift:</span> update the test to match the
+            spec, update the spec to match the behaviour, or both. A drifted scenario is not trusted
+            until reconciled.
+          </p>
+        )}
+      </div>
       {loop.fixCommit && (
         <div className="border-t border-line px-4 py-2.5">
           <a
@@ -148,16 +173,40 @@ function RunOverview() {
 
       <div className="space-y-4 p-6">
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Stat
-            label="Test Strength Index"
-            value={scored ? run.metric.tsi : '—'}
-            hint={scored ? 'Deterministic score' : 'Verdict withheld'}
-            tone={!scored ? 'neutral' : run.metric.tsi >= 80 ? 'ok' : run.metric.tsi >= 50 ? 'warn' : 'danger'}
-          />
+          <Link
+            to="/runs/$id/coverage"
+            params={{ id }}
+            aria-label="Open TSI traceability"
+            className="block rounded-lg transition-colors hover:ring-2 hover:ring-accent"
+          >
+            <Stat
+              label="Test Strength Index (TSI)"
+              value={scored ? run.metric.tsi : '—'}
+              hint={scored ? 'Deterministic score · tap for traceability' : 'Verdict withheld'}
+              tone={!scored ? 'neutral' : run.metric.tsi >= 80 ? 'ok' : run.metric.tsi >= 50 ? 'warn' : 'danger'}
+            />
+          </Link>
           <Stat label="Coverage" value={`${(run.metric.coverage * 100).toFixed(1)}%`} hint="Weight 50%" />
           <Stat label="Stability" value={`${(run.metric.stability * 100).toFixed(1)}%`} hint="Weight 30%" />
           <Stat label="Pass rate" value={`${(run.metric.passRate * 100).toFixed(1)}%`} hint="Meaningful passes only" />
         </div>
+
+        {scored && (
+          <Card>
+            <CardHeader
+              title="TSI score breakdown"
+              description="How the Test Strength Index is composed for this run."
+            />
+            <div className="px-4 py-3 text-xs leading-relaxed text-ink-muted">
+              <p className="font-mono text-ink">TSI = 0.5·coverage + 0.3·stability + 0.2·passRate</p>
+              <p className="mt-2">
+                Coverage {run.metric.coverage * 100 >= 0 ? (run.metric.coverage * 100).toFixed(0) : '0'}% (weight 50%) ·{' '}
+                Stability {(run.metric.stability * 100).toFixed(0)}% (weight 30%) · Pass rate{' '}
+                {(run.metric.passRate * 100).toFixed(0)}% (weight 20%)
+              </p>
+            </div>
+          </Card>
+        )}
 
         {run.verdict && (
           <Alert
@@ -187,9 +236,19 @@ function RunOverview() {
               }
             />
             <div className="px-4 py-3 text-xs leading-relaxed text-ink-muted">
-              {run.verdict.state === 'green'
-                ? 'Trusted — every pass asserts a contracted scenario, no vacuous checks.'
-                : 'The gate withholds or challenges the verdict rather than forcing a green.'}
+              {run.verdict.state === 'green' ? (
+                <p>
+                  <span className="font-medium text-ok">Trusted.</span> Every pass asserts a
+                  contracted scenario, with no vacuous checks — the green verdict is backed by
+                  evidence.
+                </p>
+              ) : (
+                <p>
+                  <span className="font-medium text-danger">Not trusted yet.</span>{' '}
+                  {run.verdict.label}. The gate withholds a green verdict until the failure is
+                  fixed or shown to be drift — it never forces green before remediation.
+                </p>
+              )}
             </div>
           </Card>
         )}
@@ -233,7 +292,7 @@ function RunOverview() {
           </Alert>
         )}
 
-        {run.loop && <LoopPanel loop={run.loop} />}
+        {run.loop && <LoopPanel loop={run.loop} run={run} />}
 
         <PrChecksPanel baseline={ratchetBaseline.tsi} />
 

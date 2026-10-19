@@ -35,7 +35,8 @@ function ScorePage() {
             </pre>
             <p className="text-2xs leading-relaxed text-ink-subtle">
               Exit 0 scored · Exit 2 missing argument · Exit 3 missing file. Malformed XML
-              reports are rejected, never crashed through. Repeating the command with
+              reports are rejected with a <Badge tone="danger">parse-error</Badge> status — the
+              run is marked failed, never crashed through. Repeating the command with
               identical inputs produces a byte-identical result.
             </p>
           </div>

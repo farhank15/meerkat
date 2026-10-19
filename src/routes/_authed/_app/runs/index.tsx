@@ -72,7 +72,7 @@ function Runs() {
                     <TD className="text-2xs">{run.source}</TD>
                     <TD className="whitespace-nowrap text-2xs">{shortWhen(run.startedAt ?? run.createdAt)}</TD>
                     <TD align="right" className="mono-nums font-medium text-ink">
-                      {run.tsi ?? '—'}
+                      {run.tsi == null ? <Badge tone="warn">withheld</Badge> : run.tsi}
                     </TD>
                     <TD>
                       <StatusBadge status={run.status} />

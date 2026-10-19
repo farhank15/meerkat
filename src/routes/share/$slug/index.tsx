@@ -214,7 +214,7 @@ function SharePage() {
                       {run.coverage ? `${run.coverage.covered}/${run.coverage.total}` : '—'}
                     </TD>
                     <TD align="right" className="mono-nums text-ink">
-                      {run.tsi ?? '—'}
+                      {run.tsi == null ? <Badge tone="warn">withheld</Badge> : run.tsi}
                     </TD>
                     <TD>
                       <StatusBadge status={run.status} />

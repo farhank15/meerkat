@@ -32,8 +32,16 @@ export function TBody({ children }: { children: ReactNode }) {
   return <tbody className="divide-y divide-line">{children}</tbody>
 }
 
-export function TR({ children, className }: { children: ReactNode; className?: string }) {
-  return <tr className={cn('transition-colors hover:bg-surface-hover/50', className)}>{children}</tr>
+export function TR({
+  children,
+  className,
+  ...rest
+}: { children: ReactNode; className?: string } & React.TableHTMLAttributes<HTMLTableRowElement>) {
+  return (
+    <tr className={cn('transition-colors hover:bg-surface-hover/50', className)} {...rest}>
+      {children}
+    </tr>
+  )
 }
 
 export function TH({
