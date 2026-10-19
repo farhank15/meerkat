@@ -143,19 +143,24 @@ export function GapList({ run }: { run: Run }) {
           <li key={g.id} className="flex flex-col gap-1.5 px-5 py-3">
             <div className="flex items-center justify-between gap-4">
               <span className="font-mono text-xs text-neutral-300">{g.id}</span>
-              <a
-                href={specLineHref(g.specLine)}
-                target="_blank"
-                rel="noreferrer"
-                className="font-mono text-xs text-amber-400 underline-offset-2 hover:text-amber-300 hover:underline"
-              >
-                SPEC.md:{g.specLine} ↗
-              </a>
+              <span className="flex items-center gap-1">
+                <a
+                  href={specLineHref(g.specLine)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-mono text-xs text-amber-400 underline-offset-2 hover:text-amber-300 hover:underline"
+                >
+                  SPEC.md:{g.specLine}
+                </a>
+                <span aria-hidden className="text-[10px] text-neutral-600">
+                  ↗
+                </span>
+              </span>
             </div>
-            {/* In-page proof: the row's own text, quoted from SPEC.md:line —
-                verification of the reference without leaving the run page. */}
+            {/* In-page proof: the SPEC.md row itself, ID included — verification
+                of the reference without leaving the run page. */}
             <p className="font-mono text-[11px] italic leading-relaxed text-neutral-500">
-              &lt;{g.specLine}&gt; “{g.asserts}”
+              &lt;{g.specLine}&gt; `{g.id} · {g.asserts}`
             </p>
           </li>
         ))}
