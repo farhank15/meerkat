@@ -43,8 +43,14 @@ function Runs() {
       <Container className="py-12">
         <div className="mb-8">
           <h1 className="text-2xl font-bold tracking-tight text-neutral-50">Runs</h1>
-          <p className="mt-1 text-sm text-neutral-500">{DEMO_PROJECT.name}</p>
+          <p className="mt-1 text-sm text-neutral-500">
+            Meerkat — this repository. The committed baseline evidence stays on top;
+            every run the CI pipeline ingests lands below, labelled live.
+          </p>
         </div>
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-neutral-500">
+          Baseline evidence · committed artifacts (SPEC.md + JUnit)
+        </p>
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/50">
           <table className="w-full text-sm">
             <thead>

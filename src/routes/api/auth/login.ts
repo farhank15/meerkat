@@ -23,7 +23,13 @@ export const Route = createFileRoute('/api/auth/login')({
         }
 
         await ensureDemoSeed()
-        const user = await findUserByEmail(email)
+        let user
+        try {
+          user = await findUserByEmail(email)
+        } catch (err) {
+          console.error('[auth] login lookup failed:', (err as Error).message)
+          return Response.json({ error: 'database unavailable' }, { status: 503 })
+        }
         if (!user || !verifyPassword(password, user.passwordHash)) {
           return Response.json({ ok: false }, { status: 401 })
         }

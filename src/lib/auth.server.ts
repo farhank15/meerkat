@@ -15,8 +15,12 @@ export const DEMO_PASSWORD = 'demo-password-1'
 export const DEMO_PROJECT_SLUG = 'meerkat-demo'
 export const DEMO_PROJECT_REPO = 'https://github.com/farhank15/meerkat'
 
-/** matcha: dev fallback secret — set AUTH_SECRET in every production env. */
-const AUTH_SECRET = process.env.AUTH_SECRET ?? 'meerkat-dev-secret-do-not-use-in-prod'
+const IS_PROD = process.env.NODE_ENV === 'production'
+const AUTH_SECRET = process.env.AUTH_SECRET
+if (IS_PROD && !AUTH_SECRET) {
+  throw new Error('AUTH_SECRET must be set in production')
+}
+const RESOLVED_SECRET = AUTH_SECRET ?? 'meerkat-dev-secret-do-not-use-in-prod'
 
 // ── Passwords ────────────────────────────────────────────────────────────────
 
@@ -45,14 +49,14 @@ interface SessionClaims {
 
 function encode(payload: SessionClaims): string {
   const body = Buffer.from(JSON.stringify(payload)).toString('base64url')
-  const sig = createHmac('sha256', AUTH_SECRET).update(body).digest('base64url')
+  const sig = createHmac('sha256', RESOLVED_SECRET).update(body).digest('base64url')
   return `${body}.${sig}`
 }
 
 function decode(token: string): SessionClaims | undefined {
   const [body, sig] = token.split('.')
   if (!body || !sig) return undefined
-  const expected = createHmac('sha256', AUTH_SECRET).update(body).digest('base64url')
+  const expected = createHmac('sha256', RESOLVED_SECRET).update(body).digest('base64url')
   const a = Buffer.from(sig)
   const b = Buffer.from(expected)
   if (a.length !== b.length || !timingSafeEqual(a, b)) return undefined
@@ -68,11 +72,15 @@ const SESSION_TTL_MS = 24 * 60 * 60 * 1000
 /** RFC 6265 cookie string; HttpOnly so scripts cannot lift the token. */
 export function sessionCookie(userId: string, email: string): string {
   const token = encode({ uid: userId, email, exp: Date.now() + SESSION_TTL_MS })
-  return `${SESSION_COOKIE}=${token}; Path=/; Max-Age=86400; HttpOnly; SameSite=Lax`
+  const flags = ['Path=/', 'Max-Age=86400', 'HttpOnly', 'SameSite=Lax']
+  if (IS_PROD) flags.push('Secure')
+  return `${SESSION_COOKIE}=${token}; ${flags.join('; ')}`
 }
 
 export function clearSessionCookie(): string {
-  return `${SESSION_COOKIE}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax`
+  const flags = ['Path=/', 'Max-Age=0', 'HttpOnly', 'SameSite=Lax']
+  if (IS_PROD) flags.push('Secure')
+  return `${SESSION_COOKIE}=; ${flags.join('; ')}`
 }
 
 export function readSession(request: Request): SessionClaims | undefined {

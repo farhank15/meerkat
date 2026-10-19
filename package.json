@@ -6,6 +6,8 @@
     "#/*": "./src/*"
   },
   "scripts": {
+    "ingest": "node scripts/ingest-latest.mjs",
+    "mcp:smoke": "node scripts/mcp-smoke.mjs",
     "dev": "vite dev --port 3000",
     "generate-routes": "tsr generate",
     "build": "vite build",
@@ -19,6 +21,7 @@
     "score": "vite-node src/lib/cli/score.ts"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "0.10.13",
     "@tanstack/react-router": "1.170.44",
@@ -30,7 +33,8 @@
     "postgres": "^3.4.9",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.1.18",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tanstack/devtools-vite": "0.8.5",

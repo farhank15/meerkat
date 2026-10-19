@@ -6,6 +6,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { DEMO_PROJECT, DEMO_RUN, DEMO_RUN_2, getLoop } from '@/lib/store'
 import { AuthGate } from '@/components/AuthGate'
+import { BorderBeam } from '@/components/magicui'
 import { Container } from '@/components/site'
 
 export const Route = createFileRoute('/loop')({
@@ -38,7 +39,8 @@ function LoopContent() {
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500">
           Trust summary
         </h2>
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/50">
+        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/50">
+          <BorderBeam />
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-neutral-500">

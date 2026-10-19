@@ -1,7 +1,9 @@
-// Seeded in-memory demo store. Holds the demo project + the headline TSI-93
-// fixture (SV-TSI-01) so the dashboard and TestSprite have real data to render.
-// Real persistence (Neon/Drizzle) is a follow-up; this is the reliable MVP layer.
-// matcha: demo-only seed — no live database required to run/test the app.
+// Baseline evidence store. Holds this repository's committed headline fixture —
+// derived verbatim from SPEC.md + testsprite-junit.xml (SV-TSI-01, TSI 93) — so
+// the dashboard always renders deterministic, shipped evidence.
+// Persistence is real (Neon/Drizzle via /api/runs ingest + auth): live ingested
+// runs render in their own labelled section and never blend into this fixture.
+// matcha: fixture stays as labelled baseline — suite + badge fallback depend on it.
 
 import { tsiFromCounts } from '@/lib/tsi'
 import type { RunCounts } from '@/lib/types'

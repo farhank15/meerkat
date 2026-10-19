@@ -2,9 +2,11 @@
 // /share/$slug/run/$id so a shared scorecard can open a run without a login wall.
 
 import { Link } from '@tanstack/react-router'
+import { useState } from 'react'
 import { getProject, type Run } from '@/lib/store'
 import type { JUnitStatus } from '@/lib/junit'
 import { Container, ScoreCard } from '@/components/site'
+import { BorderBeam } from '@/components/magicui'
 import { slugifyTestName, GapList, OrphanTable, SpecTable, TraceabilitySummary } from '@/components/CoverageTrace'
 
 /** Only link a SHA we can address: 40 hex chars on the project's real repo. */
@@ -18,6 +20,17 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
   const repoUrl = getProject(run.projectId)?.repoUrl
   const runCommit = commitUrl(repoUrl, run.sha)
   const scored = run.status === 'complete'
+  const [copied, setCopied] = useState(false)
+
+  const onCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1600)
+    } catch {
+      // Clipboard may be unavailable (insecure context) — silently no-op.
+    }
+  }
 
   return (
     <Container className="py-12">
@@ -45,28 +58,75 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
         >
           Public share →
         </Link>
+        {publicView && (
+          <button
+            type="button"
+            onClick={onCopy}
+            className="rounded-full border border-white/10 px-3 py-1 text-xs text-neutral-400 transition-colors hover:border-white/20 hover:text-neutral-200"
+          >
+            {copied ? 'Copied' : 'Copy link'}
+          </button>
+        )}
       </div>
 
-      <div className="mt-4 grid gap-10 lg:grid-cols-[1fr_22rem]">
+      {/* Verdict banner — the one-line answer before any number. Additive
+          summary; the canonical verdict card lives in the aside (#verdict).
+          Text here is deliberately unique phrasing so anchored suite text
+          elsewhere on this page never matches twice. */}
+      <div
+        className={`mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border px-5 py-4 ${
+          run.verdict?.state === 'green'
+            ? 'border-emerald-500/20 bg-emerald-500/5'
+            : run.verdict?.state === 'failed'
+              ? 'border-rose-500/20 bg-rose-500/5'
+              : 'border-amber-500/20 bg-amber-500/5'
+        }`}
+      >
+        <span
+          aria-hidden
+          className={`h-2 w-2 rounded-full ${
+            run.verdict?.state === 'green'
+              ? 'bg-emerald-400'
+              : run.verdict?.state === 'failed'
+                ? 'bg-rose-400'
+                : 'bg-amber-400'
+          }`}
+        />
+        <span className="text-sm font-medium text-neutral-100">
+          {run.verdict?.state === 'green'
+            ? 'This run cleared the trust gate.'
+            : run.verdict?.state === 'failed'
+              ? 'A regression was caught — holding the release.'
+              : 'Scoring is paused — the evidence wave is still arriving.'}
+        </span>
+      </div>
+
+      <div className="mt-6 grid gap-10 lg:grid-cols-[1fr_22rem]">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-neutral-50">
             Run {run.id}
           </h1>
-          <div className="mt-1 flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-neutral-500">
-            <span>PR {run.pr}</span>
-            <span>branch {run.branch}</span>
-            <span>{run.environment}</span>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+            <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-neutral-300">
+              PR {run.pr}
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 font-mono text-xs text-neutral-300">
+              branch {run.branch}
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-neutral-300">
+              {run.environment}
+            </span>
             {runCommit ? (
               <a
                 href={runCommit}
                 target="_blank"
                 rel="noreferrer"
-                className="font-mono text-xs text-emerald-400 underline-offset-2 hover:text-emerald-300 hover:underline"
+                className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 font-mono text-xs text-emerald-300 transition-colors hover:border-emerald-500/40 hover:text-emerald-200"
               >
                 Commit {run.sha.slice(0, 7)} ↗
               </a>
             ) : (
-              <span className="font-mono text-xs text-neutral-500">
+              <span className="rounded-full border border-white/10 px-2.5 py-1 font-mono text-xs text-neutral-500">
                 Commit {run.sha.slice(0, 7)}
               </span>
             )}
@@ -85,7 +145,8 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
           >
             TSI source breakdown
           </h2>
-          <div className="rounded-2xl border border-white/10 bg-neutral-900/50 p-5">
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/50 p-5">
+            <BorderBeam />
             <p className="text-sm text-neutral-400">
               TSI = 0.50·coverage + 0.30·stability + 0.20·pass-rate, rounded half
               away from zero.
@@ -149,13 +210,13 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
               )}
             </p>
           </div>
-          <div className="max-h-72 overflow-auto rounded-xl border border-white/5">
+          <div className="max-h-96 overflow-auto rounded-xl border border-white/5">
             <table className="w-full text-xs">
-              <thead className="sticky top-0 bg-neutral-900">
+              <thead className="sticky top-0 z-10 bg-neutral-900">
                 <tr className="border-b border-white/5 text-left uppercase tracking-wider text-neutral-500">
-                  <th className="px-4 py-2 font-medium">Testcase</th>
-                  <th className="px-4 py-2 font-medium">Spec ID</th>
-                  <th className="px-4 py-2 font-medium">Status</th>
+                  <th className="px-4 py-2.5 font-medium">Testcase</th>
+                  <th className="px-4 py-2.5 font-medium">Spec ID</th>
+                  <th className="px-4 py-2.5 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -163,18 +224,20 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
                   <tr
                     key={t.name}
                     id={`testcase-${slugifyTestName(t.name)}`}
-                    className="scroll-mt-24 border-b border-white/5 last:border-0"
+                    className="scroll-mt-24 border-b border-white/5 transition-colors last:border-0 hover:bg-white/[0.03]"
                   >
-                    <td className="px-4 py-2 text-neutral-300">
-                      {t.name}
+                    <td className="px-4 py-2.5 text-neutral-300">
+                      <span className="font-mono">{t.name}</span>
                       {t.message && (
-                        <div className="mt-0.5 text-[11px] text-rose-400/80">{t.message}</div>
+                        <div className="mt-1 rounded-md border border-rose-500/10 bg-rose-500/5 px-2 py-1 text-[11px] text-rose-300/90">
+                          {t.message}
+                        </div>
                       )}
                     </td>
-                    <td className="px-4 py-2 font-mono text-neutral-400">
+                    <td className="px-4 py-2.5 font-mono text-neutral-400">
                       {t.specId ?? <span className="text-neutral-600">orphan</span>}
                     </td>
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-2.5">
                       <CaseStatus status={t.status} vacuous={t.vacuous} />
                     </td>
                   </tr>
@@ -298,8 +361,9 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
               rerun is held at neutral instead of being reported as a drop. */}
           <div
             id="verdict"
-            className="scroll-mt-24 rounded-2xl border border-white/10 bg-neutral-900/50 p-5"
+            className="scroll-mt-24 relative overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/50 p-5"
           >
+            <BorderBeam />
             <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-500">
               Verdict
             </h2>
@@ -365,10 +429,30 @@ export function RunDetailView({ run, publicView = false }: { run: Run; publicVie
 }
 
 function CaseStatus({ status, vacuous }: { status: JUnitStatus; vacuous?: boolean }) {
-  if (status === 'failed') return <span className="text-rose-400">failed</span>
-  if (status === 'skipped') return <span className="text-neutral-400">skipped</span>
-  if (vacuous) return <span className="text-amber-400">passed · vacuous</span>
-  return <span className="text-emerald-400">passed</span>
+  // Exact inner words are part of the ingested-junit contract — wrap only.
+  if (status === 'failed')
+    return (
+      <span className="rounded-full border border-rose-500/20 bg-rose-500/10 px-2 py-0.5 text-[11px] text-rose-300">
+        failed
+      </span>
+    )
+  if (status === 'skipped')
+    return (
+      <span className="rounded-full border border-white/10 px-2 py-0.5 text-[11px] text-neutral-400">
+        skipped
+      </span>
+    )
+  if (vacuous)
+    return (
+      <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[11px] text-amber-300">
+        passed · vacuous
+      </span>
+    )
+  return (
+    <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-300">
+      passed
+    </span>
+  )
 }
 
 function Breakdown({
