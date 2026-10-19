@@ -11,11 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Project documentation: README, contributing guide, security policy, and code
   of conduct.
+- **Test Strength Index (TSI)** — deterministic score from the TestSprite JUnit
+  report: coverage × stability × pass rate (fixture → 93).
+- **Scoring CLI** (`suitevitals score --junit x.xml --spec SPEC.md`) — same
+  input, byte-identical output.
+- **Dashboard MVP** — runs list, run detail with TSI breakdown, coverage
+  traceability, audit trail, Loop page, public share pages (`/s/{slug}`).
+- **Hero** — the Meerkat logo is on the landing hero.
+- **Suite coverage docs** — the README now documents what the 37-scenario
+  TestSprite suite covers.
 
 ### Planned
 
-- **Test Strength Index (TSI)** — a deterministic score from the TestSprite
-  JUnit report: coverage × stability × pass rate.
 - **Ratchet gate** — a status check that blocks a merge when the score drops
   below the `main` baseline.
 - **Verdict audit** — treat a refused run as *not a failure*, hold the gate on

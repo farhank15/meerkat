@@ -210,7 +210,7 @@ function Home() {
               <Row k="Classification" v="regression" />
               <Row k="Action" v="fix proposed" />
               <Row k="Result" v="green" accent />
-              <Row k="Fix commit" v="fix(meerkat): rounding rule" />
+              <Row k="Fix commit" v="fix(meerkat): skip accounting + coverage counts" />
             </div>
             <Link
               to="/runs/$id"
