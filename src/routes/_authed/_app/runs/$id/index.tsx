@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/ui/layout'
 import { RunTabs } from '@/components/run-tabs'
 import { Alert, Badge, Card, CardHeader, Stat, StatusBadge, VerdictBadge } from '@/components/ui/primitives'
 import { EscalationPanel } from '@/components/escalation-panel'
+import { PrChecksPanel } from '@/components/pr-checks-panel'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table'
 import { ExternalIcon } from '@/components/ui/icons'
 import { getRunFn } from '@/server/runs'
@@ -97,41 +98,14 @@ function LoopPanel({
   )
 }
 
-/** The two verifications GitHub reports on every pull request: the full
- * TestSprite App suite, and the fixed main baseline a run must beat. */
-function PrChecksPanel({ baseline }: { baseline: number }) {
-  return (
-    <Card>
-      <CardHeader
-        title="PR Checks"
-        description="What GitHub reports on every pull request against this project."
-      />
-      <ul className="divide-y divide-line">
-        <li className="flex items-center justify-between gap-4 px-4 py-3">
-          <div>
-            <p className="font-mono text-2xs text-ink">testsprite-dev</p>
-            <p className="mt-0.5 text-2xs text-ink-subtle">TestSprite GitHub App · full suite, every pull request</p>
-          </div>
-          <Badge tone="ok">required</Badge>
-        </li>
-        <li className="flex items-center justify-between gap-4 px-4 py-3">
-          <div>
-            <p className="font-mono text-2xs text-ink">SuiteVitals Ratchet</p>
-            <p className="mt-0.5 text-2xs text-ink-subtle">fixed main baseline · a drop below it keeps the loop from going green</p>
-          </div>
-          <Badge tone="info">baseline {baseline}</Badge>
-        </li>
-      </ul>
-    </Card>
-  )
-}
-
 function RunOverview() {
   const { id, run, project, meta } = Route.useLoaderData()
   const scored = run.status === 'complete'
   const commit = commitUrl(project.repoUrl, meta.sha)
   const failing = (run.testCases ?? []).filter((testCase) => testCase.status === 'failed')
   const shallowCount = (run.testCases ?? []).filter((testCase) => testCase.shallow).length
+  const pct = (v?: number) => (typeof v === 'number' ? `${(v * 100).toFixed(1)}%` : '—')
+  const passRate = pct(run.metric?.passRate)
 
   return (
     <>
@@ -285,11 +259,35 @@ function RunOverview() {
         {shallowCount > 0 && (
           <Alert
             tone="warn"
-            title={`${shallowCount} shallow pass${shallowCount > 1 ? 'es' : ''} (1 assertion)`}
+            title={`${shallowCount} shallow pass${shallowCount > 1 ? 'es' : ''} (1 assertion) — SV-ADQ-03`}
           >
-            These passed with a single assertion step. They do assert behaviour, so they count
-            toward the pass rate — but the gate flags them so the reader knows the coverage is
-            thin, not rich.
+            <p>
+              A shallow pass asserts exactly one step. It is flagged as{' '}
+              <span className="font-medium text-ink">SV-ADQ-03</span> — not penalised: the pass
+              rate is unchanged ({passRate} → {passRate}), so it still counts toward the score.
+              The gate flags it so the reader knows the coverage is thin, not rich.
+            </p>
+          </Alert>
+        )}
+
+        {run.verdict && typeof run.verdict.refused === 'number' && run.verdict.refused > 0 && (
+          <Alert
+            tone="warn"
+            title={`Incomplete rerun — ${run.verdict.refused} of ${run.verdict.requested ?? '?'} testcases refused`}
+          >
+            The rerun did not complete: {run.verdict.completed ?? '?'} of{' '}
+            {run.verdict.requested ?? '?'} testcases finished and {run.verdict.refused} refused to
+            execute (the target deployment was replaced mid-run). The verdict reflects only the
+            evidence that did run — it is never extrapolated.
+          </Alert>
+        )}
+
+        {run.loop?.classification === 'spec-drift' && (
+          <Alert tone="warn" title="Spec drift — update the test or the spec">
+            This run is classified as <span className="font-medium text-ink">spec drift</span>: the
+            behaviour and the SPEC.md contract disagree. Resolve it by updating the test to match
+            the spec, updating the spec to match the behaviour, or both. A drifted scenario is not
+            trusted until reconciled.
           </Alert>
         )}
 

@@ -47,6 +47,27 @@ function AuditPage() {
           {audit.rationale}
         </Alert>
 
+        {run.loop?.classification === 'spec-drift' && (
+          <Alert tone="warn" title="Spec drift — update the test or the spec">
+            This run is classified as <span className="font-medium text-ink">spec drift</span>: the
+            behaviour and the SPEC.md contract disagree. Resolve it by updating the test to match
+            the spec, updating the spec to match the behaviour, or both. A drifted scenario is not
+            trusted until reconciled.
+          </Alert>
+        )}
+
+        {run.verdict && typeof run.verdict.refused === 'number' && run.verdict.refused > 0 && (
+          <Alert
+            tone="warn"
+            title={`Incomplete rerun — ${run.verdict.refused} of ${run.verdict.requested ?? '?'} testcases refused`}
+          >
+            The rerun did not complete: {run.verdict.completed ?? '?'} of{' '}
+            {run.verdict.requested ?? '?'} testcases finished and {run.verdict.refused} refused to
+            execute (the target deployment was replaced mid-run). The verdict reflects only the
+            evidence that did run — it is never extrapolated.
+          </Alert>
+        )}
+
         <Card>
           <CardHeader
             title="Verdict-Trust Gate:"

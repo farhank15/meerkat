@@ -46,17 +46,37 @@ function buildCuratedComplete() {
 function buildCuratedIncomplete() {
   const run = structuredClone(DEMO_RUN_2)
   run.status = 'complete'
+  // Keep the refused (skipped) testcase and add the red-rerun failure, so the
+  // TSI source breakdown carries a failing testcase row and the verdict can
+  // report the refused run.
+  run.testCases = [
+    ...run.testCases,
+    {
+      name: 'SV-FIX-06 fix attempt rerun still red',
+      specId: null,
+      status: 'failed',
+      message: 'assertion: the fix did not resolve the failing scenario on the red rerun',
+    },
+  ]
+  run.total = run.testCases.length
+  run.passed = run.testCases.filter((t) => t.status === 'passed').length
+  run.failed = run.testCases.filter((t) => t.status === 'failed').length
+  run.skipped = run.testCases.filter((t) => t.status === 'skipped').length
+  run.meaningfulPasses = run.passed
   run.verdict = {
     state: 'failed',
     label: 'failed — fix attempt escalated',
     detail:
-      'The regression was not fixed: the rerun came back red, so the loop ' +
-      'escalated to a human instead of forcing a green. Review the failing ' +
-      'evidence before any remediation is signed off.',
+      'The regression was not fixed: the rerun came back red, so the loop escalated to a human ' +
+      'instead of forcing a green. One requested testcase also refused to execute, so this is an ' +
+      'incomplete rerun on top of a failed fix.',
+    requested: run.total,
+    completed: run.total - run.skipped,
+    refused: run.skipped,
   }
   run.loop = {
     pr: '#13',
-    classification: 'regression',
+    classification: 'spec-drift',
     action: 'escalate to human',
     result: 'escalated',
   }
@@ -69,8 +89,8 @@ function buildCuratedIncomplete() {
       result: 'escalated',
     },
   ]
-  // Recompute a real, internally consistent TSI from the run's own counts so the
-  // score breakdown is honest (coverage 2/3, stability 1, pass rate 2/3 → TSI 77).
+  // Recompute a real, internally consistent TSI from the run's own counts
+  // (coverage 2/3, stability 1, pass rate 2/4 → TSI 73).
   const coveredIds = run.coverageIdsCovered
   const totalIds = run.coverageIdsTotal
   const tested = run.total

@@ -9,6 +9,7 @@ export function RunTabs({ id }: { id: string }) {
     { to: '/runs/$id', params: { id }, label: 'Overview', match: `/runs/${id}` },
     { to: '/runs/$id/coverage', params: { id }, label: 'Coverage', match: `/runs/${id}/coverage` },
     { to: '/runs/$id/audit', params: { id }, label: 'Audit', match: `/runs/${id}/audit` },
+    { to: '/runs/$id/checks', params: { id }, label: 'PR Checks', match: `/runs/${id}/checks` },
   ]
 
   return (

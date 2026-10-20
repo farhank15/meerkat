@@ -47,6 +47,7 @@ import { Route as ApiAuthGithubCallbackRouteImport } from './routes/api/auth/git
 import { Route as ShareSlugRunIdRouteImport } from './routes/share/$slug/run/$id'
 import { Route as AuthedAppRunsIdIndexRouteImport } from './routes/_authed/_app/runs/$id/index'
 import { Route as AuthedAppRunsIdAuditRouteImport } from './routes/_authed/_app/runs/$id/audit'
+import { Route as AuthedAppRunsIdChecksRouteImport } from './routes/_authed/_app/runs/$id/checks'
 import { Route as AuthedAppRunsIdCoverageRouteImport } from './routes/_authed/_app/runs/$id/coverage'
 
 const AuthedRouteRoute = AuthedRouteRouteImport.update({
@@ -236,6 +237,11 @@ const AuthedAppRunsIdAuditRoute = AuthedAppRunsIdAuditRouteImport.update({
   path: '/runs/$id/audit',
   getParentRoute: () => AuthedAppRouteRoute,
 } as any)
+const AuthedAppRunsIdChecksRoute = AuthedAppRunsIdChecksRouteImport.update({
+  id: '/runs/$id/checks',
+  path: '/runs/$id/checks',
+  getParentRoute: () => AuthedAppRouteRoute,
+} as any)
 const AuthedAppRunsIdCoverageRoute = AuthedAppRunsIdCoverageRouteImport.update({
   id: '/runs/$id/coverage',
   path: '/runs/$id/coverage',
@@ -277,6 +283,7 @@ export interface FileRoutesByFullPath {
   '/projects/': typeof AuthedAppProjectsIndexRoute
   '/runs/': typeof AuthedAppRunsIndexRoute
   '/runs/$id/audit': typeof AuthedAppRunsIdAuditRoute
+  '/runs/$id/checks': typeof AuthedAppRunsIdChecksRoute
   '/runs/$id/coverage': typeof AuthedAppRunsIdCoverageRoute
   '/runs/$id/': typeof AuthedAppRunsIdIndexRoute
 }
@@ -313,6 +320,7 @@ export interface FileRoutesByTo {
   '/projects': typeof AuthedAppProjectsIndexRoute
   '/runs': typeof AuthedAppRunsIndexRoute
   '/runs/$id/audit': typeof AuthedAppRunsIdAuditRoute
+  '/runs/$id/checks': typeof AuthedAppRunsIdChecksRoute
   '/runs/$id/coverage': typeof AuthedAppRunsIdCoverageRoute
   '/runs/$id': typeof AuthedAppRunsIdIndexRoute
 }
@@ -355,6 +363,7 @@ export interface FileRoutesById {
   '/_authed/_app/projects/': typeof AuthedAppProjectsIndexRoute
   '/_authed/_app/runs/': typeof AuthedAppRunsIndexRoute
   '/_authed/_app/runs/$id/audit': typeof AuthedAppRunsIdAuditRoute
+  '/_authed/_app/runs/$id/checks': typeof AuthedAppRunsIdChecksRoute
   '/_authed/_app/runs/$id/coverage': typeof AuthedAppRunsIdCoverageRoute
   '/_authed/_app/runs/$id/': typeof AuthedAppRunsIdIndexRoute
 }
@@ -395,6 +404,7 @@ export interface FileRouteTypes {
     | '/projects/'
     | '/runs/'
     | '/runs/$id/audit'
+    | '/runs/$id/checks'
     | '/runs/$id/coverage'
     | '/runs/$id/'
   fileRoutesByTo: FileRoutesByTo
@@ -431,6 +441,7 @@ export interface FileRouteTypes {
     | '/projects'
     | '/runs'
     | '/runs/$id/audit'
+    | '/runs/$id/checks'
     | '/runs/$id/coverage'
     | '/runs/$id'
   id:
@@ -472,6 +483,7 @@ export interface FileRouteTypes {
     | '/_authed/_app/projects/'
     | '/_authed/_app/runs/'
     | '/_authed/_app/runs/$id/audit'
+    | '/_authed/_app/runs/$id/checks'
     | '/_authed/_app/runs/$id/coverage'
     | '/_authed/_app/runs/$id/'
   fileRoutesById: FileRoutesById
@@ -763,6 +775,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAppRunsIdAuditRouteImport
       parentRoute: typeof AuthedAppRouteRoute
     }
+    '/_authed/_app/runs/$id/checks': {
+      id: '/_authed/_app/runs/$id/checks'
+      path: '/runs/$id/checks'
+      fullPath: '/runs/$id/checks'
+      preLoaderRoute: typeof AuthedAppRunsIdChecksRouteImport
+      parentRoute: typeof AuthedAppRouteRoute
+    }
     '/_authed/_app/runs/$id/coverage': {
       id: '/_authed/_app/runs/$id/coverage'
       path: '/runs/$id/coverage'
@@ -782,6 +801,7 @@ interface AuthedAppRouteRouteChildren {
   AuthedAppProjectsIndexRoute: typeof AuthedAppProjectsIndexRoute
   AuthedAppRunsIndexRoute: typeof AuthedAppRunsIndexRoute
   AuthedAppRunsIdAuditRoute: typeof AuthedAppRunsIdAuditRoute
+  AuthedAppRunsIdChecksRoute: typeof AuthedAppRunsIdChecksRoute
   AuthedAppRunsIdCoverageRoute: typeof AuthedAppRunsIdCoverageRoute
   AuthedAppRunsIdIndexRoute: typeof AuthedAppRunsIdIndexRoute
 }
@@ -795,6 +815,7 @@ const AuthedAppRouteRouteChildren: AuthedAppRouteRouteChildren = {
   AuthedAppProjectsIndexRoute: AuthedAppProjectsIndexRoute,
   AuthedAppRunsIndexRoute: AuthedAppRunsIndexRoute,
   AuthedAppRunsIdAuditRoute: AuthedAppRunsIdAuditRoute,
+  AuthedAppRunsIdChecksRoute: AuthedAppRunsIdChecksRoute,
   AuthedAppRunsIdCoverageRoute: AuthedAppRunsIdCoverageRoute,
   AuthedAppRunsIdIndexRoute: AuthedAppRunsIdIndexRoute,
 }
