@@ -1,0 +1,457 @@
+import { Link, createFileRoute, notFound } from '@tanstack/react-router'
+
+import { PageHeader } from '@/components/ui/layout'
+import { RunTabs } from '@/components/run-tabs'
+import { Alert, Badge, Card, CardHeader, Stat, StatusBadge, VerdictBadge } from '@/components/ui/primitives'
+import { EscalationPanel } from '@/components/escalation-panel'
+import { PrChecksPanel } from '@/components/pr-checks-panel'
+import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table'
+import { ExternalIcon } from '@/components/ui/icons'
+import { getRunFn } from '@/server/runs'
+import { computeTsi } from '@/lib/tsi'
+import type { LoopAction } from '@/lib/store'
+
+import ratchetBaseline from '@/../baseline/tsi.json'
+
+export const Route = createFileRoute('/_authed/_app/runs/$id/')({
+  loader: async ({ params }) => {
+    const result = await getRunFn({ data: { id: params.id } })
+    if (!result) throw notFound()
+    return result
+  },
+  component: RunOverview,
+})
+
+function commitUrl(repoUrl: string | null, sha: string | null): string | null {
+  if (!repoUrl || !sha || !/^[0-9a-f]{40}$/.test(sha)) return null
+  return `${repoUrl}/commit/${sha}`
+}
+
+/** A shallow pass asserted exactly one step — flagged so the reader knows the
+ * coverage is thin, not rich. It still counts toward the pass rate. */
+function LoopPanel({
+  loop,
+  run,
+}: {
+  loop: LoopAction
+  run: {
+    status: string
+    metric?: { tsi?: number | null; coverage?: number; stability?: number; passRate?: number } | null
+  }
+}) {
+  const escalated =
+    loop.result === 'failed' || loop.result === 'escalated' || /escalat/i.test(loop.action)
+  const scored = run.status === 'complete'
+  const pct = (v?: number) => (typeof v === 'number' ? `${(v * 100).toFixed(0)}%` : '—')
+  return (
+    <Card>
+      <CardHeader
+        title="Fix loop"
+        description="How this run moved from a red verdict to a trusted one — or why it was escalated."
+        action={
+          escalated ? (
+            <Badge tone="danger">escalated to human</Badge>
+          ) : (
+            <Badge tone={loop.result === 'green' ? 'ok' : 'warn'}>{loop.result}</Badge>
+          )
+        }
+      />
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-2xs sm:grid-cols-4">
+        {[
+          ['PR', loop.pr],
+          ['Classification', loop.classification],
+          ['Action', loop.action],
+          ['Result', loop.result],
+        ].map(([label, value]) => (
+          <div key={String(label)} className="flex justify-between gap-3">
+            <dt className="text-ink-subtle">{label}</dt>
+            <dd className="mono-nums text-ink-muted">{value}</dd>
+          </div>
+        ))}
+      </dl>
+      <div className="border-t border-line px-4 py-2.5 text-2xs text-ink-muted">
+        <p className="font-medium text-ink">Remediation decision</p>
+        <p className="mt-0.5">
+          {loop.result === 'green'
+            ? 'Completed — the proposed fix was applied and the rerun verified green, so the original failure is closed.'
+            : loop.result === 'escalated'
+              ? 'Escalated — one fix attempt was made and the rerun stayed red, so the loop stopped and a human takes over. Never retries more than once; escalation is the trusted outcome, not a failure of the loop.'
+              : 'In progress — no automated result yet.'}
+        </p>
+      </div>
+      <div className="border-t border-line px-4 py-2.5 text-2xs text-ink-muted">
+        <p className="font-medium text-ink">Score trace</p>
+        <p className="mt-0.5 font-mono">
+          TSI {scored ? (run.metric?.tsi ?? 'withheld') : 'withheld'} · Coverage {pct(run.metric?.coverage)} ·{' '}
+          Stability {pct(run.metric?.stability)} · Pass rate {pct(run.metric?.passRate)}
+        </p>
+        {loop.classification === 'spec-drift' && (
+          <p className="mt-1.5">
+            <span className="font-medium text-ink">Spec drift:</span> update the test to match the
+            spec, update the spec to match the behaviour, or both. A drifted scenario is not trusted
+            until reconciled.
+          </p>
+        )}
+      </div>
+      {loop.fixCommit && (
+        <div className="border-t border-line px-4 py-2.5">
+          <a
+            href={`https://github.com/farhank15/meerkat/commit/${loop.fixCommit}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 font-mono text-2xs text-accent hover:text-accent-strong"
+          >
+            fix commit {loop.fixCommit.slice(0, 8)} <ExternalIcon width={10} height={10} />
+          </a>
+        </div>
+      )}
+    </Card>
+  )
+}
+
+function RunOverview() {
+  const { id, run, project, meta } = Route.useLoaderData()
+  const scored = run.status === 'complete'
+  const commit = commitUrl(project.repoUrl, meta.sha)
+  const failing = (run.testCases ?? []).filter((testCase) => testCase.status === 'failed')
+  const shallowCount = (run.testCases ?? []).filter((testCase) => testCase.shallow).length
+  const pct = (v?: number) => (typeof v === 'number' ? `${(v * 100).toFixed(1)}%` : '—')
+  const passRate = pct(run.metric?.passRate)
+  // The score is always derivable from the three signals, so the headline shows
+  // the number. An incomplete run still reports "n/a" as its *verdict-bearing*
+  // score, stated explicitly below the grid — the derivation is never hidden.
+  const coverage = run.metric?.coverage ?? 0
+  const stability = run.metric?.stability ?? 0
+  const passRateValue = run.metric?.passRate ?? 0
+  // Only a genuinely missing signal falls back to n/a; a held verdict does not.
+  const hasSignals =
+    typeof run.metric?.coverage === 'number' &&
+    typeof run.metric?.stability === 'number' &&
+    typeof run.metric?.passRate === 'number'
+  const computedTsi = computeTsi({ coverage, stability, passRate: passRateValue })
+  // The unrounded score, so the half-up step is visible instead of implied.
+  const rawTsi = 100 * (0.5 * coverage + 0.3 * stability + 0.2 * passRateValue)
+
+  return (
+    <>
+      <PageHeader
+        title={`Run ${id.slice(0, 8)}`}
+        breadcrumbs={[{ label: 'Runs', to: '/runs' }, { label: id.slice(0, 8) }]}
+        description={
+          <span className="flex flex-wrap items-center gap-2">
+            <span>{project.name}</span>
+            <span aria-hidden>·</span>
+            {commit ? (
+              <a
+                href={commit}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 font-mono text-2xs text-accent hover:text-accent-strong"
+              >
+                {meta.sha?.slice(0, 8)} <ExternalIcon width={10} height={10} />
+              </a>
+            ) : (
+              <span className="font-mono text-2xs">{meta.sha?.slice(0, 8) ?? 'no commit'}</span>
+            )}
+            {meta.pr && (
+              <>
+                <span aria-hidden>·</span>
+                <span>PR #{meta.pr}</span>
+              </>
+            )}
+            {run.environment && (
+              <>
+                <span aria-hidden>·</span>
+                <span className="rounded bg-surface-raised px-1.5 py-0.5 text-ink-subtle">{run.environment}</span>
+              </>
+            )}
+          </span>
+        }
+        actions={<StatusBadge status={run.status} />}
+      />
+      <RunTabs id={id} />
+
+      <div className="space-y-4 p-6">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <button
+            type="button"
+            onClick={() => {
+              document
+                .getElementById('commit-traceability')
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }}
+            aria-label="Open commit traceability"
+            className="block w-full rounded-lg text-left transition-colors hover:ring-2 hover:ring-accent"
+          >
+            <Stat
+              label="Test Strength Index (TSI)"
+              value={hasSignals ? computedTsi : 'n/a'}
+              hint={
+                !hasSignals
+                  ? 'Verdict withheld — a signal is missing'
+                  : scored
+                    ? 'Deterministic score · tap for commit traceability'
+                    : 'Computed from the three signals · reported n/a until the run completes'
+              }
+              tone={!scored || !hasSignals ? 'neutral' : computedTsi >= 80 ? 'ok' : computedTsi >= 50 ? 'warn' : 'danger'}
+            />
+          </button>
+          <Stat label="Coverage" value={`${(coverage * 100).toFixed(1)}%`} hint="Weight 50%" />
+          <Stat label="Stability" value={`${(stability * 100).toFixed(1)}%`} hint="Weight 30%" />
+          <Stat label="Pass rate" value={`${(passRateValue * 100).toFixed(1)}%`} hint="Meaningful passes only" />
+        </div>
+
+        {!scored && (
+          <p className="text-2xs text-ink-subtle">
+            Reported TSI:{' '}
+            <span className="mono-nums font-medium text-ink-muted">n/a</span> — the run is
+            incomplete, so the headline is withheld. The number above is derived from the three
+            signals that did land and is shown for transparency, never as a verdict.
+          </p>
+        )}
+
+        <Card id="commit-traceability">
+          <CardHeader
+            title="Commit traceability"
+            description="The exact commit and run this evidence belongs to — full identifiers, no truncation."
+          />
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-2 px-4 py-3 text-2xs sm:grid-cols-2">
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-subtle">Commit</dt>
+              <dd className="font-mono text-ink">{meta.sha ?? '—'}</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-subtle">Run ID</dt>
+              <dd className="font-mono text-ink">{id}</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-subtle">Branch</dt>
+              <dd className="font-mono text-ink-muted">{meta.branch ?? '—'}</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-subtle">Environment</dt>
+              <dd className="text-ink-muted">{run.environment ?? '—'}</dd>
+            </div>
+          </dl>
+          <div className="border-t border-line px-4 py-2.5 text-2xs">
+            <Link
+              to="/runs/$id/coverage"
+              params={{ id }}
+              className="font-medium text-accent hover:text-accent-strong"
+            >
+              Open coverage detail →
+            </Link>
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="TSI score breakdown"
+            description="How the Test Strength Index is composed, and the JUnit rows used to derive it."
+          />
+          <div className="px-4 py-3 text-xs leading-relaxed text-ink-muted">
+            <p className="font-mono text-ink">TSI = 0.5·coverage + 0.3·stability + 0.2·passRate</p>
+            <p className="mt-2">
+              Coverage {pct(run.metric?.coverage)} (weight 50%) · Stability {pct(run.metric?.stability)}{' '}
+              (weight 30%) · Pass rate {pct(run.metric?.passRate)} (weight 20%)
+            </p>
+            <p className="mt-2">
+              <span className="font-medium text-ink">Computed TSI:</span>{' '}
+              <span className="mono-nums font-semibold text-ink">{computedTsi}</span>
+              {scored
+                ? ' — this is the reported score.'
+                : ' — withheld from the headline because the run is incomplete; shown here so the derivation stays transparent.'}
+            </p>
+            <p className="mt-2">
+              <span className="font-medium text-ink">Rounding:</span> raw{' '}
+              <span className="font-mono text-ink">{rawTsi.toFixed(3)}</span> →{' '}
+              <span className="mono-nums font-semibold text-ink">{computedTsi}</span> — half-up
+              (half away from zero). A raw <span className="font-mono text-ink">93.5</span> rounds to{' '}
+              <span className="mono-nums text-ink">94</span>, never 93.
+            </p>
+            <p className="mt-2 text-2xs text-ink-subtle">
+              Source artifact: <span className="font-mono text-ink">testsprite-junit.xml</span> —{' '}
+              {(run.testCases ?? []).length} testcase row
+              {(run.testCases ?? []).length === 1 ? '' : 's'} used to derive the score, {failing.length}{' '}
+              failing.
+            </p>
+            <p className="mt-2 text-2xs">
+              <a
+                href="/score#round"
+                className="font-medium text-accent hover:text-accent-strong"
+              >
+                Try the half-up boundary in the calculator →
+              </a>
+            </p>
+          </div>
+          <ul className="max-h-72 space-y-0.5 overflow-y-auto border-t border-line px-4 py-3">
+            {(run.testCases ?? []).map((tc) => (
+              <li key={tc.name} className="font-mono text-2xs text-ink-subtle">
+                └ {tc.name} — {tc.specId ?? 'orphan'} — {tc.status}
+              </li>
+            ))}
+          </ul>
+        </Card>
+
+        {run.verdict && (
+          <Alert
+            tone={run.verdict.state === 'green' ? 'ok' : run.verdict.state === 'failed' ? 'danger' : 'warn'}
+            title={run.verdict.label}
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <VerdictBadge state={run.verdict.state} label={run.verdict.state} />
+              <span>{run.verdict.detail}</span>
+            </div>
+          </Alert>
+        )}
+
+        {run.verdict && (
+          <Card>
+            <CardHeader
+              title="Verdict-Trust Gate"
+              description="Every green verdict is cross-checked before it is trusted — a red or held run never reports green."
+              action={
+                <Link
+                  to="/runs/$id/audit"
+                  params={{ id }}
+                  className="text-2xs font-medium text-accent hover:text-accent-strong"
+                >
+                  Open the full audit
+                </Link>
+              }
+            />
+            <div className="px-4 py-3 text-xs leading-relaxed text-ink-muted">
+              {run.verdict.state === 'green' ? (
+                <p>
+                  <span className="font-medium text-ok">Trusted.</span> Every pass asserts a
+                  contracted scenario, with no vacuous checks — the green verdict is backed by
+                  evidence.
+                </p>
+              ) : (
+                <p>
+                  <span className="font-medium text-danger">Not trusted yet.</span>{' '}
+                  {run.verdict.label}. The gate withholds a green verdict until the failure is
+                  fixed or shown to be drift — it never forces green before remediation.
+                </p>
+              )}
+              <p className="mt-2">
+                <span className="font-medium text-ink">Trustworthy for remediation:</span>{' '}
+                {run.verdict.state === 'green'
+                  ? 'not needed — the verdict is already green.'
+                  : failing.length > 0
+                    ? `yes — ${failing.length} failing test${failing.length === 1 ? '' : 's'} with a JUnit row behind ${failing.length === 1 ? 'it' : 'each'}, so a fix can target ${failing.length === 1 ? 'it' : 'them'}.${
+                        run.verdict.state === 'failed'
+                          ? ''
+                          : ' The verdict itself stays withheld until the run completes; trust in the evidence is separate from the verdict.'
+                      }`
+                    : 'no — the run recorded no failing evidence, so there is nothing to remediate yet.'}
+              </p>
+            </div>
+          </Card>
+        )}
+
+        {failing.length > 0 && (
+          <Card>
+            <CardHeader
+              title={`${failing.length} failing test${failing.length === 1 ? '' : 's'}`}
+              description="The gate reports failures as-is. A green badge here would be a lie."
+              action={<Badge tone="danger">red</Badge>}
+            />
+            <Table caption="Failing test cases">
+              <THead>
+                <TR>
+                  <TH>Test</TH>
+                  <TH>Spec</TH>
+                  <TH>Message</TH>
+                </TR>
+              </THead>
+              <TBody>
+                {failing.map((testCase) => (
+                  <TR key={testCase.name}>
+                    <TD className="font-mono text-2xs text-ink">{testCase.name}</TD>
+                    <TD className="font-mono text-2xs">{testCase.specId ?? '—'}</TD>
+                    <TD className="text-2xs">{testCase.message ?? '—'}</TD>
+                  </TR>
+                ))}
+              </TBody>
+            </Table>
+          </Card>
+        )}
+
+        {shallowCount > 0 && (
+          <Alert
+            tone="warn"
+            title={`${shallowCount} shallow pass${shallowCount > 1 ? 'es' : ''} (1 assertion) — SV-ADQ-03`}
+          >
+            <p>
+              A shallow pass asserts exactly one step. It is flagged as{' '}
+              <span className="font-medium text-ink">SV-ADQ-03</span> — not penalised: the pass
+              rate is unchanged ({passRate} → {passRate}), so it still counts toward the score.
+              The gate flags it so the reader knows the coverage is thin, not rich.
+            </p>
+          </Alert>
+        )}
+
+        {run.verdict && typeof run.verdict.refused === 'number' && run.verdict.refused > 0 && (
+          <Alert
+            tone="warn"
+            title={`Incomplete rerun — ${run.verdict.refused} of ${run.verdict.requested ?? '?'} testcases refused`}
+          >
+            The rerun did not complete: {run.verdict.completed ?? '?'} of{' '}
+            {run.verdict.requested ?? '?'} testcases finished and {run.verdict.refused} refused to
+            execute (the target deployment was replaced mid-run). The verdict reflects only the
+            evidence that did run — it is never extrapolated.
+          </Alert>
+        )}
+
+        {run.loop?.classification === 'spec-drift' && (
+          <Alert tone="warn" title="Spec drift — update the test or the spec">
+            This run is classified as <span className="font-medium text-ink">spec drift</span>: the
+            behaviour and the SPEC.md contract disagree. Resolve it by updating the test to match
+            the spec, updating the spec to match the behaviour, or both. A drifted scenario is not
+            trusted until reconciled.
+          </Alert>
+        )}
+
+        {run.loop && <LoopPanel loop={run.loop} run={run} />}
+
+        <EscalationPanel escalations={run.escalations} />
+
+        <PrChecksPanel baseline={ratchetBaseline.tsi} />
+
+        <Card>
+          <CardHeader
+            title="Run summary"
+            action={
+              <Link
+                to="/runs/$id/coverage"
+                params={{ id }}
+                className="text-2xs font-medium text-accent hover:text-accent-strong"
+              >
+                Coverage detail
+              </Link>
+            }
+          />
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-2xs sm:grid-cols-4">
+            {[
+              ['Testcases', run.total],
+              ['Passed', run.passed],
+              ['Failed', run.failed],
+              ['Skipped', run.skipped],
+              ['Meaningful passes', run.meaningfulPasses],
+              ['Vacuous passes', run.vacuousCount],
+              ['Shallow passes', shallowCount],
+              ['Orphans', (run.testCases ?? []).filter((testCase) => !testCase.specId).length],
+              ['Spec gaps', (run.specEntries ?? []).filter((entry) => !entry.covered).length],
+            ].map(([label, value]) => (
+              <div key={String(label)} className="flex justify-between gap-3">
+                <dt className="text-ink-subtle">{label}</dt>
+                <dd className="mono-nums text-ink-muted">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </Card>
+      </div>
+    </>
+  )
+}

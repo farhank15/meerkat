@@ -25,6 +25,9 @@ todos.json
 # TestSprite run artifacts (failure bundles, videos) — local triage only
 .testsprite/runs/
 
+# Database backups written by scripts/db-backup.mjs — contain real user rows
+backups/
+
 # Local planning notes
 docs/
 
@@ -36,3 +39,6 @@ docs/
 
 # OS
 .DS_Store
+
+# One-off seed snapshot (regenerated each run)
+scripts/.demo-loop-snapshot.json

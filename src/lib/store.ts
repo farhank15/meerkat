@@ -27,6 +27,8 @@ export interface SpecEntry {
   failureMessage?: string
   /** Passed without asserting anything — excluded from the pass rate. */
   vacuous?: boolean
+  /** Passed with exactly one assertion step — flagged, pass rate unchanged. */
+  shallow?: boolean
 }
 
 export interface RunMetric {
@@ -42,6 +44,18 @@ export interface LoopAction {
   action: string
   result: string
   fixCommit?: string
+}
+
+/** A fix attempt that failed and was escalated rather than force-greened.
+ * Realised by SV-FIX-06: after `maxAttempts` red reruns the loop stops and a
+ * human takes over — Meerkat never retries more than once. */
+export interface Escalation {
+  specId: string
+  attempts: number
+  maxAttempts: number
+  /** The rerun state when the attempt failed. */
+  rerun: 'red' | 'green'
+  result: 'escalated'
 }
 
 /**
@@ -97,6 +111,8 @@ export interface Run {
   testCases: TestCaseRow[]
   verdict?: Verdict
   loop?: LoopAction
+  /** Failed fix attempts that were escalated to a human instead of forced green. */
+  escalations?: Escalation[]
 }
 
 export interface Project {

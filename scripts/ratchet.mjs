@@ -90,8 +90,16 @@ if (sub === 'gate') {
   // Fresh read of what actually failed on the latest App run for this commit.
   const snap = snapshot()
 
-  // The ingest job has already POSTed once. Find this commit's row.
-  const res = await fetch(`${appUrl}/api/runs`)
+  // The ingest job has already POSTed once. Find this commit's row, scoped to
+  // the project so a multi-tenant ledger can never return another team's wave.
+  const projectSlug = process.env.MEERKAT_PROJECT_SLUG ?? 'meerkat-demo'
+  const readKey = process.env.MEERKAT_API_KEY ?? process.env.SUITEVITALS_API_KEY
+  const query = new URLSearchParams({ project: projectSlug, limit: '50' })
+  if (sha) query.set('sha', sha)
+
+  const res = await fetch(`${appUrl}/api/runs?${query.toString()}`, {
+    headers: readKey ? { authorization: `Bearer ${readKey}` } : {},
+  })
   const body = await res.json()
   const rows = body.runs ?? []
   const row = rows.find((r) =>
@@ -116,7 +124,7 @@ if (sub === 'gate') {
       counts: snap.counts,
       baseline,
       runRow: row ?? null,
-      agentBriefUrl: `${appUrl}/api/agent-brief`,
+      agentBriefUrl: `${appUrl}/api/agent-brief?project=${encodeURIComponent(projectSlug)}`,
       ...extra,
     }
     writeFileSync('agent-bundle.json', JSON.stringify(s, null, 2))

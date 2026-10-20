@@ -139,7 +139,9 @@ jobs:
       - name: Ingest the settled wave into the Meerkat ledger
         env:
           TESTSPRITE_PROJECT_ID: ${{ vars.TESTSPRITE_PROJECT_ID }}
+          MEERKAT_API_KEY: ${{ secrets.MEERKAT_API_KEY }}
           SUITEVITALS_API_KEY: ${{ secrets.SUITEVITALS_API_KEY }}
+          MEERKAT_PROJECT_SLUG: meerkat-demo
           MEERKAT_API_URL: https://meerkat-app.vercel.app
         run: |
           node scripts/ingest-latest.mjs \
@@ -279,6 +281,8 @@ jobs:
       - name: Follow the fix wave (re-gate the new verdict)
         env:
           TESTSPRITE_PROJECT_ID: ${{ vars.TESTSPRITE_PROJECT_ID }}
+          MEERKAT_API_KEY: ${{ secrets.MEERKAT_API_KEY }}
+          MEERKAT_PROJECT_SLUG: meerkat-demo
           MEERKAT_API_URL: https://meerkat-app.vercel.app
           GH_TOKEN: ${{ github.token }}
           POOLSIDE_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

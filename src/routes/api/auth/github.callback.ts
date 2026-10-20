@@ -1,13 +1,12 @@
-// GET /api/auth/github/callback — exchanges the code, upserts the user by
-// email (falling back to their primary address), seeds the demo project, and
-// establishes a signed session.
+// GET /api/auth/github/callback — exchanges the code, then either signs in an
+// existing account or provisions a new user + workspace.
 
 import { createFileRoute } from '@tanstack/react-router'
 import { eq } from 'drizzle-orm'
 
 import { getDb } from '@/db'
 import { users } from '@/db/schema'
-import { ensureDemoSeed, sessionCookie } from '@/lib/auth.server'
+import { createAccount, ensureWorkspaceForUser, sessionCookie } from '@/lib/auth.server'
 
 export const Route = createFileRoute('/api/auth/github/callback')({
   server: {
@@ -55,9 +54,9 @@ export const Route = createFileRoute('/api/auth/github/callback')({
           authorization: `Bearer ${token.access_token}`,
           accept: 'application/vnd.github+json',
         }
-        const ghUser = (await fetch('https://api.github.com/user', { headers: ghHeaders }).then(
-          (r) => r.json(),
-        )) as { id: number; login: string }
+        const ghUser = (await fetch('https://api.github.com/user', { headers: ghHeaders }).then((r) =>
+          r.json(),
+        )) as { id: number; login: string; name?: string | null; avatar_url?: string | null }
         const ghEmails = (await fetch('https://api.github.com/user/emails', {
           headers: ghHeaders,
         }).then((r) => r.json())) as Array<{ email: string; primary: boolean; verified: boolean }>
@@ -74,28 +73,53 @@ export const Route = createFileRoute('/api/auth/github/callback')({
         if (!db) {
           return Response.json({ error: 'database not configured' }, { status: 503 })
         }
-        await ensureDemoSeed()
 
         const email = primary.toLowerCase()
-        await db
-          .insert(users)
-          .values({ email, githubId: String(ghUser.id) })
-          .onConflictDoUpdate({
-            target: users.email,
-            set: { githubId: String(ghUser.id) },
+        const [existing] = await db.select().from(users).where(eq(users.email, email)).limit(1)
+
+        if (existing) {
+          await db
+            .update(users)
+            .set({
+              githubId: String(ghUser.id),
+              name: existing.name ?? ghUser.name ?? ghUser.login,
+              avatarUrl: existing.avatarUrl ?? ghUser.avatar_url ?? null,
+              lastLoginAt: new Date(),
+            })
+            .where(eq(users.id, existing.id))
+
+          const workspace = await ensureWorkspaceForUser(existing)
+          if (!workspace) {
+            return Response.json({ error: 'database unavailable' }, { status: 503 })
+          }
+
+          return new Response(null, {
+            status: 302,
+            headers: {
+              location: workspace.onboardedAt ? '/app' : '/onboarding',
+              'set-cookie': sessionCookie(existing.id, existing.email, workspace.id),
+            },
           })
-        const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
+        }
+
+        const created = await createAccount({
+          email,
+          githubId: String(ghUser.id),
+          name: ghUser.name ?? ghUser.login,
+          avatarUrl: ghUser.avatar_url ?? null,
+        })
+        if (!created) {
+          return Response.json({ error: 'database unavailable' }, { status: 503 })
+        }
 
         return new Response(null, {
           status: 302,
           headers: {
-            location: '/runs',
-            'set-cookie': sessionCookie(user.id, user.email),
+            location: '/onboarding',
+            'set-cookie': sessionCookie(created.user.id, created.user.email, created.workspace.id),
           },
         })
       },
     },
   },
 })
-
-// Local import (kept at the bottom to keep the handler top-aligned).

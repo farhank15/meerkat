@@ -1,10 +1,17 @@
-// POST /api/auth/login — verifies credentials against Neon, returns a signed
-// HttpOnly session cookie. The demo account is seeded idempotently so a fresh
-// database still accepts the suite/demo credentials.
+// POST /api/auth/login — verifies credentials against Neon and returns a
+// signed HttpOnly session cookie carrying the workspace claim.
 
 import { createFileRoute } from '@tanstack/react-router'
+import { eq } from 'drizzle-orm'
 
-import { ensureDemoSeed, findUserByEmail, sessionCookie, verifyPassword } from '@/lib/auth.server'
+import { getDb } from '@/db'
+import { users } from '@/db/schema'
+import {
+  ensureWorkspaceForUser,
+  findUserByEmail,
+  sessionCookie,
+  verifyPassword,
+} from '@/lib/auth.server'
 
 export const Route = createFileRoute('/api/auth/login')({
   server: {
@@ -22,25 +29,40 @@ export const Route = createFileRoute('/api/auth/login')({
           return Response.json({ error: 'email and password are required' }, { status: 400 })
         }
 
-        await ensureDemoSeed()
         let user
         try {
           user = await findUserByEmail(email)
-        } catch (err) {
-          console.error('[auth] login lookup failed:', (err as Error).message)
+        } catch (error) {
+          console.error('[auth] login lookup failed:', (error as Error).message)
           return Response.json({ error: 'database unavailable' }, { status: 503 })
         }
         if (!user || !verifyPassword(password, user.passwordHash)) {
           return Response.json({ ok: false }, { status: 401 })
         }
 
-        return new Response(JSON.stringify({ ok: true, email: user.email }), {
-          status: 200,
-          headers: {
-            'content-type': 'application/json',
-            'set-cookie': sessionCookie(user.id, user.email),
+        const workspace = await ensureWorkspaceForUser(user)
+        if (!workspace) {
+          return Response.json({ error: 'database unavailable' }, { status: 503 })
+        }
+
+        const db = getDb()
+        await db?.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id))
+
+        return new Response(
+          JSON.stringify({
+            ok: true,
+            email: user.email,
+            workspace: { id: workspace.id, slug: workspace.slug, name: workspace.name },
+            onboarded: Boolean(workspace.onboardedAt),
+          }),
+          {
+            status: 200,
+            headers: {
+              'content-type': 'application/json',
+              'set-cookie': sessionCookie(user.id, user.email, workspace.id),
+            },
           },
-        })
+        )
       },
     },
   },
