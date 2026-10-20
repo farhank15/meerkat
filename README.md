@@ -22,12 +22,12 @@ verdict can actually be trusted.
 
 <p align="center">
   <a href="https://youtu.be/Hp3JypVbuJ4">
-    <img src="publics/video-thumb.jpg" alt="Watch the Meerkat demo — red PR, Meerkat verdict, agent fix, green" width="640" />
+    <img src="publics/demo-teaser.gif" alt="The agent reading the Meerkat verdict over MCP, naming the three failing scenarios, then fixing the rounding" width="800" />
   </a>
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/Hp3JypVbuJ4"><b>▶ Watch the demo</b></a>
+  <a href="https://youtu.be/Hp3JypVbuJ4"><b>▶ Watch the full demo</b></a>
   <sub> — one tiny app, red to green, evidence at every step.</sub>
 </p>
 
