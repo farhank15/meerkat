@@ -68,11 +68,12 @@ function buildCuratedIncomplete() {
   run.meaningfulPasses = run.passed
   run.verdict = {
     state: 'incomplete',
-    label: 'incomplete rerun — fix attempt escalated',
+    label: 'incomplete rerun — fix attempt stayed red, escalated to human',
     detail:
       'The rerun did not complete: one requested testcase refused to execute, and the fix attempt ' +
-      'came back red, so the loop escalated to a human instead of forcing a green. The score is ' +
-      'withheld — an incomplete run is not a failure and never reports a number.',
+      'came back red, so the loop escalated to a human instead of forcing a green. The verdict is ' +
+      'withheld — the reported TSI stays n/a — but the score derived from the three signals is ' +
+      'still shown, and the failing rows are real, so the failure can be remediated.',
     requested: run.total,
     completed: run.total - run.skipped,
     refused: run.skipped,
@@ -92,8 +93,8 @@ function buildCuratedIncomplete() {
       result: 'escalated',
     },
   ]
-  // A withheld score: the metric is not trusted, so tsi stays 0 and the UI
-  // renders "n/a" because status !== 'complete'.
+  // A withheld verdict: the reported TSI stays null in the column and the UI
+  // renders "n/a", while the derived score is still shown in the breakdown.
   run.metric = {
     ...run.metric,
     tsi: 0,

@@ -75,7 +75,7 @@ function LoopPanel({
           {loop.result === 'green'
             ? 'Completed — the proposed fix was applied and the rerun verified green, so the original failure is closed.'
             : loop.result === 'escalated'
-              ? 'Escalated — the rerun stayed red, so the loop stopped and a human takes over. No further automated retries.'
+              ? 'Escalated — one fix attempt was made and the rerun stayed red, so the loop stopped and a human takes over. Never retries more than once; escalation is the trusted outcome, not a failure of the loop.'
               : 'In progress — no automated result yet.'}
         </p>
       </div>
@@ -117,14 +117,15 @@ function RunOverview() {
   const shallowCount = (run.testCases ?? []).filter((testCase) => testCase.shallow).length
   const pct = (v?: number) => (typeof v === 'number' ? `${(v * 100).toFixed(1)}%` : '—')
   const passRate = pct(run.metric?.passRate)
-  // The score is always computable from the three signals. For an incomplete
-  // run it is withheld from the headline (n/a) but still shown in the breakdown
-  // so the derivation stays transparent.
-  const computedTsi = computeTsi({
-    coverage: run.metric?.coverage ?? 0,
-    stability: run.metric?.stability ?? 0,
-    passRate: run.metric?.passRate ?? 0,
-  })
+  // The score is always derivable from the three signals, so the headline shows
+  // the number. An incomplete run still reports "n/a" as its *verdict-bearing*
+  // score, stated explicitly below the grid — the derivation is never hidden.
+  const coverage = run.metric?.coverage ?? 0
+  const stability = run.metric?.stability ?? 0
+  const passRateValue = run.metric?.passRate ?? 0
+  const computedTsi = computeTsi({ coverage, stability, passRate: passRateValue })
+  // The unrounded score, so the half-up step is visible instead of implied.
+  const rawTsi = 100 * (0.5 * coverage + 0.3 * stability + 0.2 * passRateValue)
 
   return (
     <>
@@ -179,15 +180,28 @@ function RunOverview() {
           >
             <Stat
               label="Test Strength Index (TSI)"
-              value={scored ? run.metric.tsi : 'n/a'}
-              hint={scored ? 'Deterministic score · tap for commit traceability' : 'Verdict withheld'}
-              tone={!scored ? 'neutral' : run.metric.tsi >= 80 ? 'ok' : run.metric.tsi >= 50 ? 'warn' : 'danger'}
+              value={computedTsi}
+              hint={
+                scored
+                  ? 'Deterministic score · tap for commit traceability'
+                  : 'Computed from the three signals · reported n/a until the run completes'
+              }
+              tone={!scored ? 'neutral' : computedTsi >= 80 ? 'ok' : computedTsi >= 50 ? 'warn' : 'danger'}
             />
           </button>
-          <Stat label="Coverage" value={`${(run.metric.coverage * 100).toFixed(1)}%`} hint="Weight 50%" />
-          <Stat label="Stability" value={`${(run.metric.stability * 100).toFixed(1)}%`} hint="Weight 30%" />
-          <Stat label="Pass rate" value={`${(run.metric.passRate * 100).toFixed(1)}%`} hint="Meaningful passes only" />
+          <Stat label="Coverage" value={`${(coverage * 100).toFixed(1)}%`} hint="Weight 50%" />
+          <Stat label="Stability" value={`${(stability * 100).toFixed(1)}%`} hint="Weight 30%" />
+          <Stat label="Pass rate" value={`${(passRateValue * 100).toFixed(1)}%`} hint="Meaningful passes only" />
         </div>
+
+        {!scored && (
+          <p className="text-2xs text-ink-subtle">
+            Reported TSI:{' '}
+            <span className="mono-nums font-medium text-ink-muted">n/a</span> — the run is
+            incomplete, so the headline is withheld. The number above is derived from the three
+            signals that did land and is shown for transparency, never as a verdict.
+          </p>
+        )}
 
         <Card id="commit-traceability">
           <CardHeader
@@ -241,11 +255,26 @@ function RunOverview() {
                 ? ' — this is the reported score.'
                 : ' — withheld from the headline because the run is incomplete; shown here so the derivation stays transparent.'}
             </p>
+            <p className="mt-2">
+              <span className="font-medium text-ink">Rounding:</span> raw{' '}
+              <span className="font-mono text-ink">{rawTsi.toFixed(3)}</span> →{' '}
+              <span className="mono-nums font-semibold text-ink">{computedTsi}</span> — half-up
+              (half away from zero). A raw <span className="font-mono text-ink">93.5</span> rounds to{' '}
+              <span className="mono-nums text-ink">94</span>, never 93.
+            </p>
             <p className="mt-2 text-2xs text-ink-subtle">
               Source artifact: <span className="font-mono text-ink">testsprite-junit.xml</span> —{' '}
               {(run.testCases ?? []).length} testcase row
               {(run.testCases ?? []).length === 1 ? '' : 's'} used to derive the score, {failing.length}{' '}
               failing.
+            </p>
+            <p className="mt-2 text-2xs">
+              <a
+                href="/score#round"
+                className="font-medium text-accent hover:text-accent-strong"
+              >
+                Try the half-up boundary in the calculator →
+              </a>
             </p>
           </div>
           <ul className="max-h-72 space-y-0.5 overflow-y-auto border-t border-line px-4 py-3">
@@ -300,11 +329,15 @@ function RunOverview() {
               )}
               <p className="mt-2">
                 <span className="font-medium text-ink">Trustworthy for remediation:</span>{' '}
-                {run.verdict.state === 'failed'
-                  ? 'yes — the failures are real and traceable, so an automated fix can target them.'
-                  : run.verdict.state === 'green'
-                    ? 'not needed — the verdict is already green.'
-                    : 'no — the run is incomplete, so there is nothing trustworthy to remediate.'}
+                {run.verdict.state === 'green'
+                  ? 'not needed — the verdict is already green.'
+                  : failing.length > 0
+                    ? `yes — ${failing.length} failing test${failing.length === 1 ? '' : 's'} with a JUnit row behind ${failing.length === 1 ? 'it' : 'each'}, so a fix can target ${failing.length === 1 ? 'it' : 'them'}.${
+                        run.verdict.state === 'failed'
+                          ? ''
+                          : ' The verdict itself stays withheld until the run completes; trust in the evidence is separate from the verdict.'
+                      }`
+                    : 'no — the run recorded no failing evidence, so there is nothing to remediate yet.'}
               </p>
             </div>
           </Card>

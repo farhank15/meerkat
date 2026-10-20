@@ -76,8 +76,10 @@ export function ScoreCalculator() {
         </p>
       </div>
 
-      <div className="rounded-md border border-line bg-canvas px-4 py-3">
-        <p className="text-2xs uppercase tracking-wider text-ink-subtle">Round a boundary value</p>
+      <div id="round" className="scroll-mt-24 rounded-md border border-line bg-canvas px-4 py-3">
+        <p className="text-2xs uppercase tracking-wider text-ink-subtle">
+          Round a boundary value — half-up
+        </p>
         <div className="mt-2 flex flex-wrap items-end gap-3">
           <label className="flex flex-col gap-1 text-2xs">
             <span className="font-medium text-ink">Value to round</span>
@@ -95,11 +97,33 @@ export function ScoreCalculator() {
             <code className="font-mono">95.5 → 96</code>
           </span>
         </div>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {[
+            ['95.5 → 96', '95.5'],
+            ['93.5 → 94', '93.5'],
+            ['95.4999 → 95', '95.4999'],
+            ['93.365 → 93', '93.365'],
+          ].map(([label, value]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setRaw(value)}
+              className="rounded border border-line bg-surface-raised px-2 py-1 font-mono text-2xs text-ink-muted transition-colors hover:border-accent hover:text-ink"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <p className="mt-2 text-2xs text-ink-subtle">
           Rounded result:{' '}
           <span id="round-result" className="mono-nums font-semibold text-ink" data-testid="round-result">
             {rounded ?? '—'}
           </span>
+        </p>
+        <p className="mt-1 text-2xs text-ink-subtle">
+          Half-up means a tie always moves away from zero: <span className="font-mono text-ink">93.5 → 94</span>,{' '}
+          <span className="font-mono text-ink">95.5 → 96</span>. It is never banker's rounding, so a
+          reported score never flips because the digit before the tie happened to be even.
         </p>
       </div>
     </div>
