@@ -22,6 +22,8 @@ interface BriefPayload {
   coverage: { covered: number | null; total: number | null }
   verdictState: string | null
   verdictLabel: string | null
+  /** Red rows from the latest complete run, so an agent can target a fix without a second read. */
+  failing: Array<{ name: string; specId: string | null; message: string | null }>
   coverageGaps: Array<{ id: string; specLine: number }>
   assertionQuality: unknown
   links: Record<string, string>
@@ -52,6 +54,7 @@ export const Route = createFileRoute('/api/agent-brief')({
           coverage: { covered: null, total: null },
           verdictState: null,
           verdictLabel: null,
+          failing: [],
           coverageGaps: [],
           assertionQuality: { note: 'no scored run for this project' },
           links,
@@ -97,6 +100,16 @@ export const Route = createFileRoute('/api/agent-brief')({
           .filter((entry) => !entry.covered)
           .map((entry) => ({ id: entry.id, specLine: entry.specLine }))
 
+        // Red rows travel with the verdict: an agent that reads only the brief should be
+        // able to name the broken scenario without opening the scorecard.
+        const failing = (data.testCases ?? [])
+          .filter((testCase) => testCase.status === 'failed')
+          .map((testCase) => ({
+            name: testCase.name,
+            specId: testCase.specId ?? null,
+            message: testCase.message ?? null,
+          }))
+
         const audit = auditRun(data)
 
         const payload: BriefPayload = {
@@ -112,6 +125,7 @@ export const Route = createFileRoute('/api/agent-brief')({
           },
           verdictState: data.verdict?.state ?? null,
           verdictLabel: data.verdict?.label ?? null,
+          failing,
           coverageGaps: gaps,
           assertionQuality: {
             state: audit.state,

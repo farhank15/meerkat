@@ -79,6 +79,7 @@ server.tool(
                 verdictState: b.verdictState,
                 verdictLabel: b.verdictLabel,
                 status: b.status,
+                failing: b.failing ?? [],
               },
               null,
               2,

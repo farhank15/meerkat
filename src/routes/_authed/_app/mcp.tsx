@@ -23,7 +23,7 @@ const CONFIG = `{
 }`
 
 const TOOLS = [
-  { name: 'get_run_verdict', returns: 'Latest verdict, TSI and run id', use: 'Before fixing a red wave.' },
+  { name: 'get_run_verdict', returns: 'Latest verdict, TSI, run id and the red test rows', use: 'Before fixing a red wave.' },
   { name: 'get_coverage_gaps', returns: 'Uncovered SPEC.md scenarios', use: 'Decide what to test next.' },
   { name: 'get_vacuous_findings', returns: 'Passes that assert nothing', use: 'Find false confidence.' },
   { name: 'get_tsi_summary', returns: 'Score with its three components', use: 'Explain a drop to a reviewer.' },
