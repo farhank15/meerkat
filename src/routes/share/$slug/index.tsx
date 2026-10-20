@@ -6,6 +6,7 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 
 import { Badge, Card, CardContent, CardHeader, EmptyState, Stat, StatusBadge } from '@/components/ui/primitives'
 import { Sparkline, trendDelta } from '@/components/ui/sparkline'
+import { ScoreCalculator } from '@/components/score-calculator'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table'
 import { ArrowRightIcon } from '@/components/ui/icons'
 
@@ -234,6 +235,37 @@ function SharePage() {
               </CardContent>
             </Card>
           )}
+
+          <Card className="mt-4">
+            <CardHeader
+              title="CLI contract"
+              description="The documented exit states of the local scorer behind every run."
+            />
+            <ul className="divide-y divide-line text-2xs">
+              <li className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <span className="text-ink-muted">A valid run scored</span>
+                <span className="font-mono text-ink">exit 0 — scored</span>
+              </li>
+              <li className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <span className="text-ink-muted">Required argument omitted</span>
+                <span className="font-mono text-ink">exit 2 — missing argument</span>
+              </li>
+              <li className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <span className="text-ink-muted">Artifact not found</span>
+                <span className="font-mono text-ink">exit 3 — missing JUnit file</span>
+              </li>
+            </ul>
+          </Card>
+
+          <Card className="mt-4">
+            <CardHeader
+              title="Try the scorer"
+              description="The same rounding logic the backend uses, live in your browser. Submit a boundary-case score and read the computed TSI."
+            />
+            <div className="p-4">
+              <ScoreCalculator />
+            </div>
+          </Card>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <span className="text-2xs text-ink-subtle">

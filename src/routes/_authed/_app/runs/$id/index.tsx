@@ -8,6 +8,7 @@ import { PrChecksPanel } from '@/components/pr-checks-panel'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table'
 import { ExternalIcon } from '@/components/ui/icons'
 import { getRunFn } from '@/server/runs'
+import { computeTsi } from '@/lib/tsi'
 import type { LoopAction } from '@/lib/store'
 
 import ratchetBaseline from '@/../baseline/tsi.json'
@@ -116,6 +117,14 @@ function RunOverview() {
   const shallowCount = (run.testCases ?? []).filter((testCase) => testCase.shallow).length
   const pct = (v?: number) => (typeof v === 'number' ? `${(v * 100).toFixed(1)}%` : '—')
   const passRate = pct(run.metric?.passRate)
+  // The score is always computable from the three signals. For an incomplete
+  // run it is withheld from the headline (n/a) but still shown in the breakdown
+  // so the derivation stays transparent.
+  const computedTsi = computeTsi({
+    coverage: run.metric?.coverage ?? 0,
+    stability: run.metric?.stability ?? 0,
+    passRate: run.metric?.passRate ?? 0,
+  })
 
   return (
     <>
@@ -214,22 +223,39 @@ function RunOverview() {
           </div>
         </Card>
 
-        {scored && (
-          <Card>
-            <CardHeader
-              title="TSI score breakdown"
-              description="How the Test Strength Index is composed for this run."
-            />
-            <div className="px-4 py-3 text-xs leading-relaxed text-ink-muted">
-              <p className="font-mono text-ink">TSI = 0.5·coverage + 0.3·stability + 0.2·passRate</p>
-              <p className="mt-2">
-                Coverage {run.metric.coverage * 100 >= 0 ? (run.metric.coverage * 100).toFixed(0) : '0'}% (weight 50%) ·{' '}
-                Stability {(run.metric.stability * 100).toFixed(0)}% (weight 30%) · Pass rate{' '}
-                {(run.metric.passRate * 100).toFixed(0)}% (weight 20%)
-              </p>
-            </div>
-          </Card>
-        )}
+        <Card>
+          <CardHeader
+            title="TSI score breakdown"
+            description="How the Test Strength Index is composed, and the JUnit rows used to derive it."
+          />
+          <div className="px-4 py-3 text-xs leading-relaxed text-ink-muted">
+            <p className="font-mono text-ink">TSI = 0.5·coverage + 0.3·stability + 0.2·passRate</p>
+            <p className="mt-2">
+              Coverage {pct(run.metric?.coverage)} (weight 50%) · Stability {pct(run.metric?.stability)}{' '}
+              (weight 30%) · Pass rate {pct(run.metric?.passRate)} (weight 20%)
+            </p>
+            <p className="mt-2">
+              <span className="font-medium text-ink">Computed TSI:</span>{' '}
+              <span className="mono-nums font-semibold text-ink">{computedTsi}</span>
+              {scored
+                ? ' — this is the reported score.'
+                : ' — withheld from the headline because the run is incomplete; shown here so the derivation stays transparent.'}
+            </p>
+            <p className="mt-2 text-2xs text-ink-subtle">
+              Source artifact: <span className="font-mono text-ink">testsprite-junit.xml</span> —{' '}
+              {(run.testCases ?? []).length} testcase row
+              {(run.testCases ?? []).length === 1 ? '' : 's'} used to derive the score, {failing.length}{' '}
+              failing.
+            </p>
+          </div>
+          <ul className="max-h-72 space-y-0.5 overflow-y-auto border-t border-line px-4 py-3">
+            {(run.testCases ?? []).map((tc) => (
+              <li key={tc.name} className="font-mono text-2xs text-ink-subtle">
+                └ {tc.name} — {tc.specId ?? 'orphan'} — {tc.status}
+              </li>
+            ))}
+          </ul>
+        </Card>
 
         {run.verdict && (
           <Alert
