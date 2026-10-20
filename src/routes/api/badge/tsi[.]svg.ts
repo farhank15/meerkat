@@ -43,9 +43,9 @@ function badge(tsi: number | null): string {
     <rect x="${midX}" width="${vv}" height="20" fill="${color}"/>
     <rect width="${width}" height="20" fill="url(#s)"/>
   </g>
-  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="110" transform="scale(.1)" letter-spacing="3">
-    <text x="${(lv * 5).toFixed(0)}" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" transform-origin="${(lv * 5).toFixed(0)} 0">${esc(label)}</text>
-    <text x="${(lv * 5).toFixed(0)}" y="140" transform="scale(.1)" transform-origin="${(lv * 5).toFixed(0)} 0">${esc(label)}</text>
+  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="110" letter-spacing="3">
+    <text x="${(lv * 5).toFixed(0)}" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)">${esc(label)}</text>
+    <text x="${(lv * 5).toFixed(0)}" y="140" transform="scale(.1)">${esc(label)}</text>
     <text x="${((lv + vv / 2) * 10).toFixed(0)}" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)">${value}</text>
     <text x="${((lv + vv / 2) * 10).toFixed(0)}" y="140" transform="scale(.1)">${value}</text>
   </g>
