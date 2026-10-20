@@ -125,9 +125,16 @@ export function VerdictBadge({ state, label }: { state: string; label?: string |
 
 // ── Card ────────────────────────────────────────────────────────────────────
 
-export function Card({ className, children }: { className?: string; children: ReactNode }) {
+export function Card({
+  className,
+  children,
+  id,
+  ...rest
+}: { className?: string; children: ReactNode; id?: string } & React.HTMLAttributes<HTMLElement>) {
   return (
-    <section className={cn('surface rounded-lg shadow-panel', className)}>{children}</section>
+    <section id={id} className={cn('surface rounded-lg shadow-panel', className)} {...rest}>
+      {children}
+    </section>
   )
 }
 

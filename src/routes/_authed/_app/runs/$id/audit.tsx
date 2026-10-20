@@ -6,6 +6,7 @@ import { createFileRoute, notFound } from '@tanstack/react-router'
 import { PageHeader } from '@/components/ui/layout'
 import { RunTabs } from '@/components/run-tabs'
 import { Alert, Badge, Card, CardContent, CardHeader, Stat } from '@/components/ui/primitives'
+import { EscalationPanel } from '@/components/escalation-panel'
 import { auditRun, clusterFailures } from '@/lib/auditor'
 import { getRunFn } from '@/server/runs'
 
@@ -136,6 +137,8 @@ function AuditPage() {
             </CardContent>
           </Card>
         )}
+
+        <EscalationPanel escalations={run.escalations} />
       </div>
     </>
   )

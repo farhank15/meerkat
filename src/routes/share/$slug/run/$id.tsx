@@ -7,6 +7,7 @@ import { Fragment, useState } from 'react'
 import { Link, createFileRoute, notFound } from '@tanstack/react-router'
 
 import { Alert, Badge, Card, CardHeader, Stat, StatusBadge } from '@/components/ui/primitives'
+import { EscalationPanel } from '@/components/escalation-panel'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table'
 import { ArrowLeftIcon, ExternalIcon } from '@/components/ui/icons'
 import { getPublicRunFn } from '@/server/public'
@@ -194,7 +195,7 @@ function PublicRun() {
                     : 'text-danger')
             }
           >
-            {scored ? (metric?.tsi ?? '—') : '—'}
+            {scored ? (metric?.tsi ?? 'n/a') : 'n/a'}
           </div>
           <div className="mt-0.5 text-2xs text-ink-subtle">
             {scored ? 'Deterministic score · tap for traceability' : 'Verdict withheld'}
@@ -227,6 +228,9 @@ function PublicRun() {
             title="TSI traceability"
             description="The JUnit source behind the score — every testcase that feeds the pass rate."
           />
+          <p className="px-4 pt-3 text-2xs text-ink-subtle">
+            Source artifact: <span className="font-mono text-ink">testsprite-junit.xml</span>
+          </p>
           <Table caption="Test cases (JUnit source)">
             <THead>
               <TR>
@@ -384,6 +388,8 @@ function PublicRun() {
       )}
 
       <PrChecksPanel baseline={ratchetBaseline.tsi} />
+
+      <EscalationPanel escalations={run.escalations} />
     </div>
   )
 }

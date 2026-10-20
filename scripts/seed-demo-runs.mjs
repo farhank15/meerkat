@@ -2,8 +2,9 @@
 // meerkat-demo project, replacing any backfilled runs so the E2E demo suite
 // sees a coherent, feature-complete narrative:
 //   - run-demo-1: complete, TSI 93, verdict failed → loop fixed (green),
-//     includes a vacuous pass (audited) and SV-ADQ-03 as a covered, shallow pass.
-//   - run-demo-2: incomplete rerun with a refused testcase → n/a TSI.
+//     includes a vacuous pass (audited) and a shallow pass flagged "(1 assertion)".
+//   - run-demo-2: incomplete rerun with a refused testcase → n/a TSI, SV-FIX-06
+//     escalated after one red rerun.
 //
 // The live app (authed + public share) is 100% DB-driven; the in-code DEMO_RUN
 // fixture is only used by unit tests. Backfilled runs imported real TestSprite
@@ -26,36 +27,13 @@ const APPLY = process.argv.includes('--apply')
 const { DEMO_RUN, DEMO_RUN_2 } = await import('../src/lib/store.ts')
 const { createPool } = await import('./db-client.mjs')
 
-/** Convert the orphan "Open a public share page by slug" into the SV-ADQ-03
- * shallow pass so the demo shows SV-ADQ-03 as a covered, shallow (1 assertion)
- * scenario — exactly what the SV-ADQ-03 E2E test expects. Keeps total testcases
- * and the 94% meaningful pass rate intact (no unit-test-drift). */
+/** run-demo-1 is the documented primary fixture verbatim (TSI 93, 30/33
+ * coverage, a vacuous pass audited, a shallow pass flagged). Kept identical to
+ * the in-code DEMO_RUN so the live run matches the documented score and stays
+ * internally consistent — SV-ADQ-03 appears as a gap row and the shallow pass
+ * is flagged "(1 assertion)" on the run/audit views. */
 function buildCuratedComplete() {
-  const run = structuredClone(DEMO_RUN)
-  const idx = run.testCases.findIndex((t) => t.name === 'Open a public share page by slug')
-  if (idx >= 0) {
-    run.testCases[idx] = {
-      name: 'SV-ADQ-03 A shallow pass is flagged not penalised',
-      specId: 'SV-ADQ-03',
-      status: 'passed',
-      shallow: true,
-    }
-  }
-  const se = run.specEntries.find((s) => s.id === 'SV-ADQ-03')
-  if (se) {
-    se.covered = true
-    se.testName = 'SV-ADQ-03 A shallow pass is flagged not penalised'
-    se.status = 'passed'
-    se.shallow = true
-    se.vacuous = false
-  }
-  const covered = run.specEntries.filter((s) => s.covered).length
-  run.coverageIdsCovered = covered
-  run.coverageIdsTotal = run.specEntries.length
-  run.metric = { ...run.metric, coverage: covered / run.specEntries.length }
-  run.total = run.testCases.length
-  run.passed = run.testCases.filter((t) => t.status === 'passed').length
-  return run
+  return structuredClone(DEMO_RUN)
 }
 
 function buildCuratedIncomplete() {
@@ -63,13 +41,23 @@ function buildCuratedIncomplete() {
   run.metric = { ...run.metric, tsi: 0 }
   // matcha: SV-FIX-06 — a failed/refused fix attempt is escalated to a human
   // instead of being forced green. The Fix loop panel renders "escalated to
-  // human" (LoopPanel escalated=true when result==='escalated').
+  // human" (LoopPanel escalated=true when result==='escalated'), and the audit
+  // view renders the attempt count + red rerun state via `escalations`.
   run.loop = {
     pr: '#13',
     classification: 'spec-drift',
     action: 'escalate to human',
     result: 'escalated',
   }
+  run.escalations = [
+    {
+      specId: 'SV-FIX-06',
+      attempts: 1,
+      maxAttempts: 1,
+      rerun: 'red',
+      result: 'escalated',
+    },
+  ]
   return run
 }
 

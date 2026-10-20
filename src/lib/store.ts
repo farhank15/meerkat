@@ -46,6 +46,18 @@ export interface LoopAction {
   fixCommit?: string
 }
 
+/** A fix attempt that failed and was escalated rather than force-greened.
+ * Realised by SV-FIX-06: after `maxAttempts` red reruns the loop stops and a
+ * human takes over — Meerkat never retries more than once. */
+export interface Escalation {
+  specId: string
+  attempts: number
+  maxAttempts: number
+  /** The rerun state when the attempt failed. */
+  rerun: 'red' | 'green'
+  result: 'escalated'
+}
+
 /**
  * What the run is allowed to claim. A refused or incomplete run is not a
  * failure — it means the evidence is not there yet, so the score is withheld.
@@ -99,6 +111,8 @@ export interface Run {
   testCases: TestCaseRow[]
   verdict?: Verdict
   loop?: LoopAction
+  /** Failed fix attempts that were escalated to a human instead of forced green. */
+  escalations?: Escalation[]
 }
 
 export interface Project {

@@ -3,7 +3,7 @@
 // a 403 would confirm that a private project exists.
 
 import { createServerFn } from '@tanstack/react-start'
-import { and, desc, eq, sql } from 'drizzle-orm'
+import { and, desc, eq, or, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { getDb } from '@/db'
@@ -171,13 +171,13 @@ export const getPublicRunFn = createServerFn({ method: 'GET' })
         })
         .from(runs)
         .innerJoin(projects, eq(runs.projectId, projects.id))
-        .where(
-          and(
-            eq(runs.id, data.id),
-            eq(projects.slug, data.slug),
-            eq(projects.isPublic, true),
-          ),
-        )
+      .where(
+        and(
+          or(eq(runs.id, data.id), eq(sql`${runs.data}->>'id'`, data.id)),
+          eq(projects.slug, data.slug),
+          eq(projects.isPublic, true),
+        ),
+      )
         .limit(1)
 
       if (!row) return null

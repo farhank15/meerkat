@@ -6,6 +6,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 
 import { Card, CardHeader, Stat, Badge, Button } from '@/components/ui/primitives'
 import { ArrowRightIcon } from '@/components/ui/icons'
+import { ScoreCalculator } from '@/components/score-calculator'
 
 export const Route = createFileRoute('/_marketing/score')({
   component: ScorePage,
@@ -82,7 +83,7 @@ function ScorePage() {
         </p>
       </Card>
 
-      <Card className="mt-4">
+      <Card className="mt-4" id="trust-gate">
         <CardHeader
           title="Verdict-Trust Gate"
           description="Every green verdict is cross-checked before it is trusted — a red or held run never reports green."
@@ -101,12 +102,30 @@ function ScorePage() {
             <path fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" d="m8.5 12 2.2 2.2 4.8-4.8" />
           </svg>
           <div className="text-xs leading-relaxed text-ink-muted">
-            <p className="font-medium text-ink">Verdict: green (cross-checked)</p>
+            <p className="font-medium text-ink">A green verdict is a claim — not a promise.</p>
             <p>
-              A failed fix attempt is escalated to a human instead of being forced green. The gate
-              reports failures as-is — it never manufactures a passing score.
+              Meerkat cross-checks every green verdict against the underlying evidence before it is
+              trusted. A failed fix attempt is escalated to a human instead of being forced green,
+              and the gate reports failures as-is — it never manufactures a passing score.
             </p>
+            <Link
+              to="/share/$slug/run/$id"
+              params={{ slug: 'meerkat-demo', id: 'run-demo-1' }}
+              className="mt-2 inline-block text-2xs font-medium text-accent hover:text-accent-strong"
+            >
+              Open the full audit →
+            </Link>
           </div>
+        </div>
+      </Card>
+
+      <Card className="mt-4">
+        <CardHeader
+          title="Try the scorer"
+          description="The same rounding logic the backend uses, live in your browser. Submit a boundary-case score and read the computed TSI."
+        />
+        <div className="p-4">
+          <ScoreCalculator />
         </div>
       </Card>
 

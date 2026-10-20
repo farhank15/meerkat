@@ -24,6 +24,8 @@ export interface RunRow {
   projectId: string
   projectName: string
   projectSlug: string
+  /** Carried from the run payload — the runs table stores it in `data`, not a column. */
+  environment: string | null
 }
 
 const selection = {
@@ -39,6 +41,7 @@ const selection = {
   projectId: runs.projectId,
   projectName: projects.name,
   projectSlug: projects.slug,
+  data: runs.data,
 }
 
 function toRow(row: {
@@ -54,11 +57,23 @@ function toRow(row: {
   projectId: string
   projectName: string
   projectSlug: string
+  data: unknown
 }): RunRow {
+  const payload = (row.data ?? {}) as { environment?: string }
   return {
-    ...row,
+    id: row.id,
+    sha: row.sha,
+    pr: row.pr,
+    branch: row.branch,
+    source: row.source,
+    status: row.status,
+    tsi: row.tsi,
     startedAt: row.startedAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
+    projectId: row.projectId,
+    projectName: row.projectName,
+    projectSlug: row.projectSlug,
+    environment: payload.environment ?? null,
   }
 }
 

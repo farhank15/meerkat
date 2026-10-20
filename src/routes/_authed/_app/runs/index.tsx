@@ -49,6 +49,7 @@ function Runs() {
                   <TH>Commit</TH>
                   <TH>PR</TH>
                   <TH>Source</TH>
+                  <TH>Environment</TH>
                   <TH>When</TH>
                   <TH align="right">TSI</TH>
                   <TH>Status</TH>
@@ -70,6 +71,13 @@ function Runs() {
                     <TD className="font-mono text-2xs">{run.sha?.slice(0, 8) ?? '—'}</TD>
                     <TD className="text-2xs">{run.pr ? `#${run.pr}` : '—'}</TD>
                     <TD className="text-2xs">{run.source}</TD>
+                    <TD className="text-2xs">
+                      {run.environment ? (
+                        <span className="rounded bg-surface-raised px-1.5 py-0.5 text-ink-subtle">{run.environment}</span>
+                      ) : (
+                        '—'
+                      )}
+                    </TD>
                     <TD className="whitespace-nowrap text-2xs">{shortWhen(run.startedAt ?? run.createdAt)}</TD>
                     <TD align="right" className="mono-nums font-medium text-ink">
                       {run.tsi == null ? <Badge tone="warn">withheld</Badge> : run.tsi}

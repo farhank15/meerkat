@@ -143,6 +143,11 @@ function CoveragePage() {
               Coverage {pct(run.metric?.coverage)} (weight 50%) · Stability {pct(run.metric?.stability)} (weight 30%) ·
               Pass rate {pct(run.metric?.passRate)} (weight 20%)
             </p>
+            <p className="mt-2 text-2xs text-ink-subtle">
+              Source artifact: <span className="font-mono text-ink">testsprite-junit.xml</span> —{' '}
+              {testCases.filter((tc) => tc.status === 'failed').length} failing testcase
+              {testCases.filter((tc) => tc.status === 'failed').length === 1 ? '' : 's'} included below.
+            </p>
           </div>
           <Table caption="Test cases (JUnit source)">
             <THead>

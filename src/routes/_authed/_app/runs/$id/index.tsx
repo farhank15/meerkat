@@ -181,7 +181,7 @@ function RunOverview() {
           >
             <Stat
               label="Test Strength Index (TSI)"
-              value={scored ? run.metric.tsi : '—'}
+              value={scored ? run.metric.tsi : 'n/a'}
               hint={scored ? 'Deterministic score · tap for traceability' : 'Verdict withheld'}
               tone={!scored ? 'neutral' : run.metric.tsi >= 80 ? 'ok' : run.metric.tsi >= 50 ? 'warn' : 'danger'}
             />
