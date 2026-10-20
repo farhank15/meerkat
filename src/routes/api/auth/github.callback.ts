@@ -96,7 +96,7 @@ export const Route = createFileRoute('/api/auth/github/callback')({
           return new Response(null, {
             status: 302,
             headers: {
-              location: workspace.onboardedAt ? '/app' : '/onboarding',
+              location: workspace.onboardedAt ? '/dashboard' : '/onboarding',
               'set-cookie': sessionCookie(existing.id, existing.email, workspace.id),
             },
           })

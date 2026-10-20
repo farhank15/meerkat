@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as MarketingRouteRouteImport } from './routes/_marketing/route'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthedAppRouteRouteImport } from './routes/_authed/_app/route'
 import { Route as AuthedOnboardingRouteRouteImport } from './routes/_authed/onboarding/route'
@@ -56,6 +57,11 @@ const AuthedRouteRoute = AuthedRouteRouteImport.update({
 } as any)
 const MarketingRouteRoute = MarketingRouteRouteImport.update({
   id: '/_marketing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -250,6 +256,7 @@ const AuthedAppRunsIdCoverageRoute = AuthedAppRunsIdCoverageRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof MarketingIndexRoute
+  '/app': typeof AppRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof AuthedOnboardingRouteRouteWithChildren
   '/agent': typeof MarketingAgentRoute
@@ -289,6 +296,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof MarketingIndexRoute
+  '/app': typeof AppRoute
   '/login': typeof LoginRoute
   '/agent': typeof MarketingAgentRoute
   '/auditor': typeof MarketingAuditorRoute
@@ -328,6 +336,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authed': typeof AuthedRouteRouteWithChildren
   '/_marketing': typeof MarketingRouteRouteWithChildren
+  '/app': typeof AppRoute
   '/login': typeof LoginRoute
   '/_authed/_app': typeof AuthedAppRouteRouteWithChildren
   '/_authed/onboarding': typeof AuthedOnboardingRouteRouteWithChildren
@@ -371,6 +380,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/app'
     | '/login'
     | '/onboarding'
     | '/agent'
@@ -410,6 +420,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/app'
     | '/login'
     | '/agent'
     | '/auditor'
@@ -448,6 +459,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authed'
     | '/_marketing'
+    | '/app'
     | '/login'
     | '/_authed/_app'
     | '/_authed/onboarding'
@@ -491,6 +503,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
   MarketingRouteRoute: typeof MarketingRouteRouteWithChildren
+  AppRoute: typeof AppRoute
   LoginRoute: typeof LoginRoute
   ApiAgentBriefRoute: typeof ApiAgentBriefRoute
   ApiHealthRoute: typeof ApiHealthRoute
@@ -521,6 +534,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof MarketingRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -904,6 +924,7 @@ const ApiAuthGithubRouteWithChildren = ApiAuthGithubRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AuthedRouteRoute: AuthedRouteRouteWithChildren,
   MarketingRouteRoute: MarketingRouteRouteWithChildren,
+  AppRoute: AppRoute,
   LoginRoute: LoginRoute,
   ApiAgentBriefRoute: ApiAgentBriefRoute,
   ApiHealthRoute: ApiHealthRoute,

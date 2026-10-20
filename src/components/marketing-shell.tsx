@@ -63,15 +63,19 @@ export function MarketingShell({
           </nav>
 
           <div className="flex items-center gap-2">
-            <a
-              href="https://github.com/farhank15/meerkat"
-              target="_blank"
-              rel="noreferrer"
-              className="hidden text-ink-subtle transition-colors hover:text-ink sm:block"
-              aria-label="Meerkat on GitHub"
-            >
-              <GithubIcon width={16} height={16} />
-            </a>
+            {/* Signed-in visitors get the account menu; the repo link would sit
+                flush against it and read as a dead control. */}
+            {!session && (
+              <a
+                href="https://github.com/farhank15/meerkat"
+                target="_blank"
+                rel="noreferrer"
+                className="hidden text-ink-subtle transition-colors hover:text-ink sm:block"
+                aria-label="Meerkat on GitHub"
+              >
+                <GithubIcon width={16} height={16} />
+              </a>
+            )}
             {session ? (
               <AccountMenu session={session} />
             ) : (

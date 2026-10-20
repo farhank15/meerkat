@@ -132,8 +132,16 @@ function Delta({ value }: { value: number | null }) {
 function Landing() {
   const project = Route.useLoaderData()
   const { session } = Route.useRouteContext()
-  const tsi = project?.latest?.tsi ?? null
+  // The newest run can be held (incomplete), so the hero shows the newest run
+  // that actually produced a score — never a blank panel while scores exist.
+  const scored = project?.recent?.find((row) => typeof row.tsi === 'number') ?? null
+  const tsi = scored?.tsi ?? null
   const delta = project ? trendDelta(project.trend) : null
+  const prLabel = project?.latest?.pr
+    ? project.latest.pr.startsWith('#')
+      ? project.latest.pr
+      : `#${project.latest.pr}`
+    : null
 
   return (
     <div>
@@ -204,11 +212,11 @@ function Landing() {
                     <Delta value={delta} />
                   </div>
                 </div>
-                {project?.latest?.sha && (
+                {scored?.sha && (
                   <div className="text-right">
                     <div className="text-2xs uppercase tracking-wider text-ink-subtle">Commit</div>
                     <span className="font-mono text-2xs text-ink-muted">
-                      {project.latest.sha.slice(0, 8)}
+                      {scored.sha.slice(0, 8)}
                     </span>
                   </div>
                 )}
@@ -229,9 +237,16 @@ function Landing() {
                 <Stat
                   label="Status"
                   value={project?.latest?.status ?? '—'}
-                  hint={project?.latest?.pr ? `PR #${project.latest.pr}` : 'No PR linked'}
+                  hint={prLabel ? `PR ${prLabel}` : 'No PR linked'}
                 />
               </div>
+
+              {project?.latest && project.latest.tsi === null && scored && (
+                <p className="mt-2 text-2xs text-ink-subtle">
+                  The newest run is held ({project.latest.status}) — the score above is from the
+                  latest run that produced one.
+                </p>
+              )}
 
               {project && (
                 <Link
