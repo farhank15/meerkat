@@ -13,6 +13,7 @@ import { CloseIcon, GithubIcon, MenuIcon } from '@/components/ui/icons'
 const LINKS = [
   { to: '/', label: 'Product', exact: true },
   { to: '/how-it-works', label: 'How it works' },
+  { to: '/auditor', label: 'Auditor' },
   { to: '/docs', label: 'Docs' },
 ]
 

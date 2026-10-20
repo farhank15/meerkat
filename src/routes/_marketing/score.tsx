@@ -7,6 +7,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { Card, CardHeader, Stat, Badge, Button } from '@/components/ui/primitives'
 import { ArrowRightIcon } from '@/components/ui/icons'
 import { ScoreCalculator } from '@/components/score-calculator'
+import { ScoreCli } from '@/components/score-cli'
 
 export const Route = createFileRoute('/_marketing/score')({
   component: ScorePage,
@@ -126,6 +127,16 @@ function ScorePage() {
         />
         <div className="p-4">
           <ScoreCalculator />
+        </div>
+      </Card>
+
+      <Card className="mt-4" id="cli">
+        <CardHeader
+          title="Run the scorer in your browser"
+          description="No install, no local file. Type the command the CLI accepts and read the raw score, the rounded TSI, and the half-up step."
+        />
+        <div className="p-4">
+          <ScoreCli />
         </div>
       </Card>
 

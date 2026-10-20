@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 
 import { CodeBlock } from '@/components/ui/code'
+import { ScoreCli } from '@/components/score-cli'
 import { Alert, Card, CardContent, CardHeader } from '@/components/ui/primitives'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table'
 
@@ -173,6 +174,18 @@ function Docs() {
           code={`npm run score -- --junit testsprite-junit.xml --spec SPEC.md`}
           language="shell"
         />
+      </div>
+
+      <div className="mt-4">
+        <Card>
+          <CardHeader
+            title="No terminal? Run it here"
+            description="The browser cannot read a local JUnit file, so this surface takes the three signals that file produces and runs the same engine — including the half-up boundary."
+          />
+          <div className="p-4">
+            <ScoreCli />
+          </div>
+        </Card>
       </div>
 
       <div className="mt-8">
