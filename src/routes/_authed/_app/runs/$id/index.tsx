@@ -3,6 +3,7 @@ import { Link, createFileRoute, notFound } from '@tanstack/react-router'
 import { PageHeader } from '@/components/ui/layout'
 import { RunTabs } from '@/components/run-tabs'
 import { Alert, Badge, Card, CardHeader, Stat, StatusBadge, VerdictBadge } from '@/components/ui/primitives'
+import { EscalationPanel } from '@/components/escalation-panel'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table'
 import { ExternalIcon } from '@/components/ui/icons'
 import { getRunFn } from '@/server/runs'
@@ -293,6 +294,8 @@ function RunOverview() {
         )}
 
         {run.loop && <LoopPanel loop={run.loop} run={run} />}
+
+        <EscalationPanel escalations={run.escalations} />
 
         <PrChecksPanel baseline={ratchetBaseline.tsi} />
 

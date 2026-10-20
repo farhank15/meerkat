@@ -157,6 +157,17 @@ export const getPublicRunFn = createServerFn({ method: 'GET' })
       const db = getDb()
       if (!db) return null
 
+      // Share links are generated two ways: by the stored logical id
+      // (e.g. "run-demo-1") and by the database uuid. Comparing a non-uuid
+      // string against the uuid column throws "invalid input syntax for type
+      // uuid" and aborts the whole OR, so only add the uuid match when the
+      // incoming id is actually a uuid.
+      const idIsUuid =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.id)
+      const idClause = idIsUuid
+        ? or(eq(runs.id, data.id), eq(sql`${runs.data}->>'id'`, data.id))
+        : eq(sql`${runs.data}->>'id'`, data.id)
+
       const [row] = await db
         .select({
           id: runs.id,
@@ -171,13 +182,7 @@ export const getPublicRunFn = createServerFn({ method: 'GET' })
         })
         .from(runs)
         .innerJoin(projects, eq(runs.projectId, projects.id))
-      .where(
-        and(
-          or(eq(runs.id, data.id), eq(sql`${runs.data}->>'id'`, data.id)),
-          eq(projects.slug, data.slug),
-          eq(projects.isPublic, true),
-        ),
-      )
+        .where(and(eq(projects.slug, data.slug), eq(projects.isPublic, true), idClause))
         .limit(1)
 
       if (!row) return null

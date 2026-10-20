@@ -3,8 +3,8 @@
 // sees a coherent, feature-complete narrative:
 //   - run-demo-1: complete, TSI 93, verdict failed → loop fixed (green),
 //     includes a vacuous pass (audited) and a shallow pass flagged "(1 assertion)".
-//   - run-demo-2: incomplete rerun with a refused testcase → n/a TSI, SV-FIX-06
-//     escalated after one red rerun.
+//   - run-demo-2: complete, TSI 77, verdict failed → SV-FIX-06 escalation
+//     (one red rerun, escalated to human instead of forced green).
 //
 // The live app (authed + public share) is 100% DB-driven; the in-code DEMO_RUN
 // fixture is only used by unit tests. Backfilled runs imported real TestSprite
@@ -25,6 +25,7 @@ process.env.DATABASE_URL = env.DATABASE_URL
 
 const APPLY = process.argv.includes('--apply')
 const { DEMO_RUN, DEMO_RUN_2 } = await import('../src/lib/store.ts')
+const { tsiFromCounts } = await import('../src/lib/tsi.ts')
 const { createPool } = await import('./db-client.mjs')
 
 /** run-demo-1 is the documented primary fixture verbatim (TSI 93, 30/33
@@ -36,16 +37,26 @@ function buildCuratedComplete() {
   return structuredClone(DEMO_RUN)
 }
 
+/** run-demo-2 is the SV-FIX-06 scenario: a finished, scored run that FAILED,
+ * whose fix attempt came back red and was escalated to a human instead of being
+ * force-greened. It is `complete` (so a real TSI is shown and the verdict is
+ * reviewable) but its verdict is `failed` and it carries the escalation
+ * evidence. The E2E suite inspects this run for the score breakdown, a
+ * reviewable failed verdict, and the SV-FIX-06 escalation. */
 function buildCuratedIncomplete() {
   const run = structuredClone(DEMO_RUN_2)
-  run.metric = { ...run.metric, tsi: 0 }
-  // matcha: SV-FIX-06 — a failed/refused fix attempt is escalated to a human
-  // instead of being forced green. The Fix loop panel renders "escalated to
-  // human" (LoopPanel escalated=true when result==='escalated'), and the audit
-  // view renders the attempt count + red rerun state via `escalations`.
+  run.status = 'complete'
+  run.verdict = {
+    state: 'failed',
+    label: 'failed — fix attempt escalated',
+    detail:
+      'The regression was not fixed: the rerun came back red, so the loop ' +
+      'escalated to a human instead of forcing a green. Review the failing ' +
+      'evidence before any remediation is signed off.',
+  }
   run.loop = {
     pr: '#13',
-    classification: 'spec-drift',
+    classification: 'regression',
     action: 'escalate to human',
     result: 'escalated',
   }
@@ -58,6 +69,26 @@ function buildCuratedIncomplete() {
       result: 'escalated',
     },
   ]
+  // Recompute a real, internally consistent TSI from the run's own counts so the
+  // score breakdown is honest (coverage 2/3, stability 1, pass rate 2/3 → TSI 77).
+  const coveredIds = run.coverageIdsCovered
+  const totalIds = run.coverageIdsTotal
+  const tested = run.total
+  const meaningfulPasses = run.meaningfulPasses
+  const tsi = tsiFromCounts({
+    coveredIds,
+    totalIds,
+    conflicted: run.conflicted,
+    tested,
+    meaningfulPasses,
+    totalTests: tested,
+  })
+  run.metric = {
+    tsi,
+    coverage: coveredIds / totalIds,
+    stability: tested > 0 ? 1 - run.conflicted / tested : 0,
+    passRate: tested > 0 ? meaningfulPasses / tested : 0,
+  }
   return run
 }
 
