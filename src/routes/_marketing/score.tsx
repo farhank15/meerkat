@@ -73,7 +73,7 @@ function ScorePage() {
         />
         <div className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4">
           <Stat label="Test Strength Index" value="93" hint="Deterministic score" tone="ok" />
-          <Stat label="Coverage" value="30/33" hint="Weight 50%" />
+          <Stat label="Coverage" value="91%" hint="30/33 scenarios · weight 50%" />
           <Stat label="Stability" value="97%" hint="Weight 30%" />
           <Stat label="Meaningful pass rate" value="94%" hint="Weight 20%" />
         </div>

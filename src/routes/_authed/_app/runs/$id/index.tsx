@@ -69,6 +69,16 @@ function LoopPanel({
         ))}
       </dl>
       <div className="border-t border-line px-4 py-2.5 text-2xs text-ink-muted">
+        <p className="font-medium text-ink">Remediation decision</p>
+        <p className="mt-0.5">
+          {loop.result === 'green'
+            ? 'Completed — the proposed fix was applied and the rerun verified green, so the original failure is closed.'
+            : loop.result === 'escalated'
+              ? 'Escalated — the rerun stayed red, so the loop stopped and a human takes over. No further automated retries.'
+              : 'In progress — no automated result yet.'}
+        </p>
+      </div>
+      <div className="border-t border-line px-4 py-2.5 text-2xs text-ink-muted">
         <p className="font-medium text-ink">Score trace</p>
         <p className="mt-0.5 font-mono">
           TSI {scored ? (run.metric?.tsi ?? 'withheld') : 'withheld'} · Coverage {pct(run.metric?.coverage)} ·{' '}
@@ -148,23 +158,61 @@ function RunOverview() {
 
       <div className="space-y-4 p-6">
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Link
-            to="/runs/$id/coverage"
-            params={{ id }}
-            aria-label="Open TSI traceability"
-            className="block rounded-lg transition-colors hover:ring-2 hover:ring-accent"
+          <button
+            type="button"
+            onClick={() => {
+              document
+                .getElementById('commit-traceability')
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }}
+            aria-label="Open commit traceability"
+            className="block w-full rounded-lg text-left transition-colors hover:ring-2 hover:ring-accent"
           >
             <Stat
               label="Test Strength Index (TSI)"
               value={scored ? run.metric.tsi : 'n/a'}
-              hint={scored ? 'Deterministic score · tap for traceability' : 'Verdict withheld'}
+              hint={scored ? 'Deterministic score · tap for commit traceability' : 'Verdict withheld'}
               tone={!scored ? 'neutral' : run.metric.tsi >= 80 ? 'ok' : run.metric.tsi >= 50 ? 'warn' : 'danger'}
             />
-          </Link>
+          </button>
           <Stat label="Coverage" value={`${(run.metric.coverage * 100).toFixed(1)}%`} hint="Weight 50%" />
           <Stat label="Stability" value={`${(run.metric.stability * 100).toFixed(1)}%`} hint="Weight 30%" />
           <Stat label="Pass rate" value={`${(run.metric.passRate * 100).toFixed(1)}%`} hint="Meaningful passes only" />
         </div>
+
+        <Card id="commit-traceability">
+          <CardHeader
+            title="Commit traceability"
+            description="The exact commit and run this evidence belongs to — full identifiers, no truncation."
+          />
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-2 px-4 py-3 text-2xs sm:grid-cols-2">
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-subtle">Commit</dt>
+              <dd className="font-mono text-ink">{meta.sha ?? '—'}</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-subtle">Run ID</dt>
+              <dd className="font-mono text-ink">{id}</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-subtle">Branch</dt>
+              <dd className="font-mono text-ink-muted">{meta.branch ?? '—'}</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-subtle">Environment</dt>
+              <dd className="text-ink-muted">{run.environment ?? '—'}</dd>
+            </div>
+          </dl>
+          <div className="border-t border-line px-4 py-2.5 text-2xs">
+            <Link
+              to="/runs/$id/coverage"
+              params={{ id }}
+              className="font-medium text-accent hover:text-accent-strong"
+            >
+              Open coverage detail →
+            </Link>
+          </div>
+        </Card>
 
         {scored && (
           <Card>
@@ -224,6 +272,14 @@ function RunOverview() {
                   fixed or shown to be drift — it never forces green before remediation.
                 </p>
               )}
+              <p className="mt-2">
+                <span className="font-medium text-ink">Trustworthy for remediation:</span>{' '}
+                {run.verdict.state === 'failed'
+                  ? 'yes — the failures are real and traceable, so an automated fix can target them.'
+                  : run.verdict.state === 'green'
+                    ? 'not needed — the verdict is already green.'
+                    : 'no — the run is incomplete, so there is nothing trustworthy to remediate.'}
+              </p>
             </div>
           </Card>
         )}
