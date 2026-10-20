@@ -35,7 +35,7 @@ function AuditPage() {
           { label: id.slice(0, 8), to: '/runs/$id', params: { id } },
           { label: 'Audit' },
         ]}
-        description="The trust gate cross-checks the verdict against vacuous passes, orphans, conflicts and gaps."
+        description={`Meaningful passes: ${audit.counts.meaningfulPasses} of ${audit.counts.total} testcases · the trust gate cross-checks the verdict against vacuous passes, orphans, conflicts and gaps.`}
       />
       <RunTabs id={id} />
 
@@ -101,6 +101,26 @@ function AuditPage() {
           <Stat label="Spec gaps" value={audit.counts.gaps} hint="Uncovered scenarios" />
           <Stat label="Meaningful passes" value={audit.counts.meaningfulPasses} hint="Asserted, non-vacuous" tone="ok" />
         </div>
+
+        <Card>
+          <CardHeader
+            title="TSI source breakdown"
+            description="The JUnit artifact behind the score — every testcase that fed the meaningful pass rate."
+          />
+          <p className="px-4 pt-3 text-2xs text-ink-subtle">
+            Source artifact: <span className="font-mono text-ink">testsprite-junit.xml</span> ·{' '}
+            {(run.testCases ?? []).filter((tc) => tc.status === 'failed').length} failing testcase
+            {(run.testCases ?? []).filter((tc) => tc.status === 'failed').length === 1 ? '' : 's'} ·{' '}
+            {(run.testCases ?? []).length} total
+          </p>
+          <ul className="mt-2 space-y-0.5 px-4 pb-3">
+            {(run.testCases ?? []).map((tc) => (
+              <li key={tc.name} className="font-mono text-2xs text-ink-subtle">
+                └ {tc.name} — {tc.specId ?? 'orphan'} — {tc.status}
+              </li>
+            ))}
+          </ul>
+        </Card>
 
         <Card>
           <CardHeader title="Findings" description={`${audit.findings.length} finding(s)`} />

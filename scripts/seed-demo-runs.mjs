@@ -3,8 +3,8 @@
 // sees a coherent, feature-complete narrative:
 //   - run-demo-1: complete, TSI 93, verdict failed → loop fixed (green),
 //     includes a vacuous pass (audited) and a shallow pass flagged "(1 assertion)".
-//   - run-demo-2: complete, TSI 77, verdict failed → SV-FIX-06 escalation
-//     (one red rerun, escalated to human instead of forced green).
+//   - run-demo-2: incomplete, n/a TSI (one refused testcase), verdict withheld →
+//     SV-FIX-06 escalation (one red rerun, escalated to human).
 //
 // The live app (authed + public share) is 100% DB-driven; the in-code DEMO_RUN
 // fixture is only used by unit tests. Backfilled runs imported real TestSprite
@@ -25,7 +25,6 @@ process.env.DATABASE_URL = env.DATABASE_URL
 
 const APPLY = process.argv.includes('--apply')
 const { DEMO_RUN, DEMO_RUN_2 } = await import('../src/lib/store.ts')
-const { tsiFromCounts } = await import('../src/lib/tsi.ts')
 const { createPool } = await import('./db-client.mjs')
 
 /** run-demo-1 is the documented primary fixture verbatim (TSI 93, 30/33
@@ -45,7 +44,11 @@ function buildCuratedComplete() {
  * reviewable failed verdict, and the SV-FIX-06 escalation. */
 function buildCuratedIncomplete() {
   const run = structuredClone(DEMO_RUN_2)
-  run.status = 'complete'
+  // run-demo-2 is the incomplete rerun: one testcase refused to execute, so the
+  // TSI is withheld (rendered "n/a"), the fix attempt's rerun came back red and
+  // was escalated to a human (SV-FIX-06). It stays visible in the runs list so
+  // the n/a TSI edge case can be verified.
+  run.status = 'incomplete'
   // Keep the refused (skipped) testcase and add the red-rerun failure, so the
   // TSI source breakdown carries a failing testcase row and the verdict can
   // report the refused run.
@@ -64,12 +67,12 @@ function buildCuratedIncomplete() {
   run.skipped = run.testCases.filter((t) => t.status === 'skipped').length
   run.meaningfulPasses = run.passed
   run.verdict = {
-    state: 'failed',
-    label: 'failed — fix attempt escalated',
+    state: 'incomplete',
+    label: 'incomplete rerun — fix attempt escalated',
     detail:
-      'The regression was not fixed: the rerun came back red, so the loop escalated to a human ' +
-      'instead of forcing a green. One requested testcase also refused to execute, so this is an ' +
-      'incomplete rerun on top of a failed fix.',
+      'The rerun did not complete: one requested testcase refused to execute, and the fix attempt ' +
+      'came back red, so the loop escalated to a human instead of forcing a green. The score is ' +
+      'withheld — an incomplete run is not a failure and never reports a number.',
     requested: run.total,
     completed: run.total - run.skipped,
     refused: run.skipped,
@@ -89,25 +92,11 @@ function buildCuratedIncomplete() {
       result: 'escalated',
     },
   ]
-  // Recompute a real, internally consistent TSI from the run's own counts
-  // (coverage 2/3, stability 1, pass rate 2/4 → TSI 73).
-  const coveredIds = run.coverageIdsCovered
-  const totalIds = run.coverageIdsTotal
-  const tested = run.total
-  const meaningfulPasses = run.meaningfulPasses
-  const tsi = tsiFromCounts({
-    coveredIds,
-    totalIds,
-    conflicted: run.conflicted,
-    tested,
-    meaningfulPasses,
-    totalTests: tested,
-  })
+  // A withheld score: the metric is not trusted, so tsi stays 0 and the UI
+  // renders "n/a" because status !== 'complete'.
   run.metric = {
-    tsi,
-    coverage: coveredIds / totalIds,
-    stability: tested > 0 ? 1 - run.conflicted / tested : 0,
-    passRate: tested > 0 ? meaningfulPasses / tested : 0,
+    ...run.metric,
+    tsi: 0,
   }
   return run
 }
