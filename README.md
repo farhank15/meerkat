@@ -13,7 +13,7 @@ verdict can actually be trusted.
 
 [![TestSprite Hackathon S4](https://img.shields.io/badge/TestSprite-Hackathon_S4-blue)](https://www.testsprite.com/hackathon-s4)
 [![Engine tests](https://img.shields.io/badge/engine_tests-Vitest_%2B_fast--check-brightgreen)](src/lib)
-[![TSI 93 — meerkat-demo](https://meerkat-app.vercel.app/api/badge/tsi.svg?project=meerkat-demo)](https://meerkat-app.vercel.app/share/meerkat-demo)
+[![TSI 93 — meerkat-demo](https://meerkat-app.vercel.app/api/badge/tsi.svg?project=meerkat-demo&v=2)](https://meerkat-app.vercel.app/share/meerkat-demo)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **[Live app](https://meerkat-app.vercel.app)** · **[Watch the demo](https://youtu.be/Hp3JypVbuJ4)** · **[Public scorecard](https://meerkat-app.vercel.app/share/meerkat-demo)** · demo sign-in `demo@suitevitals.dev` / `demo-password-1`
