@@ -12,6 +12,7 @@ import { PrChecksPanel } from '@/components/pr-checks-panel'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table'
 import { ArrowLeftIcon, ExternalIcon } from '@/components/ui/icons'
 import { getPublicRunFn } from '@/server/public'
+import { computeTsi } from '@/lib/tsi'
 import type { LoopAction } from '@/lib/store'
 
 import ratchetBaseline from '@/../baseline/tsi.json'
@@ -116,6 +117,20 @@ function PublicRun() {
   const ratio = (value: number | undefined) =>
     typeof value === 'number' ? `${(value * 100).toFixed(1)}%` : '—'
   const pct = (v?: number) => (typeof v === 'number' ? `${(v * 100).toFixed(1)}%` : '—')
+  // The score is always derivable from the three signals, so the headline shows
+  // the number even for a held run; the reported score stays n/a and says so.
+  // Only when a signal is genuinely absent does the headline fall back to n/a.
+  const hasSignals =
+    typeof metric?.coverage === 'number' &&
+    typeof metric?.stability === 'number' &&
+    typeof metric?.passRate === 'number'
+  const computedTsi = hasSignals
+    ? computeTsi({
+        coverage: metric.coverage as number,
+        stability: metric.stability as number,
+        passRate: metric.passRate as number,
+      })
+    : null
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-10">
@@ -163,19 +178,23 @@ function PublicRun() {
           <div
             className={
               'mono-nums mt-1.5 text-2xl font-semibold tracking-tight ' +
-              (!scored || typeof metric?.tsi !== 'number'
+              (!scored || computedTsi === null
                 ? 'text-ink'
-                : metric.tsi >= 80
+                : computedTsi >= 80
                   ? 'text-ok'
-                  : metric.tsi >= 50
+                  : computedTsi >= 50
                     ? 'text-warn'
                     : 'text-danger')
             }
           >
-            {scored ? (metric?.tsi ?? 'n/a') : 'n/a'}
+            {computedTsi ?? 'n/a'}
           </div>
           <div className="mt-0.5 text-2xs text-ink-subtle">
-            {scored ? 'Deterministic score · tap for traceability' : 'Verdict withheld'}
+            {computedTsi === null
+              ? 'Verdict withheld — a signal is missing'
+              : scored
+                ? 'Deterministic score · tap for traceability'
+                : 'Computed from the three signals · reported n/a until the run completes'}
           </div>
         </button>
         <Stat label="Coverage" value={ratio(metric?.coverage)} hint="Weight 50%" />
@@ -183,21 +202,32 @@ function PublicRun() {
         <Stat label="Pass rate" value={ratio(metric?.passRate)} hint="Meaningful passes only" />
       </div>
 
-      {scored && (
-        <Card className="mt-4">
-          <CardHeader
-            title="TSI score breakdown"
-            description="How the Test Strength Index is composed for this run."
-          />
-          <div className="px-4 py-3 text-xs leading-relaxed text-ink-muted">
-            <p className="font-mono text-ink">TSI = 0.5·coverage + 0.3·stability + 0.2·passRate</p>
-            <p className="mt-2">
-              Coverage {pct(metric?.coverage)} (weight 50%) · Stability {pct(metric?.stability)} (weight 30%) ·{' '}
-              Pass rate {pct(metric?.passRate)} (weight 20%)
-            </p>
-          </div>
-        </Card>
+      {!scored && (
+        <p className="mt-2 text-2xs text-ink-subtle">
+          Reported TSI: <span className="mono-nums font-medium text-ink-muted">n/a</span> — the run
+          is incomplete, so the reported score is withheld. The number above is derived from the
+          three signals that did land.
+        </p>
       )}
+
+      <Card className="mt-4">
+        <CardHeader
+          title="TSI score breakdown"
+          description="How the Test Strength Index is composed for this run."
+        />
+        <div className="px-4 py-3 text-xs leading-relaxed text-ink-muted">
+          <p className="font-mono text-ink">TSI = 0.5·coverage + 0.3·stability + 0.2·passRate</p>
+          <p className="mt-2">
+            Coverage {pct(metric?.coverage)} (weight 50%) · Stability {pct(metric?.stability)} (weight 30%) ·{' '}
+            Pass rate {pct(metric?.passRate)} (weight 20%)
+          </p>
+          <p className="mt-2">
+            <span className="font-medium text-ink">Computed TSI:</span>{' '}
+            <span className="mono-nums font-semibold text-ink">{computedTsi ?? 'n/a'}</span> — half-up
+            rounding of the weighted sum.
+          </p>
+        </div>
+      </Card>
 
       {showTrace && (
         <Card className="mt-4">

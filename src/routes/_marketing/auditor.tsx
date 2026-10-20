@@ -5,8 +5,9 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 
 import { Alert, Badge, Card, CardHeader, Stat } from '@/components/ui/primitives'
-import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table'
+import { ScoreCli } from '@/components/score-cli'
 import { auditRun } from '@/lib/auditor'
+import { computeTsi } from '@/lib/tsi'
 import { getPublicRunFn } from '@/server/public'
 
 export const Route = createFileRoute('/_marketing/auditor')({
@@ -42,6 +43,11 @@ function AuditorPage() {
   const { run, meta, project } = result
   const audit = auditRun(run)
   const testCases = run.testCases ?? []
+  const coverage = run.metric?.coverage ?? 0
+  const stability = run.metric?.stability ?? 0
+  const passRate = run.metric?.passRate ?? 0
+  const rawTsi = 100 * (0.5 * coverage + 0.3 * stability + 0.2 * passRate)
+  const computedTsi = computeTsi({ coverage, stability, passRate })
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-10">
@@ -97,6 +103,7 @@ function AuditorPage() {
       </p>
 
       <div className="mt-4">
+        <h2 className="text-sm font-semibold text-ink">Verdict-Trust Gate:</h2>
         <Alert
           tone={audit.state === 'trusted' ? 'ok' : audit.state === 'suspect' ? 'danger' : 'warn'}
           title={audit.headline}
@@ -137,41 +144,62 @@ function AuditorPage() {
         )}
       </Card>
 
+      <Card className="mt-4" id="scoring-cli">
+        <CardHeader
+          title="Scoring workflow — half-up, step by step"
+          description="Type the boundary inputs and read the exact weighted sum, the raw score, and the rounded TSI. Same engine as the CLI, no install required."
+        />
+        <div className="p-4">
+          <ScoreCli />
+        </div>
+      </Card>
+
       <Card className="mt-4">
         <CardHeader
           title="Full-run report"
           description="Every testcase in the artifact, with the marker the auditor used to classify it."
         />
-        <Table caption="Full-run report with row-level evidence">
-          <THead>
-            <TR>
-              <TH>Row</TH>
-              <TH>Testcase</TH>
-              <TH>Spec</TH>
-              <TH>Status</TH>
-              <TH>Marker</TH>
-            </TR>
-          </THead>
-          <TBody>
-            {testCases.map((testCase, index) => (
-              <TR key={`${testCase.name}-${index}`}>
-                <TD className="mono-nums text-2xs text-ink-subtle">└ {index + 1}</TD>
-                <TD className="font-mono text-2xs text-ink">{testCase.name}</TD>
-                <TD className="font-mono text-2xs">{testCase.specId ?? 'orphan'}</TD>
-                <TD className="text-2xs">{testCase.status}</TD>
-                <TD className="text-2xs">
-                  {testCase.status === 'failed'
-                    ? 'failed — evidence of a real defect'
-                    : testCase.shallow
-                      ? 'shallow (1 assertion) — flagged, not penalised'
-                      : testCase.specId
-                        ? 'meaningful — asserts a contracted scenario'
-                        : 'orphan — no SPEC ID'}
-                </TD>
-              </TR>
-            ))}
-          </TBody>
-        </Table>
+        <ul className="divide-y divide-line">
+          {testCases.map((testCase, index) => (
+            <li key={`${testCase.name}-${index}`}>
+              <details>
+                <summary className="cursor-pointer px-4 py-2 font-mono text-2xs text-ink">
+                  └ {testCase.name} — {testCase.specId ?? 'orphan'} — {testCase.status}
+                </summary>
+                <div className="space-y-1 px-8 pb-3 text-2xs leading-relaxed text-ink-muted">
+                  <p>
+                    JUnit row {index + 1} of {testCases.length} in{' '}
+                    <span className="font-mono text-ink">testsprite-junit.xml</span> · status{' '}
+                    <span className="font-mono text-ink">{testCase.status}</span> · spec{' '}
+                    <span className="font-mono text-ink">{testCase.specId ?? 'orphan'}</span>
+                  </p>
+                  <p>
+                    Marker:{' '}
+                    {testCase.status === 'failed'
+                      ? 'failed — real defect, counted in the failure cluster'
+                      : testCase.shallow
+                        ? 'shallow (1 assertion) — flagged, pass rate unchanged (SV-ADQ-03)'
+                        : testCase.specId
+                          ? 'meaningful — asserts a contracted scenario'
+                          : 'orphan — no SPEC ID, so it cannot cover a scenario'}
+                  </p>
+                  <p>
+                    Score evidence: coverage {coverage.toFixed(3)} × 0.50 + stability{' '}
+                    {stability.toFixed(3)} × 0.30 + pass rate {passRate.toFixed(3)} × 0.20 = raw{' '}
+                    <span className="font-mono text-ink">{rawTsi.toFixed(3)}</span> → TSI{' '}
+                    <span className="mono-nums font-semibold text-ink">{computedTsi}</span>{' '}
+                    (half-up: 93.5 → 94, 95.4999 → 95)
+                  </p>
+                  <p>
+                    <a href="#scoring-cli" className="font-medium text-accent hover:text-accent-strong">
+                      Open the scoring workflow for this row →
+                    </a>
+                  </p>
+                </div>
+              </details>
+            </li>
+          ))}
+        </ul>
       </Card>
 
       <div className="mt-6 flex flex-wrap items-center gap-4 text-sm">

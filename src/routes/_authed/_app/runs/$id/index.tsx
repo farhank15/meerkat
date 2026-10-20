@@ -123,6 +123,11 @@ function RunOverview() {
   const coverage = run.metric?.coverage ?? 0
   const stability = run.metric?.stability ?? 0
   const passRateValue = run.metric?.passRate ?? 0
+  // Only a genuinely missing signal falls back to n/a; a held verdict does not.
+  const hasSignals =
+    typeof run.metric?.coverage === 'number' &&
+    typeof run.metric?.stability === 'number' &&
+    typeof run.metric?.passRate === 'number'
   const computedTsi = computeTsi({ coverage, stability, passRate: passRateValue })
   // The unrounded score, so the half-up step is visible instead of implied.
   const rawTsi = 100 * (0.5 * coverage + 0.3 * stability + 0.2 * passRateValue)
@@ -180,13 +185,15 @@ function RunOverview() {
           >
             <Stat
               label="Test Strength Index (TSI)"
-              value={computedTsi}
+              value={hasSignals ? computedTsi : 'n/a'}
               hint={
-                scored
-                  ? 'Deterministic score · tap for commit traceability'
-                  : 'Computed from the three signals · reported n/a until the run completes'
+                !hasSignals
+                  ? 'Verdict withheld — a signal is missing'
+                  : scored
+                    ? 'Deterministic score · tap for commit traceability'
+                    : 'Computed from the three signals · reported n/a until the run completes'
               }
-              tone={!scored ? 'neutral' : computedTsi >= 80 ? 'ok' : computedTsi >= 50 ? 'warn' : 'danger'}
+              tone={!scored || !hasSignals ? 'neutral' : computedTsi >= 80 ? 'ok' : computedTsi >= 50 ? 'warn' : 'danger'}
             />
           </button>
           <Stat label="Coverage" value={`${(coverage * 100).toFixed(1)}%`} hint="Weight 50%" />
