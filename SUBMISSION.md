@@ -10,13 +10,15 @@
 - GitHub App installed; the `TestSprite V3` check runs on every PR.
 
 ## Pull Request
-- PR #9 `feat/tenancy-saas` → `main`, opened 2026-10-19 (within the Oct 16–22 window).
-- Carries the `TestSprite V3` status check.
-- "Block PR until tests pass" is available in the portal for bonus score.
+- PR #9 `feat/tenancy-saas` → `main`, **merged 2026-10-20** (inside the Oct 16–22 window).
+- Final wave: `TestSprite V3` green with **44/44 scenarios passing**.
+- The check is **required** by branch protection on `main`, so a red suite blocks the merge
+  instead of decorating it.
+- "Block PR until tests pass" is also available in the portal for bonus score.
 
 ## What Meerkat does
 Meerkat is a trust-gate console for CI test runs. It ingests TestSprite/SuiteVitals
-results, computes a Trust Score Index (TSI), and surfaces honest signals other
+results, computes a **Test Strength Index (TSI)**, and surfaces honest signals other
 dashboards hide: vacuous passes, shallow assertions (1-assertion tests), orphan
 specs, and escalation-to-human loops. The public share scorecard is reachable
 without a session.
